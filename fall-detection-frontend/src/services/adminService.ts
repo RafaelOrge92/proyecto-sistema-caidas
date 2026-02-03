@@ -1,6 +1,6 @@
 // src/services/adminService.ts
 import axios from 'axios';
-import { User, Device } from '../types';
+import { User, Device, FallEvent } from '../types';
 
 const API_URL = 'http://localhost:3000/api'; // Ajusta a tu backend
 
@@ -43,5 +43,13 @@ export const AdminService = {
   },
   updateUser: async (id: string, user: Partial<User>) => {
     return api.put(`/users/${id}`, user);
+  },
+
+  // --- EVENTOS ---
+  getEvents: async () => {
+    return api.get<FallEvent[]>('/events');
+  },
+  confirmFalseAlarm: async (id: string) => {
+    return api.patch(`/events/${id}/false-alarm`);
   }
 };

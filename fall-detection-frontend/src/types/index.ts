@@ -16,3 +16,16 @@ export interface Device {
   alias: string;      // Nombre amigable
   assignedUserId: string | null; // ID del usuario asociado
 }
+
+export interface FallEvent {
+  id: string;
+  deviceId: string;
+  timestamp: string;
+  fallDetected: boolean;
+  status: 'PENDIENTE' | 'CONFIRMADA' | 'FALSA_ALARMA';
+  accelerometerData?: {
+    x: number;
+    y: number;
+    z: number;
+  };
+}
