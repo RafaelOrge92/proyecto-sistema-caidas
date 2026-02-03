@@ -17,7 +17,7 @@ export const Dashboard: React.FC = () => {
       setError(null);
 
       // Lógica de detección: busca eventos PENDIENTES con caída [cite: 49, 70]
-      const activeFall = res.data.find(e => e.fallDetected && e.status === 'PENDIENTE');
+      const activeFall = res.data.find((e: FallEvent) => e.fallDetected && e.status === 'PENDIENTE');
       
       if (activeFall) {
         setIsAlertActive(true);
