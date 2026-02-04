@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { AdminService } from '../services/adminService';
 import { FallEvent } from '../types';
-//import { LiveChart } from '../components/LiveChart'; // El componente que preparaste para Rafa
+ 
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -10,23 +10,46 @@ export const Dashboard: React.FC = () => {
   const [isAlertActive, setIsAlertActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const createSimulatedAlert = () => {
+    const simulatedEvent: FallEvent = {
+      id: `SIM-${Date.now()}`,
+      deviceId: 'ESP32-SIM-001',
+      timestamp: new Date().toISOString(),
+      fallDetected: true,
+      status: 'PENDIENTE',
+      accelerometerData: { x: 2.8, y: 3.1, z: 0.4 }
+    };
+    setEvents((prev) => [simulatedEvent, ...prev]);
+    setIsAlertActive(true);
+  };
+
+  const clearSimulatedAlerts = () => {
+    setEvents((prev) => prev.filter((e) => !e.id.startsWith('SIM-')));
+    setIsAlertActive(false);
+  };
+
   const loadData = async () => {
     try {
       const res = await AdminService.getEvents();
-      setEvents(res.data);
-      setError(null);
+      setEvents((prev) => {
+        const simulated = prev.filter((e) => e.id.startsWith('SIM-'));
+        const merged = [...simulated, ...res.data];
 
-      // Lógica de detección: busca eventos PENDIENTES con caída [cite: 49, 70]
-      const activeFall = res.data.find((e: FallEvent) => e.fallDetected && e.status === 'PENDIENTE');
-      
-      if (activeFall) {
-        setIsAlertActive(true);
-        // Alerta sonora (Extra) [cite: 97]
-        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/emergency_it_is_an_emergency.ogg');
-        audio.play().catch(() => console.log("Interacción requerida para audio"));
-      } else {
-        setIsAlertActive(false);
-      }
+        // Lógica de detección: busca eventos PENDIENTES con caída [cite: 49, 70]
+        const activeFall = merged.find((e: FallEvent) => e.fallDetected && e.status === 'PENDIENTE');
+
+        if (activeFall) {
+          setIsAlertActive(true);
+          // Alerta sonora (Extra) [cite: 97]
+          const audio = new Audio('https://actions.google.com/sounds/v1/alarms/emergency_it_is_an_emergency.ogg');
+          audio.play().catch(() => console.log("Interacción requerida para audio"));
+        } else {
+          setIsAlertActive(false);
+        }
+
+        return merged;
+      });
+      setError(null);
     } catch (err) {
       setError("⚠️ Sin conexión con el servidor de alertas.");
     }
@@ -39,6 +62,15 @@ export const Dashboard: React.FC = () => {
   }, []);
 
   const handleFalseAlarm = async (id: string) => {
+    if (id.startsWith('SIM-')) {
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === id ? { ...e, status: 'FALSA_ALARMA', fallDetected: false } : e
+        )
+      );
+      setIsAlertActive(false);
+      return;
+    }
     try {
       await AdminService.confirmFalseAlarm(id); // Funcionalidad Extra 
       loadData();
@@ -55,7 +87,25 @@ export const Dashboard: React.FC = () => {
         <h2 className={`text-2xl font-bold ${isAlertActive ? 'text-white' : 'text-gray-800'}`}>
           Panel de Control - {user?.role}
         </h2>
-        {error && <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">{error}</span>}
+        <div className="flex flex-wrap items-center gap-2">
+          {user?.role === 'ADMIN' && (
+            <>
+              <button
+                onClick={createSimulatedAlert}
+                className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold hover:bg-orange-600"
+              >
+                Simular caída
+              </button>
+              <button
+                onClick={clearSimulatedAlerts}
+                className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-semibold hover:bg-gray-300"
+              >
+                Limpiar simulación
+              </button>
+            </>
+          )}
+          {error && <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">{error}</span>}
+        </div>
       </div>
 
       {/* Alerta Crítica  */}

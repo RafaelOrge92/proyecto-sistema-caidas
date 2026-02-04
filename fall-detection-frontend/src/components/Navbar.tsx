@@ -16,12 +16,12 @@ export const Navbar = () => {
         <nav className="bg-blue-900 text-white p-4 flex justify-between items-center shadow-lg">
             <div className="flex gap-6 items-center">
                 <span className="font-black text-xl tracking-tighter">FALL-DETECT</span>
-                <Link to="/" className="hover:text-blue-300">Dashboard [cite: 91]</Link>
+                <Link to="/" className="hover:text-blue-300">Dashboard </Link>
                 
                 {user.role === 'ADMIN' && (
                     <div className="flex gap-4 border-l pl-4 border-blue-700">
-                        <Link to="/admin/users" className="hover:text-blue-300">Usuarios [cite: 32]</Link>
-                        <Link to="/admin/devices" className="hover:text-blue-300">Dispositivos [cite: 32]</Link>
+                        <Link to="/admin/users" className="hover:text-blue-300">Usuarios  </Link>
+                        <Link to="/admin/devices" className="hover:text-blue-300">Dispositivos  </Link>
                     </div>
                 )}
             </div>
