@@ -1,0 +1,215 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                  🚨 SISTEMA DE DETECCIÓN DE CAÍDAS 🚨                         ║
+║                    ✅ BACKEND Y FRONTEND CONECTADOS                           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📝 CREDENCIALES DE ACCESO                                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+👨‍💼 ADMINISTRADOR:
+   Email:     superadmin@demo.local
+   Password:  1234
+   Rol:       ADMIN
+   Acceso:    Control total del sistema ✓
+
+👤 USUARIO REGULAR #1:
+   Email:     maria@demo.local
+   Password:  1234
+   Rol:       MEMBER
+   Acceso:    Gestión de dispositivos asignados ✓
+
+👤 USUARIO REGULAR #2:
+   Email:     pablo@demo.local
+   Password:  1234
+   Rol:       MEMBER
+   Acceso:    Gestión de dispositivos asignados ✓
+
+👤 USUARIO REGULAR #3:
+   Email:     lucia@demo.local
+   Password:  1234
+   Rol:       MEMBER
+   Acceso:    Gestión de dispositivos asignados ✓
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🚀 CÓMO EJECUTAR EL PROYECTO                                                 │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+OPCIÓN 1: Con npm (Terminal)
+────────────────────────────
+
+1. Abre una terminal en la carpeta "backend":
+   $ cd backend
+   $ npm run dev
+   
+   ✓ Backend iniciará en: http://localhost:3000
+
+2. Abre otra terminal en la carpeta "fall-detection-frontend":
+   $ cd fall-detection-frontend
+   $ npm run dev
+   
+   ✓ Frontend iniciará en: http://localhost:5173
+
+
+OPCIÓN 2: Con Scripts (Windows - Hacer doble click)
+────────────────────────────────────────────────────
+
+1. Backend:
+   backend/start-backend.bat
+
+2. Frontend:
+   fall-detection-frontend/start-frontend.bat
+
+
+OPCIÓN 3: Con Scripts (Mac/Linux - Terminal)
+─────────────────────────────────────────────
+
+1. Backend:
+   $ bash backend/start-backend.sh
+
+2. Frontend:
+   $ bash fall-detection-frontend/start-frontend.sh
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🌐 ACCESO A LA APLICACIÓN                                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Una vez que ambos servidores estén corriendo, accede a:
+
+   🌐 http://localhost:5173
+
+   Usa cualquiera de las credenciales anteriores para iniciar sesión
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📊 ESTRUCTURA DEL PROYECTO                                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Backend (Node.js + Express + TypeScript):
+├── src/
+│   ├── server.ts              ← Servidor principal
+│   └── routes/
+│       ├── auth.ts            ← Rutas de autenticación
+│       ├── users.ts           ← Gestión de usuarios
+│       ├── devices.ts         ← Gestión de dispositivos
+│       └── events.ts          ← Gestión de eventos
+├── dist/                      ← Archivos compilados
+└── package.json
+
+Frontend (React + Vite + TypeScript):
+├── src/
+│   ├── pages/
+│   │   └── Login.tsx          ← Pantalla de login (CONECTADA)
+│   ├── context/
+│   │   └── AuthContext.tsx    ← Context de autenticación
+│   ├── services/
+│   │   └── adminService.ts    ← Cliente API
+│   └── components/            ← Componentes reutilizables
+└── package.json
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🔌 ENDPOINTS DEL BACKEND                                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Autenticación:
+  POST   /api/auth/login          ← Login de usuario
+  POST   /api/auth/logout         ← Logout de usuario
+
+Usuarios:
+  GET    /api/users               ← Listar usuarios
+  GET    /api/users/:id           ← Obtener usuario por ID
+  POST   /api/users               ← Crear nuevo usuario
+  PUT    /api/users/:id           ← Actualizar usuario
+  PATCH  /api/users/:id/deactivate ← Desactivar usuario
+
+Dispositivos:
+  GET    /api/devices             ← Listar dispositivos
+  GET    /api/devices/:id         ← Obtener dispositivo
+  POST   /api/devices             ← Crear dispositivo
+  PUT    /api/devices/:id         ← Actualizar dispositivo
+  PATCH  /api/devices/:id/assign  ← Asignar a usuario
+
+Eventos:
+  GET    /api/events              ← Listar eventos
+  GET    /api/events/:id          ← Obtener evento
+  GET    /api/events/device/:id   ← Eventos de un dispositivo
+  POST   /api/events              ← Crear evento
+  PATCH  /api/events/:id          ← Actualizar evento
+
+Health Check:
+  GET    /api/health              ← Estado del servidor
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📱 DATOS DE PRUEBA                                                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Dispositivos:
+  ESP32-001  →  Salón (Casa Carmen)
+  ESP32-002  →  Dormitorio (Casa Antonio)
+
+Eventos:
+  ✓ 4 eventos de prueba en la base de datos
+  ✓ Estados variados: OPEN, CONFIRMED_FALL, FALSE_ALARM, RESOLVED
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🔒 NOTAS DE SEGURIDAD                                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+⚠️  IMPORTANTE: Este es un SISTEMA DE DEMOSTRACIÓN
+
+Para producción implementar:
+  ☐ Autenticación JWT real
+  ☐ Hash de contraseñas con bcrypt
+  ☐ Conexión a PostgreSQL
+  ☐ Validación robusta de datos
+  ☐ HTTPS/SSL
+  ☐ Variables de entorno
+  ☐ Rate limiting
+  ☐ Logging de auditoría
+
+Archivos disponibles para PostgreSQL:
+  backend/Base de Datos/postgres_query/create_database.sql
+  backend/Base de Datos/postgres_query/inserts_examples.sql
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📚 DOCUMENTACIÓN ADICIONAL                                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Archivos de documentación creados:
+  ✓ GUIA_INICIO.md        ← Guía de inicio completa
+  ✓ RESUMEN_CONEXION.md   ← Resumen técnico detallado
+  ✓ Este archivo          ← Referencia rápida
+
+Backend:
+  ✓ .env.example          ← Variables de entorno de ejemplo
+  ✓ start-backend.bat     ← Script de inicio (Windows)
+  ✓ start-backend.sh      ← Script de inicio (Linux/Mac)
+
+Frontend:
+  ✓ start-frontend.bat    ← Script de inicio (Windows)
+  ✓ start-frontend.sh     ← Script de inicio (Linux/Mac)
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ✅ ESTADO DEL PROYECTO                                                       │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+[✓] Backend creado y funcionando en http://localhost:3000
+[✓] Frontend conectado al backend
+[✓] Autenticación implementada
+[✓] CORS configurado
+[✓] Rutas de API completas
+[✓] Datos de prueba disponibles
+[✓] Scripts de inicio creados
+[✓] Documentación completa
+
+El sistema está completamente funcional y listo para usar. 🚀
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                     ¡LISTO PARA INICIAR EL PROYECTO!                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝

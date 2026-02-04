@@ -2,9 +2,8 @@
 import axios from 'axios';
 import { User, Device, FallEvent } from '../types';
 
-const API_URL = 'http://localhost:3000/api'; // Ajusta a tu backend
+const API_URL = 'http://localhost:3000/api';
 
-// Configuración base con Token (asumiendo que guardas el token en localStorage al hacer Login)
 const api = axios.create({
   baseURL: API_URL,
 });
@@ -18,14 +17,16 @@ api.interceptors.request.use((config) => {
 export const AdminService = {
   // --- USUARIOS ---
   getUsers: async () => {
-    return api.get<User[]>('/users'); // Asume que devuelve un array
+    return api.get<User[]>('/users');
   },
   createUser: async (user: Omit<User, 'id'> & { password?: string }) => {
     return api.post('/users', user);
   },
   softDeleteUser: async (id: string) => {
-    // Soft delete: Cambia isActive a false en vez de borrar el registro
     return api.patch(`/users/${id}/deactivate`);
+  },
+  updateUser: async (id: string, user: Partial<User>) => {
+    return api.put(`/users/${id}`, user);
   },
 
   // --- DISPOSITIVOS ---
@@ -41,15 +42,25 @@ export const AdminService = {
   assignDevice: async (deviceId: string, userId: string) => {
     return api.patch(`/devices/${deviceId}/assign`, { userId });
   },
-  updateUser: async (id: string, user: Partial<User>) => {
-    return api.put(`/users/${id}`, user);
-  },
 
   // --- EVENTOS ---
   getEvents: async () => {
     return api.get<FallEvent[]>('/events');
   },
+  
+  createEvent: async (event: any) => {
+    return api.post('/events', event);
+  },
+
+  updateEvent: async (id: string, data: any) => {
+    return api.patch(`/events/${id}`, data);
+  },
+
   confirmFalseAlarm: async (id: string) => {
-    return api.patch(`/events/${id}/false-alarm`);
+    return api.patch(`/events/${id}`, { status: 'FALSE_ALARM' });
+  },
+
+  confirmFall: async (id: string) => {
+    return api.patch(`/events/${id}`, { status: 'CONFIRMED_FALL' });
   }
 };

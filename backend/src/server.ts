@@ -1,4 +1,5 @@
 import express, { Express } from 'express';
+import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import { authRoutes } from './routes/auth';
 import { usersRoutes } from './routes/users';
@@ -19,7 +20,13 @@ app.use(cors({
 app.use((req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (token) {
-    (req as any).user = { token };
+    try {
+      const jwtSecret = process.env.JWT_SECRET || 'dev-secret-change-me';
+      const decoded = jwt.verify(token, jwtSecret);
+      (req as any).user = decoded;
+    } catch {
+      (req as any).user = null;
+    }
   }
   next();
 });
