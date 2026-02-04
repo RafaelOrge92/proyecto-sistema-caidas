@@ -4,7 +4,7 @@ Este documento resume el contrato de comunicacion entre el firmware del ESP32 y 
 
 ## Configuracion (constantes en firmware)
 
-- `BASE_URL`: `https://TU_BACKEND.com`
+- `BASE_URL`: `https://api.sistema-caidas.local` (placeholder, aun no desplegado)
 - `DEVICE_ID`: `ESP32-001` (o MAC normalizada estable)
 - `DEVICE_KEY`: opcional (si se usa, se envia en header `X-DEVICE-KEY`)
 
@@ -16,6 +16,9 @@ Este documento resume el contrato de comunicacion entre el firmware del ESP32 y 
 ## Endpoint 1: Heartbeat
 
 `POST {BASE_URL}/api/v1/devices/heartbeat`
+
+Notas de entorno:
+- En local sin TLS usa `http://localhost:8000` y el sketch `esp32/esp32_http.ino`.
 
 ### JSON minimo
 ```json
@@ -44,7 +47,7 @@ Notas:
 
 `POST {BASE_URL}/api/v1/events/ingest`
 
-### JSON base
+### JSON base (FALL con samples)
 ```json
 {
   "deviceId": "ESP32-001",
@@ -63,6 +66,29 @@ Campos:
 - `eventType`: `FALL | EMERGENCY_BUTTON | SIMULATED`.
 - `occurredAt`: ISO string (si no hay RTC, usar estimado).
 - `samples`: opcional (pero recomendado para grafica).
+
+### JSON base (EMERGENCY_BUTTON sin samples)
+```json
+{
+  "deviceId": "ESP32-001",
+  "eventUid": "550e8400-e29b-41d4-a716-446655440000",
+  "eventType": "EMERGENCY_BUTTON",
+  "occurredAt": "2026-02-04T10:15:30Z"
+}
+```
+
+## Firmware actual (ESP32)
+
+Archivo:
+- `hardware/esp32/esp32_http.ino`
+
+Comportamiento:
+- Boton en `GPIO 25` con `INPUT_PULLUP`.
+- Debounce `40ms` y cooldown `800ms`.
+- Envia `EMERGENCY_BUTTON` al pulsar el boton.
+- UUID v4 generado por evento y reutilizado en los reintentos.
+- NTP para UTC (si falla, `occurredAt: null`).
+- Heartbeat siempre activo cada 2 min para actualizar `last_seen_at`.
 
 Reglas de `samples`:
 - `seq`: 0..N-1
@@ -86,4 +112,3 @@ Reglas de `samples`:
 - Exito: `{ "ok": true, "eventId": "...", "duplicated": false }`
 - Duplicado: `{ "ok": true, "eventId": "...", "duplicated": true }`
 - Errores tipicos: `400`, `401`, `404`
-
