@@ -1,53 +1,53 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-
-// Definimos qué datos tiene un usuario
-interface User {
-  username: string;
-  role: 'ADMIN' | 'CUIDADOR' | 'USUARIO';
-}
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface AuthContextType {
-  user: User | null;
-  login: (token: string, userData: User) => void;
-  logout: () => void;
-  isAuthenticated: boolean;
+    user: { token: string; role: string } | null;
+    loading: boolean; // 👈 Añadimos esto para controlar la carga inicial
+    login: (token: string, role: string) => void;
+    logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [user, setUser] = useState<{ token: string; role: string } | null>(null);
+    const [loading, setLoading] = useState(true); // 👈 Empieza en true
 
-  // Al cargar la app, comprobamos si ya estaba logueado
-  useEffect(() => {
-    const savedUser = localStorage.getItem('userData');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
 
-  const login = (token: string, userData: User) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('userData', JSON.stringify(userData));
-    setUser(userData);
-  };
+        console.log("Datos detectados en storage:", { token, role });
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
-    setUser(null);
-  };
+        if (token && role) {
+            setUser({ token, role });
+        }
+        
+        // Una vez que intentamos leer, dejamos de cargar
+        setLoading(false); 
+    }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
-      {children}
-    </AuthContext.Provider>
-  );
+    const login = (token: string, role: string) => {
+        localStorage.setItem('token', token);
+        localStorage.setItem('role', role);
+        setUser({ token, role });
+        // Aseguramos que el login guarde el JWT según los requisitos 
+    };
+
+    const logout = () => {
+        localStorage.clear();
+        setUser(null);
+    };
+
+    return (
+        <AuthContext.Provider value={{ user, loading, login, logout }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
-// Hook para usar la auth fácilmente
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth debe usarse dentro de AuthProvider');
-  return context;
+    const context = useContext(AuthContext);
+    if (!context) throw new Error("useAuth debe usarse dentro de un AuthProvider");
+    return context;
 };
