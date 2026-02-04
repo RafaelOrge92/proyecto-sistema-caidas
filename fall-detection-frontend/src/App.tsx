@@ -4,44 +4,49 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { UsersPage } from './pages/UsersPage';
 import { DevicePage } from './pages/DevicePage';
-import { Dashboard } from './pages/Dashboard'; // Importa tu Dashboard
+import { Dashboard } from './pages/Dashboard';
+import Admin from './pages/Admin';
 import { Navbar } from './components/Navbar';
 
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) => {
-  const { user, loading } = useAuth(); // Necesitamos que tu Context devuelva 'loading'
+  const { user, loading } = useAuth();
 
-  // Si aún está leyendo el localStorage, no redirigimos todavía
   if (loading) return <div className="p-10 text-center">Iniciando sistema...</div>;
 
   if (!user) return <Navigate to="/login" />;
 
   if (!allowedRoles.includes(user.role)) {
-    return <Navigate to="/" />; // Si no tiene rol, al Dashboard principal [cite: 89]
+    return <Navigate to="/" />;
   }
 
   return <>{children}</>;
 };
 
-// Componente para organizar el Layout
 const AppContent = () => {
   const { user } = useAuth();
 
   return (
     <BrowserRouter>
-      {/* Solo mostramos la Navbar si el usuario está autenticado [cite: 8, 83] */}
       {user && <Navbar />} 
       
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Ruta principal para todos los roles: Dashboard de caídas [cite: 84, 87, 91] */}
+        {/* Dashboard principal */}
         <Route path="/" element={
-          <ProtectedRoute allowedRoles={['ADMIN', 'CUIDADOR', 'USUARIO']}>
+          <ProtectedRoute allowedRoles={['ADMIN', 'MEMBER']}>
             <Dashboard />
           </ProtectedRoute>
         } />
 
-        {/* Rutas exclusivas para ADMIN: Lo que hizo Pablo [cite: 32, 68, 69] */}
+        {/* Panel de administración (nuevo) */}
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <Admin />
+          </ProtectedRoute>
+        } />
+
+        {/* Rutas legadas (mantener por compatibilidad) */}
         <Route path="/admin/users" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <UsersPage />

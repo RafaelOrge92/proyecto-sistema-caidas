@@ -1,0 +1,60 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║          🚨 SISTEMA DE DETECCIÓN DE CAÍDAS - CREDENCIALES 🚨              ║
+║                                                                            ║
+║                    ✅ BACKEND Y FRONTEND CONECTADOS ✅                    ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+
+▶️  ARRANCAR EN 3 PASOS:
+
+   1. Terminal 1 → cd backend && npm run dev
+   2. Terminal 2 → cd fall-detection-frontend && npm run dev
+   3. Navega a: http://localhost:5173
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👨‍💼 ADMIN (Control total):
+   Email:     superadmin@demo.local
+   Contraseña: 1234
+
+👤 USUARIO #1 (Regular):
+   Email:     maria@demo.local
+   Contraseña: 1234
+
+👤 USUARIO #2 (Regular):
+   Email:     pablo@demo.local
+   Contraseña: 1234
+
+👤 USUARIO #3 (Regular):
+   Email:     lucia@demo.local
+   Contraseña: 1234
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔌 PUERTOS:
+   Backend:  http://localhost:3000
+   Frontend: http://localhost:5173
+
+📚 DOCUMENTACIÓN:
+   • PROYECTO_COMPLETADO.md ......... Lo que se hizo (LEER PRIMERO)
+   • INICIO_RAPIDO.txt .............. Guía visual rápida
+   • GUIA_INICIO.md ................. Instrucciones detalladas
+   • API_EJEMPLOS.md ................ Ejemplos de requests
+   • MIGRACION_POSTGRESQL.md ........ Guía para usar PostgreSQL
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ STATUS:
+   [✓] Backend creado y corriendo
+   [✓] Frontend conectado
+   [✓] Autenticación funcional
+   [✓] API completa
+   [✓] Datos de prueba cargados
+   [✓] Documentación lista
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+¡LISTO PARA USAR! 🚀

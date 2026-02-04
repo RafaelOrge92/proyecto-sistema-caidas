@@ -1,4 +1,5 @@
 import express, { Router } from 'express';
+import jwt, { SignOptions } from 'jsonwebtoken';
 
 const router = Router();
 
@@ -44,8 +45,19 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Email o contraseña incorrectos' });
   }
 
-  // Generar token (en producción usar JWT)
-  const token = Buffer.from(`${user.id}:${user.email}:${Date.now()}`).toString('base64');
+  const jwtSecret = (process.env.JWT_SECRET || 'dev-secret-change-me') as jwt.Secret;
+  const jwtExpire: SignOptions['expiresIn'] = (process.env.JWT_EXPIRE || '7d') as SignOptions['expiresIn'];
+
+  const token = jwt.sign(
+    {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      fullName: user.fullName
+    },
+    jwtSecret,
+    { expiresIn: jwtExpire }
+  );
 
   res.json({
     token,
