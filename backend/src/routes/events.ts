@@ -65,6 +65,11 @@ export const setEvents = (newEvents: any[]) => {
 };
 
 // Get all events
+router.get('/', async (req, res) => {
+    
+});
+
+// Get all events
 router.get('/', (req, res) => {
   res.json(events);
 });
