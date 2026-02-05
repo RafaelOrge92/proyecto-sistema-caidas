@@ -44,7 +44,8 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'ID del dispositivo es requerido' });
   }
 
-  const result = await db().query(`INSERT into public.devices (${id}, ${patientId}, ${alias}, ${active}, ${lastSeenAt})`)
+  const result = await db().query(`INSERT into public.devices (device_id, patient_id, alias, is_active, last_seen_at)
+    values (${id}, ${patientId}, ${alias}, ${active}, ${lastSeenAt})`)
   res.status(201).json(result)
 });
 
