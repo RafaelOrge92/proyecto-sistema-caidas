@@ -43,21 +43,17 @@ Notas:
 - `timestamp` puede ser `null` o aproximado si no hay RTC confiable.
 - Frecuencia recomendada: cada 2-5 min (demo). Para ahorro, 10-15 min.
 
-## Endpoint 2: Ingest de evento
+## Endpoint 2: Ingest de evento (cabecera)
 
 `POST {BASE_URL}/api/v1/events/ingest`
 
-### JSON base (FALL con samples)
+### JSON base (FALL - cabecera)
 ```json
 {
   "deviceId": "ESP32-001",
   "eventUid": "550e8400-e29b-41d4-a716-446655440000",
   "eventType": "FALL",
-  "occurredAt": "2026-02-04T10:15:30Z",
-  "samples": [
-    { "seq": 0, "tMs": -600, "accX": 0.12, "accY": 0.05, "accZ": 9.81 },
-    { "seq": 1, "tMs": -580, "accX": 0.12, "accY": 0.05, "accZ": 9.81 }
-  ]
+  "occurredAt": "2026-02-04T10:15:30Z"
 }
 ```
 
@@ -65,7 +61,7 @@ Campos:
 - `eventUid`: UUID v4 generado una sola vez por evento (idempotencia).
 - `eventType`: `FALL | EMERGENCY_BUTTON | SIMULATED | TILT`.
 - `occurredAt`: ISO string (si no hay RTC, usar estimado).
-- `samples`: opcional (pero recomendado para grafica).
+- `samples`: no va en la cabecera cuando se usa el endpoint de muestras (ver abajo).
 
 ### JSON base (EMERGENCY_BUTTON sin samples)
 ```json
@@ -87,6 +83,26 @@ Campos:
 }
 ```
 
+## Endpoint 3: Samples de acelerometro (opcional)
+
+`POST {BASE_URL}/api/v1/events/samples`
+
+Se usa para enviar el bloque de muestras del acelerometro asociado a un evento `FALL`.
+Si el backend no expone este endpoint, el firmware envia solo la cabecera del evento.
+
+### JSON base (samples)
+```json
+{
+  "eventUid": "550e8400-e29b-41d4-a716-446655440000",
+  "deviceId": "ESP32-001",
+  "samples": [
+    { "seq": 0, "tMs": -600, "accX": 0.12, "accY": 0.05, "accZ": 9.81 },
+    { "seq": 1, "tMs": -580, "accX": 0.12, "accY": 0.05, "accZ": 9.81 }
+  ],
+  "units": "g"
+}
+```
+
 ## Firmware actual (ESP32)
 
 Archivo:
@@ -99,6 +115,10 @@ Comportamiento:
 - Inclinometro KY-017 en `GPIO 26` (configurable). Es un interruptor mecanico, no mide angulos.
 - Se envia evento `TILT` (solo `tilted:true`) por `/api/v1/events/ingest`. No se reporta el retorno a normal.
 - Filtros inclinometro: debounce `150ms`, hold `2000ms`, cooldown `3000ms` (ajustables).
+- Acelerometro MPU6050 por I2C (`SDA=21`, `SCL=22`) con rango ±8g y muestreo a 50Hz.
+- Deteccion de caida por maquina de estados: free-fall -> impacto -> stillness (confirmacion).
+- Valores actuales (configurables): free-fall `<0.55g` por `>=120ms`, impacto `>=1.70g`, stillness `>=1200ms`.
+- Se envia cabecera `FALL` por `/api/v1/events/ingest` y muestras por `/api/v1/events/samples` cuando existe.
 - UUID v4 generado por evento y reutilizado en los reintentos.
 - NTP para UTC (si falla, `occurredAt: null`).
 - Heartbeat siempre activo cada 2 min para actualizar `last_seen_at`.
