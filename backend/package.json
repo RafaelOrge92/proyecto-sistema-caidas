@@ -14,7 +14,9 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@types/pg": "^8.16.0",
     "express": "^5.2.1",
+    "pg": "^8.18.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
