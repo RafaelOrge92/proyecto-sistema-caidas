@@ -13,7 +13,7 @@ export const LoginPage = () => {
             // Llamada al backend de tus compañeros
             const res = await axios.post('http://localhost:3000/api/auth/login', { email, password });
             login(res.data.token, res.data.user.role);
-            window.location.href = '/'; // O usar useNavigate de react-router
+            window.location.href = '/dashboard'; // O usar useNavigate de react-router
         } catch (error) {
             alert("Credenciales incorrectas");
         }
