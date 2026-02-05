@@ -5,7 +5,7 @@ Este documento resume el contrato de comunicacion entre el firmware del ESP32 y 
 ## Configuracion (constantes en firmware)
 
 - `BASE_URL`: `https://api.sistema-caidas.local` (placeholder, aun no desplegado)
-- `DEVICE_ID`: `ESP32-001` (o MAC normalizada estable)
+- `DEVICE_ID_OVERRIDE`: si esta vacio, el firmware usa el HWID (eFuse) y lo guarda en NVS (formato `ESP32-<HWID>`).
 - `DEVICE_KEY`: opcional (si se usa, se envia en header `X-DEVICE-KEY`)
 
 ## Headers HTTP
@@ -84,11 +84,19 @@ Archivo:
 
 Comportamiento:
 - Boton en `GPIO 25` con `INPUT_PULLUP`.
-- Debounce `40ms` y cooldown `800ms`.
+- Captura por interrupcion (FALLING) con debounce ~60ms para no perder pulsaciones mientras hay requests en vuelo.
 - Envia `EMERGENCY_BUTTON` al pulsar el boton.
 - UUID v4 generado por evento y reutilizado en los reintentos.
 - NTP para UTC (si falla, `occurredAt: null`).
 - Heartbeat siempre activo cada 2 min para actualizar `last_seen_at`.
+- Cola persistente en NVS (max 10 eventos). Si esta llena, se descarta el mas antiguo.
+- Reintentos con backoff: 1s, 3s, 10s y luego cada 60s.
+- LED estado (`GPIO2`, active-low): sin WiFi parpadeo lento (500ms).
+- LED estado (`GPIO2`, active-low): con cola pendiente parpadeo rapido (200ms).
+- LED estado (`GPIO2`, active-low): OK (WiFi + sin cola) encendido fijo.
+- WiFi recovery: reintento cada 10s; reinicio si 2 min sin WiFi.
+- Watchdog: 15s para evitar bloqueo prolongado.
+- Device ID: se genera desde el HWID (eFuse) y se persiste en NVS si `DEVICE_ID_OVERRIDE` esta vacio.
 
 Reglas de `samples`:
 - `seq`: 0..N-1
