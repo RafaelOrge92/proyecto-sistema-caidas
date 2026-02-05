@@ -1,4 +1,5 @@
 import express, { Router } from 'express';
+import { db } from '../config/db';
 
 const router = Router();
 
@@ -65,70 +66,30 @@ export const setEvents = (newEvents: any[]) => {
 };
 
 // Get all events
-router.get('/', (req, res) => {
-  res.json(events);
+router.get('/', async (req, res) => {
+  const result = db().query('SELECT * FROM public.events')
+  res.json(result)
 });
 
 // Get events by device
-router.get('/device/:deviceId', (req, res) => {
-  const deviceEvents = events.filter(e => e.deviceId === req.params.deviceId);
-  res.json(deviceEvents);
+router.get('/device/:deviceId', async (req, res) => {
+  const result = db().query(`SELECT * FROM public.events WHERE device_id = ${req.params.deviceId}`)
+  res.json(result)
 });
+
 
 // Get event by id
 router.get('/:id', (req, res) => {
-  const event = events.find(e => e.id === req.params.id);
-  if (!event) {
-    return res.status(404).json({ error: 'Evento no encontrado' });
-  }
-  res.json(event);
+  const result = db().query(`SELECT * FROM public.events WHERE event_id = ${req.params.id}`)
+  res.json(result)
 });
 
 // Create event
 router.post('/', (req, res) => {
-  const { deviceId, deviceAlias, patientName, eventType, status } = req.body;
-
-  const newEvent = {
-    id: Math.random().toString(36).substr(2, 9),
-    deviceId: deviceId || '',
-    deviceAlias: deviceAlias || '',
-    patientName: patientName || '',
-    eventType: eventType || 'FALL',
-    status: status || 'OPEN',
-    occurredAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-    reviewedBy: null,
-    reviewedAt: null,
-    reviewComment: null
-  };
-
-  events.push(newEvent);
-  console.log(`📢 Nuevo evento creado: ${newEvent.id} - ${newEvent.eventType} en ${newEvent.deviceAlias}`);
-  res.status(201).json(newEvent);
-});
-
-// Update event status
-router.patch('/:id', (req, res) => {
-  const event = events.find(e => e.id === req.params.id);
-  if (!event) {
-    return res.status(404).json({ error: 'Evento no encontrado' });
-  }
-
-  const { status, reviewedBy, reviewComment } = req.body;
-  
-  if (status) {
-    console.log(`🔄 Evento ${event.id} actualizado: ${event.status} → ${status}`);
-    event.status = status;
-  }
-  if (reviewedBy) {
-    event.reviewedBy = reviewedBy;
-    event.reviewedAt = new Date().toISOString();
-  }
-  if (reviewComment) {
-    event.reviewComment = reviewComment;
-  }
-
-  res.json(event);
+  const { deviceId, eventType, status, eventUid, ocurredAt, reviewedBy, reviewedAt, review_comment } = req.body;
+  const result = db().query(`INSERT INTO public.events (event_uid, device_id, event_type, status, ocurred_at, reviewed_by, review_comment)
+    values (${eventUid}, ${deviceId}, ${eventType}, ${status}, ${ocurredAt} ${reviewedBy}, ${reviewedAt}, ${review_comment})`)
+  res.status(201).json(result)
 });
 
 export const eventsRoutes = router;

@@ -4,6 +4,10 @@ export const db = () => {
     const getPool = async (): Promise<PoolClient> => {
         try{
             const pool = new Pool({
+                host: 'https://hkdhszhqwcereylipjuc.supabase.co/',
+                port: 5432,
+                user: 'postgress',
+                password: 'your_password'
 
             })
             return await pool.connect()
