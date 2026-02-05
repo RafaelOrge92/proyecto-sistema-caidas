@@ -13,7 +13,7 @@ export const db = () => {
         }
         
     }
-
+ 
     const api = {
         query: async (sql: string, params: any[] = []): Promise<Array<any>> => {
             const db = await getPool()
