@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.devicesRoutes = void 0;
 const express_1 = require("express");
+const db_1 = require("../config/db");
 const router = (0, express_1.Router)();
 // Mock devices data
 const devices = [
@@ -22,56 +23,25 @@ const devices = [
         lastSeen: new Date(Date.now() - 25 * 60000).toISOString()
     }
 ];
-// Get all devices
-router.get('/', (req, res) => {
-    res.json(devices);
+//get all devices
+router.get('/', async (req, res) => {
+    const result = await (0, db_1.db)().query('SELECT * FROM public.devices');
+    res.json(result);
 });
 // Get device by id
-router.get('/:id', (req, res) => {
-    const device = devices.find(d => d.id === req.params.id);
-    if (!device) {
-        return res.status(404).json({ error: 'Dispositivo no encontrado' });
-    }
-    res.json(device);
+router.get('/:id', async (req, res) => {
+    const result = await (0, db_1.db)().query(`SELECT * FROM public.devices WHERE device_id = ${req.params.id}`);
+    res.json(result);
 });
 // Create device
-router.post('/', (req, res) => {
-    const { id, alias, patientName, patientId } = req.body;
+router.post('/', async (req, res) => {
+    const { id, alias, patientId, active, lastSeenAt } = req.body;
     if (!id) {
         return res.status(400).json({ error: 'ID del dispositivo es requerido' });
     }
-    const newDevice = {
-        id,
-        alias: alias || '',
-        patientName: patientName || '',
-        patientId: patientId || '',
-        isActive: true,
-        lastSeen: new Date().toISOString()
-    };
-    devices.push(newDevice);
-    res.status(201).json(newDevice);
-});
-// Update device
-router.put('/:id', (req, res) => {
-    const device = devices.find(d => d.id === req.params.id);
-    if (!device) {
-        return res.status(404).json({ error: 'Dispositivo no encontrado' });
-    }
-    Object.assign(device, req.body);
-    res.json(device);
-});
-// Assign device to user
-router.patch('/:id/assign', (req, res) => {
-    const device = devices.find(d => d.id === req.params.id);
-    if (!device) {
-        return res.status(404).json({ error: 'Dispositivo no encontrado' });
-    }
-    const { userId, patientName, patientId } = req.body;
-    if (patientName)
-        device.patientName = patientName;
-    if (patientId)
-        device.patientId = patientId;
-    res.json(device);
+    const result = await (0, db_1.db)().query(`INSERT into public.devices (device_id, patient_id, alias, is_active, last_seen_at)
+    values (${id}, ${patientId}, ${alias}, ${active}, ${lastSeenAt})`);
+    res.status(201).json(result);
 });
 exports.devicesRoutes = router;
 //# sourceMappingURL=devices.js.map

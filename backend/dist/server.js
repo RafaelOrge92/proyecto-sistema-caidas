@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const cors_1 = __importDefault(require("cors"));
 const auth_1 = require("./routes/auth");
 const users_1 = require("./routes/users");
@@ -21,7 +22,14 @@ app.use((0, cors_1.default)({
 app.use((req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (token) {
-        req.user = { token };
+        try {
+            const jwtSecret = process.env.JWT_SECRET || 'dev-secret-change-me';
+            const decoded = jsonwebtoken_1.default.verify(token, jwtSecret);
+            req.user = decoded;
+        }
+        catch {
+            req.user = null;
+        }
     }
     next();
 });
