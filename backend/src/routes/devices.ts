@@ -1,4 +1,5 @@
-import express, { Router } from 'express';
+import express, { response, Router } from 'express';
+import { db } from '../config/db';
 
 const router = Router();
 
@@ -22,19 +23,19 @@ const devices = [
   }
 ];
 
-// Get all devices
-router.get('/', (req, res) => {
-  res.json(devices);
-});
+//get all devices
+
+router.get('/', async (req, res) => {
+  const result = await db().query('SELECT * FROM public.devices')
+  res.json(result)
+})
 
 // Get device by id
-router.get('/:id', (req, res) => {
-  const device = devices.find(d => d.id === req.params.id);
-  if (!device) {
-    return res.status(404).json({ error: 'Dispositivo no encontrado' });
-  }
-  res.json(device);
+router.get('/:id', async (req, res) => {
+  const result = await db().query(`SELECT * FROM public.devices WHERE device_id = ${req.params.id}`)
+  res.json(result)
 });
+
 
 // Create device
 router.post('/', (req, res) => {
