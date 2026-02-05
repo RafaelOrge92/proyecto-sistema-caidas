@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { AdminService } from '../services/adminService';
-import { User } from '../types';
+import { User, UserRole } from '../types';
 import { UserModal } from '../components/UserModal';
+import { ArrowUpDown, Search, Filter } from 'lucide-react';
 
 export const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User | undefined>(undefined);
+
+  // Filter & Sort state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<UserRole | 'ALL'>('ALL');
+  const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: 'asc' | 'desc' } | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,11 +64,42 @@ export const UsersPage: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  // Logic for displaying current users
+  const handleSort = (key: keyof User) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Logic for filtering, sorting and displaying users
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = 
+      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesRole = roleFilter === 'ALL' ? true : user.role === roleFilter;
+
+    return matchesSearch && matchesRole;
+  });
+
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (!sortConfig) return 0;
+    const { key, direction } = sortConfig;
+    
+    // Handle specific cases if any property is undefined or different types
+    const valA = a[key] ?? '';
+    const valB = b[key] ?? '';
+
+    if (valA < valB) return direction === 'asc' ? -1 : 1;
+    if (valA > valB) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const currentUsers = sortedUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
@@ -71,22 +108,76 @@ export const UsersPage: React.FC = () => {
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">Gestión de Usuarios</h2>
-      <button
-        onClick={handleCreate}
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-4 hover:bg-blue-600"
-      >
-        + Nuevo Usuario
-      </button>
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <button
+          onClick={handleCreate}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition order-2 md:order-1"
+        >
+          + Nuevo Usuario
+        </button>
+
+        <div className="flex gap-4 w-full md:w-auto order-1 md:order-2">
+          {/* Search Input */}
+          <div className="relative grow md:grow-0">
+            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Buscar por nombre o email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border rounded-lg w-full md:w-64 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+
+          {/* Role Filter */}
+          <div className="relative">
+            <Filter className="absolute left-3 top-2.5 text-gray-400" size={18} />
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value as UserRole | 'ALL')}
+              className="pl-10 pr-8 py-2 border rounded-lg appearance-none bg-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
+            >
+              <option value="ALL">Todos los Roles</option>
+              <option value="ADMIN">Administrador</option>
+              <option value="MEMBER">Miembro</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
       <div className="overflow-x-auto shadow-md rounded-lg">
         <table className="min-w-full bg-white border">
           <thead className="bg-gray-100">
             <tr>
-              <th className="py-2 px-4 border text-left">Nombre</th>
-              <th className="py-2 px-4 border text-left">Email</th>
-              <th className="py-2 px-4 border text-left">Rol</th>
-              <th className="py-2 px-4 border text-center">Estado</th>
-              <th className="py-2 px-4 border text-center">Acciones</th>
+              <th 
+                className="py-3 px-4 border text-left cursor-pointer hover:bg-gray-200 transition select-none"
+                onClick={() => handleSort('fullName')}
+              >
+                <div className="flex items-center gap-1">
+                  Nombre
+                  <ArrowUpDown size={14} className={sortConfig?.key === 'fullName' ? 'text-blue-600' : 'text-gray-400'} />
+                </div>
+              </th>
+              <th 
+                className="py-3 px-4 border text-left cursor-pointer hover:bg-gray-200 transition select-none"
+                onClick={() => handleSort('email')}
+              >
+                <div className="flex items-center gap-1">
+                  Email
+                  <ArrowUpDown size={14} className={sortConfig?.key === 'email' ? 'text-blue-600' : 'text-gray-400'} />
+                </div>
+              </th>
+              <th 
+                className="py-3 px-4 border text-left cursor-pointer hover:bg-gray-200 transition select-none"
+                onClick={() => handleSort('role')}
+              >
+                <div className="flex items-center gap-1">
+                  Rol
+                  <ArrowUpDown size={14} className={sortConfig?.key === 'role' ? 'text-blue-600' : 'text-gray-400'} />
+                </div>
+              </th>
+              <th className="py-3 px-4 border text-center">Estado</th>
+              <th className="py-3 px-4 border text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
