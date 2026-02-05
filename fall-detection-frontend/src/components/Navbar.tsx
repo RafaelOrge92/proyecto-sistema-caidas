@@ -16,7 +16,7 @@ export const Navbar = () => {
         <nav className="bg-blue-900 text-white p-4 flex justify-between items-center shadow-lg">
             <div className="flex gap-6 items-center">
                 <span className="font-black text-xl tracking-tighter">FALL-DETECT</span>
-                <Link to="/" className="hover:text-blue-300">🏠 Dashboard</Link>
+                <Link to="/dashboard" className="hover:text-blue-300">🏠 Dashboard</Link>
                 
                 {user.role === 'ADMIN' && (
                     <>

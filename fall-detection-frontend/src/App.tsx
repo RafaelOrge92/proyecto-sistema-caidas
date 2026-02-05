@@ -8,6 +8,13 @@ import { Dashboard } from './pages/Dashboard';
 import Admin from './pages/Admin';
 import { Navbar } from './components/Navbar';
 
+// Landing Imports
+import LandingNavbar from './components/landing/LandingNavbar';
+import LandingFooter from './components/landing/LandingFooter';
+import Home from './pages/landing/Home';
+import About from './pages/landing/About';
+import Contact from './pages/landing/Contact';
+
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) => {
   const { user, loading } = useAuth();
 
@@ -22,6 +29,16 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
   return <>{children}</>;
 };
 
+const LandingLayout = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex flex-col min-h-screen bg-white text-text-main">
+    <LandingNavbar />
+    <main className="flex-grow">
+      {children}
+    </main>
+    <LandingFooter />
+  </div>
+);
+
 const AppContent = () => {
   const { user } = useAuth();
 
@@ -32,8 +49,13 @@ const AppContent = () => {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 
+        {/* Landing Pages */}
+        <Route path="/" element={<LandingLayout><Home /></LandingLayout>} />
+        <Route path="/about" element={<LandingLayout><About /></LandingLayout>} />
+        <Route path="/contact" element={<LandingLayout><Contact /></LandingLayout>} />
+
         {/* Dashboard principal */}
-        <Route path="/" element={
+        <Route path="/dashboard" element={
           <ProtectedRoute allowedRoles={['ADMIN', 'MEMBER']}>
             <Dashboard />
           </ProtectedRoute>
