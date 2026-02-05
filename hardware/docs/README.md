@@ -5,7 +5,7 @@ Este documento resume el contrato de comunicacion entre el firmware del ESP32 y 
 ## Configuracion (constantes en firmware)
 
 - `BASE_URL`: `https://api.sistema-caidas.local` (placeholder, aun no desplegado)
-- `DEVICE_ID_OVERRIDE`: si esta vacio, el firmware usa el HWID (eFuse) y lo guarda en NVS (formato `ESP32-<MAC>`).
+- `DEVICE_ID_OVERRIDE`: si esta vacio, el firmware usa el HWID (eFuse) y lo guarda en NVS (formato `ESP32-<HWID>`).
 - `DEVICE_KEY`: opcional (si se usa, se envia en header `X-DEVICE-KEY`)
 
 ## Headers HTTP

@@ -462,13 +462,18 @@ void setup() {
   WiFi.begin(WIFI_SSID, WIFI_PASS);
 
   Serial.print("WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
+  uint32_t t0 = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - t0 < 30000) {
     esp_task_wdt_reset();
     delay(500);
     Serial.print(".");
   }
-  Serial.println(" connected");
-  lastWifiOkMs = millis();
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println(" connected");
+    lastWifiOkMs = millis();
+  } else {
+    Serial.println(" initial connect failed, will retry in loop");
+  }
 
   setupTime();
   sendHeartbeat();
