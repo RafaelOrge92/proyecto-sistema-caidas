@@ -15,8 +15,20 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 do $$ begin
-  create type event_type as enum ('FALL','EMERGENCY_BUTTON','SIMULATED');
+  create type event_type as enum ('FALL','EMERGENCY_BUTTON','SIMULATED','TILT');
 exception when duplicate_object then null; end $$;
+
+-- asegurar valor TILT si el tipo ya existia
+do $$ begin
+  if not exists (
+    select 1
+    from pg_enum e
+    join pg_type t on t.oid = e.enumtypid
+    where t.typname = 'event_type' and e.enumlabel = 'TILT'
+  ) then
+    alter type event_type add value 'TILT';
+  end if;
+exception when undefined_object then null; end $$;
 
 do $$ begin
   create type event_status as enum ('OPEN','CONFIRMED_FALL','FALSE_ALARM','RESOLVED');

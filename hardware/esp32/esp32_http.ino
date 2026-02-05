@@ -66,6 +66,29 @@ static void initDeviceId() {
   prefs.putString("device_id", deviceId);
 }
 
+// === TILT SENSOR BEGIN ===
+// =====================
+// Inclinometro KY-017 (interruptor mecanico)
+// =====================
+static const int TILT_PIN = 26;              // GPIO libre por defecto
+static const bool TILT_USE_PULLUP = true;    // lectura robusta
+static const bool TILT_ACTIVE_LOW = true;    // configurable segun modulo
+static const uint32_t TILT_DEBOUNCE_MS = 150; // antirrebote (mas estricto)
+static const uint32_t TILT_HOLD_MS = 2000;   // inclinacion valida si se mantiene
+static const uint32_t TILT_COOLDOWN_MS = 3000; // evita spam
+static const bool TILT_REPORT_NORMAL = false; // NO enviar tilted:false (se ignora el retorno a normal)
+static const char* TILT_ENDPOINT = "/api/v1/events/ingest";
+static const char* TILT_EVENT_TYPE = "TILT";
+
+static bool TILT_lastReading = false;
+static bool TILT_stableReading = false;
+static bool TILT_reportedState = false;
+static bool TILT_hasTilted = false;
+static uint32_t TILT_lastChangeMs = 0;
+static uint32_t TILT_holdStartMs = 0;
+static uint32_t TILT_lastEventMs = 0;
+// === TILT SENSOR END ===
+
 // =====================
 // LED estado (ajusta segun placa)
 // =====================
@@ -285,6 +308,113 @@ static String uuid_v4() {
   return String(buf);
 }
 
+// === TILT SENSOR BEGIN ===
+static bool TILT_readRaw() {
+  int v = digitalRead(TILT_PIN);
+  return TILT_ACTIVE_LOW ? (v == LOW) : (v == HIGH);
+}
+
+static void TILT_init() {
+  if (TILT_USE_PULLUP) {
+    pinMode(TILT_PIN, INPUT_PULLUP);
+  } else {
+    pinMode(TILT_PIN, INPUT);
+  }
+  bool raw = TILT_readRaw();
+  TILT_lastReading = raw;
+  TILT_stableReading = raw;
+  TILT_reportedState = raw;
+  TILT_hasTilted = false;
+  TILT_lastChangeMs = millis();
+  TILT_holdStartMs = millis();
+  TILT_lastEventMs = 0;
+}
+
+static void TILT_sendEvent(bool tilted) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("[TILT] WiFi not connected");
+    return;
+  }
+
+  String url = String(BASE_URL) + TILT_ENDPOINT;
+  WiFiClient client;
+  HTTPClient http;
+
+  wdtPause();
+  if (!http.begin(client, url)) {
+    wdtResume();
+    Serial.println("[TILT] http.begin failed");
+    return;
+  }
+  http.setTimeout(5000);
+  http.addHeader("Content-Type", "application/json");
+
+  String eventUid = uuid_v4();
+  String ts = utcIsoNow();
+  char payload[256];
+  if (ts == "null") {
+    snprintf(
+      payload,
+      sizeof(payload),
+      "{\"deviceId\":\"%s\",\"eventUid\":\"%s\",\"eventType\":\"%s\",\"occurredAt\":null}",
+      deviceId.c_str(),
+      eventUid.c_str(),
+      TILT_EVENT_TYPE
+    );
+  } else {
+    snprintf(
+      payload,
+      sizeof(payload),
+      "{\"deviceId\":\"%s\",\"eventUid\":\"%s\",\"eventType\":\"%s\",\"occurredAt\":\"%s\"}",
+      deviceId.c_str(),
+      eventUid.c_str(),
+      TILT_EVENT_TYPE,
+      ts.c_str()
+    );
+  }
+
+  int code = http.POST((uint8_t*)payload, strlen(payload));
+  String body = http.getString();
+  Serial.printf("[TILT] code=%d uid=%s\n", code, eventUid.c_str());
+  Serial.printf("[TILT] body=%s\n", body.c_str());
+
+  http.end();
+  wdtResume();
+}
+
+static void TILT_process(uint32_t now) {
+  bool raw = TILT_readRaw();
+  if (raw != TILT_lastReading) {
+    TILT_lastReading = raw;
+    TILT_lastChangeMs = now;
+  }
+
+  if (now - TILT_lastChangeMs < TILT_DEBOUNCE_MS) {
+    return;
+  }
+
+  if (TILT_stableReading != TILT_lastReading) {
+    TILT_stableReading = TILT_lastReading;
+    TILT_holdStartMs = now;
+  }
+
+  if (TILT_stableReading != TILT_reportedState) {
+    if (now - TILT_holdStartMs >= TILT_HOLD_MS) {
+      if (TILT_COOLDOWN_MS == 0 || (now - TILT_lastEventMs >= TILT_COOLDOWN_MS)) {
+        TILT_reportedState = TILT_stableReading;
+        if (TILT_reportedState) {
+          TILT_lastEventMs = now;
+          TILT_hasTilted = true;
+          TILT_sendEvent(true);
+        } else {
+          Serial.println("[TILT] normal (ignorado)");
+        }
+      }
+    }
+  }
+}
+// === TILT SENSOR END ===
+
 // =====================
 // ISR boton
 // =====================
@@ -456,6 +586,10 @@ void setup() {
   Serial.printf("[QUEUE] loaded %u pending\n", qCount);
   Serial.printf("[ID] deviceId=%s\n", deviceId.c_str());
 
+  // === TILT SENSOR BEGIN ===
+  TILT_init();
+  // === TILT SENSOR END ===
+
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), onButtonFall, FALLING);
 
@@ -521,6 +655,10 @@ void loop() {
     lastQueueTick = now;
     processQueue();
   }
+
+  // === TILT SENSOR BEGIN ===
+  TILT_process(now);
+  // === TILT SENSOR END ===
 
   updateLed(now);
   delay(5);
