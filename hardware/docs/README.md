@@ -63,7 +63,7 @@ Notas:
 
 Campos:
 - `eventUid`: UUID v4 generado una sola vez por evento (idempotencia).
-- `eventType`: `FALL | EMERGENCY_BUTTON | SIMULATED`.
+- `eventType`: `FALL | EMERGENCY_BUTTON | SIMULATED | TILT`.
 - `occurredAt`: ISO string (si no hay RTC, usar estimado).
 - `samples`: opcional (pero recomendado para grafica).
 
@@ -77,6 +77,16 @@ Campos:
 }
 ```
 
+### JSON base (TILT sin samples)
+```json
+{
+  "deviceId": "ESP32-001",
+  "eventUid": "550e8400-e29b-41d4-a716-446655440000",
+  "eventType": "TILT",
+  "occurredAt": "2026-02-04T10:15:30Z"
+}
+```
+
 ## Firmware actual (ESP32)
 
 Archivo:
@@ -86,6 +96,9 @@ Comportamiento:
 - Boton en `GPIO 25` con `INPUT_PULLUP`.
 - Captura por interrupcion (FALLING) con debounce ~60ms para no perder pulsaciones mientras hay requests en vuelo.
 - Envia `EMERGENCY_BUTTON` al pulsar el boton.
+- Inclinometro KY-017 en `GPIO 26` (configurable). Es un interruptor mecanico, no mide angulos.
+- Se envia evento `TILT` (solo `tilted:true`) por `/api/v1/events/ingest`. No se reporta el retorno a normal.
+- Filtros inclinometro: debounce `150ms`, hold `2000ms`, cooldown `3000ms` (ajustables).
 - UUID v4 generado por evento y reutilizado en los reintentos.
 - NTP para UTC (si falla, `occurredAt: null`).
 - Heartbeat siempre activo cada 2 min para actualizar `last_seen_at`.

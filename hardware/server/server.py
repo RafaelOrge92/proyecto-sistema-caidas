@@ -27,9 +27,15 @@ class EventSample(BaseModel):
 class EventIngest(BaseModel):
     deviceId: str = Field(..., min_length=1)
     eventUid: str = Field(..., min_length=1)
-    eventType: Literal["FALL", "EMERGENCY_BUTTON", "SIMULATED"]
+    eventType: Literal["FALL", "EMERGENCY_BUTTON", "SIMULATED", "TILT"]
     occurredAt: Optional[str] = None
     samples: Optional[List[EventSample]] = None
+
+
+class TiltPayload(BaseModel):
+    deviceId: str = Field(..., min_length=1)
+    timestamp: Optional[str] = None
+    tilted: bool
 
 
 @app.get("/health")
@@ -79,6 +85,24 @@ async def ingest_event(payload: EventIngest, request: Request):
         "ok": True,
         "eventId": f"local-{payload.eventUid}",
         "duplicated": duplicated,
+        "received": payload.model_dump(),
+        "serverTimestamp": server_ts,
+    }
+
+
+@app.post("/api/v1/devices/tilt")
+async def tilt_event(payload: TiltPayload, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    server_ts = datetime.now(timezone.utc).isoformat()
+
+    print(
+        f"[TILT] from={client_ip} deviceId={payload.deviceId} "
+        f"tilted={payload.tilted} ts={payload.timestamp or 'null'} "
+        f"server_ts={server_ts}"
+    )
+
+    return {
+        "ok": True,
         "received": payload.model_dump(),
         "serverTimestamp": server_ts,
     }
