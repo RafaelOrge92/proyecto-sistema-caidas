@@ -40,8 +40,17 @@ app.use('/api/events', eventsRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {
-  const r = await db.query('select 1 as ok')
-  console.log(r) // [{ ok: 1 }]
+  const info = await db.query(
+  `select
+    current_user as usr,
+    current_database() as db,
+    inet_server_addr() as server_ip,
+    inet_server_port() as server_port`
+)
+console.log('INFO:', info)
+
+const c = await db.query('select count(*)::int as n from public.events')
+console.log('EVENTS COUNT:', c[0].n)
   res.json({ status: 'ok' });
 });
 
