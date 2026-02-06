@@ -1,6 +1,7 @@
 import express, { Express } from 'express';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
+import 'dotenv/config'
 import { authRoutes } from './routes/auth';
 import { usersRoutes } from './routes/users';
 import { devicesRoutes } from './routes/devices';
