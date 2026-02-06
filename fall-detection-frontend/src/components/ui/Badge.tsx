@@ -6,23 +6,17 @@ interface BadgeProps {
   className?: string;
 }
 
-const Badge: React.FC<BadgeProps> = ({ 
-  children, 
-  variant = 'default',
-  className = '' 
-}) => {
+const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', className = '' }) => {
   const variants = {
-    default: 'bg-[#6366F1]/10 text-[#6366F1] border-[#6366F1]/20',
-    success: 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20',
-    warning: 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20',
-    error: 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20',
-    info: 'bg-[#06B6D4]/10 text-[#06B6D4] border-[#06B6D4]/20'
+    default: 'bg-white/5 text-white border-white/10',
+    success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    warning: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+    error: 'bg-red-500/10 text-red-400 border-red-500/20',
+    info: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
   };
 
   return (
-    <span 
-      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${variants[variant]} ${className}`}
-    >
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${variants[variant]} ${className}`}>
       {children}
     </span>
   );

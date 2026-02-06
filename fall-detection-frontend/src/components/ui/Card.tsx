@@ -18,15 +18,13 @@ const Card: React.FC<CardProps> = ({
   return (
     <div 
       className={`
-        bg-[#1A1F26] rounded-xl border border-[#1E293B] 
-        shadow-lg overflow-hidden
-        transition-all duration-300
-        ${hover ? 'hover:border-[#6366F1] hover:shadow-xl hover:-translate-y-1' : ''}
+        glass-panel overflow-hidden transition-all duration-500
+        ${hover ? 'hover:bg-[var(--color-bg-elevated)] hover:scale-[1.02] hover:shadow-2xl' : ''}
         ${glow ? 'glow-primary' : ''}
         ${className}
       `}
     >
-      <div className={noPadding ? '' : 'p-6'}>
+      <div className={noPadding ? '' : 'p-8'}>
         {children}
       </div>
     </div>
