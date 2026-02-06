@@ -84,6 +84,26 @@ router.get('/:id', async (req, res) => {
   res.json(result)
 });
 
+router.put('/update', async (req, res) => {
+  const {id, status} = req.body
+  try{
+    const result = await db.query(`UPDATE public.events SET status = '${status} WHERE event_id = ${id}'`)
+    res.json(result)
+  } catch (error) {
+    console.error('Error updating event:', error)
+    res.status(500).json({error: 'Error al actualizar el evento'})
+  }
+  
+  
+})
+
+router.post('/ingest', async (req, res) => {
+  const {deviceId, eventUid, eventType, ocurredAt} = req.body
+  const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, ocurred_at) 
+    values(${eventUid}, ${deviceId}, ${eventType}, ${ocurredAt})`)
+  res.status(201).json(result)
+})
+
 // Create event
 router.post('/', async (req, res) => {
   const { deviceId, eventType, status, eventUid, ocurredAt, reviewedBy, reviewedAt, review_comment } = req.body;
