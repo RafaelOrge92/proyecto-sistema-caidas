@@ -53,8 +53,17 @@ router.post('/', async (req, res) => {
   res.status(201).json(result)
 });
 
-router.get('/heartbeat', async (req, res) => {
-  
+router.put('/heartbeat', async (req, res) => {
+  const {timestamp, deviceId} = req.body
+  console.log('Recibido')
+  try{
+   const result = await db.query(`UPDATE public.devices SET last_seen_at = ${timestamp} WHERE device_id = ${deviceId}`)
+   res.json(result)
+  } catch (error){
+    console.error('Cannot access device')
+    res.status(500).json({error: 'No se puede acceder al dispositivo'})
+  }
 })
+
 
 export const devicesRoutes = router;

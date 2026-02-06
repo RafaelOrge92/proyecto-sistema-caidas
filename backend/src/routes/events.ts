@@ -97,6 +97,13 @@ router.put('/update', async (req, res) => {
   
 })
 
+router.post('/ingest', async (req, res) => {
+  const {deviceId, eventUid, eventType, ocurredAt} = req.body
+  const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, ocurred_at) 
+    values(${eventUid}, ${deviceId}, ${eventType}, ${ocurredAt})`)
+  res.status(201).json(result)
+})
+
 // Create event
 router.post('/', async (req, res) => {
   const { deviceId, eventType, status, eventUid, ocurredAt, reviewedBy, reviewedAt, review_comment } = req.body;
