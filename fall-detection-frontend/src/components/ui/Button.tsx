@@ -14,27 +14,25 @@ const Button: React.FC<ButtonProps> = ({
   className = '', 
   ...props 
 }) => {
-  const baseStyles = "inline-flex items-center justify-center border font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#1A1F26] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover-lift";
+  const baseStyles = "inline-flex items-center justify-center transition-all duration-300 font-bold rounded-full disabled:opacity-30 disabled:cursor-not-allowed active:scale-95";
   
   const variants = {
-    primary: "border-transparent text-white bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#818CF8] hover:to-[#A78BFA] focus:ring-[#6366F1] shadow-lg glow-primary",
-    secondary: "border-transparent text-white bg-gradient-to-r from-[#06B6D4] to-[#14B8A6] hover:from-[#22D3EE] hover:to-[#2DD4BF] focus:ring-[#06B6D4] shadow-lg glow-accent",
-    outline: "border-[#6366F1] text-[#6366F1] bg-transparent hover:bg-[#6366F1]/10 focus:ring-[#6366F1]",
-    ghost: "border-transparent text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#252B35] focus:ring-[#6366F1]",
-    danger: "border-transparent text-white bg-[#EF4444] hover:bg-[#DC2626] focus:ring-[#EF4444] shadow-lg glow-error"
+    primary: "bg-white text-black hover:bg-gray-200 shadow-xl",
+    secondary: "bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] glow-primary",
+    outline: "border border-white/20 text-white bg-transparent hover:bg-white/5",
+    ghost: "text-[var(--color-text-secondary)] hover:text-white hover:bg-white/5",
+    danger: "bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20"
   };
 
   const sizes = {
-    sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-base",
-    lg: "px-6 py-3 text-lg"
+    sm: "px-4 py-1.5 text-xs tracking-wide",
+    md: "px-6 py-2.5 text-sm tracking-tight",
+    lg: "px-8 py-4 text-lg tracking-tighter"
   };
-
-  const widthStyles = fullWidth ? "w-full" : "";
 
   return (
     <button 
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthStyles} ${className}`} 
+      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${fullWidth ? "w-full" : ""} ${className}`} 
       {...props}
     >
       {children}

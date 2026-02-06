@@ -4,71 +4,65 @@ import { ExternalLink, ShieldAlert } from 'lucide-react';
 
 const LandingFooter: React.FC = () => {
   return (
-    <footer className="bg-[#1A1F26] border-t border-[#1E293B] pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+    <footer className="bg-[var(--color-bg-primary)] border-t border-white/5 pt-24 pb-12">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
           
-          <div className="col-span-1 md:col-span-1">
-            <span className="flex items-center gap-3 font-bold text-xl text-[#F1F5F9] mb-6">
-               <div className="bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] p-2 rounded-lg">
-                 <ShieldAlert className="text-white" size={24}/>
+          <div className="col-span-1 md:col-span-1 space-y-6">
+            <span className="flex items-center gap-3 font-bold text-2xl text-white tracking-tighter">
+               <div className="w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center">
+                 <ShieldAlert size={24}/>
                </div>
-               Fall-Detect
+               Fall Detect
             </span>
-            <p className="text-[#94A3B8] leading-relaxed">
-              Tecnología de detección para la tranquilidad de las familias. 
-              Cuidamos de lo que más importa con soluciones simples y efectivas.
+            <p className="text-[var(--color-text-secondary)] leading-relaxed font-medium">
+              Tecnología que redefine el cuidado. <br />
+              Seguridad invisible para el hogar.
             </p>
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-[#F1F5F9] tracking-wider uppercase mb-6">Empresa</h3>
-            <ul className="space-y-4">
-              <li><Link to="/" className="text-[#94A3B8] hover:text-[#6366F1] transition-colors">Inicio</Link></li>
-              <li><Link to="/about" className="text-[#94A3B8] hover:text-[#6366F1] transition-colors">Sobre Nosotros</Link></li>
-              <li><Link to="/contact" className="text-[#94A3B8] hover:text-[#6366F1] transition-colors">Contacto</Link></li>
-              <li><Link to="/login" className="text-[#94A3B8] hover:text-[#6366F1] transition-colors">Acceso Clientes</Link></li>
+            <h3 className="text-xs font-black text-white tracking-[0.2em] uppercase mb-8">Navegación</h3>
+            <ul className="space-y-4 font-semibold">
+              <li><Link to="/" className="text-[var(--color-text-secondary)] hover:text-white transition-colors">Inicio</Link></li>
+              <li><Link to="/about" className="text-[var(--color-text-secondary)] hover:text-white transition-colors">Nosotros</Link></li>
+              <li><Link to="/contact" className="text-[var(--color-text-secondary)] hover:text-white transition-colors">Contacto</Link></li>
             </ul>
           </div>
 
           <div>
-             <h3 className="text-sm font-bold text-[#F1F5F9] tracking-wider uppercase mb-6">Fuentes Oficiales</h3>
-             <ul className="space-y-4">
+             <h3 className="text-xs font-black text-white tracking-[0.2em] uppercase mb-8">Recursos</h3>
+             <ul className="space-y-4 font-semibold">
                 <li>
-                  <a href="https://www.who.int/news-room/fact-sheets/detail/falls" target="_blank" rel="noopener noreferrer" className="text-[#94A3B8] hover:text-[#06B6D4] flex items-center gap-2 transition-colors">
-                    <span>OMS Falls Factsheet</span>
-                    <ExternalLink size={14}/>
+                  <a href="https://www.who.int" target="_blank" className="text-[var(--color-text-secondary)] hover:text-indigo-400 flex items-center gap-2 transition-colors">
+                    <span>OMS</span> <ExternalLink size={12}/>
                   </a>
                 </li>
                 <li>
-                  <a href="https://www.cdc.gov/falls/data-research/facts-stats/index.html" target="_blank" rel="noopener noreferrer" className="text-[#94A3B8] hover:text-[#06B6D4] flex items-center gap-2 transition-colors">
-                    <span>CDC Older Adult Falls</span>
-                    <ExternalLink size={14}/>
-                  </a>
-                </li>
-                <li>
-                  <a href="https://www.nice.org.uk/guidance/ng249" target="_blank" rel="noopener noreferrer" className="text-[#94A3B8] hover:text-[#06B6D4] flex items-center gap-2 transition-colors">
-                    <span>NICE Guidance</span>
-                    <ExternalLink size={14}/>
+                  <a href="https://www.cdc.gov" target="_blank" className="text-[var(--color-text-secondary)] hover:text-indigo-400 flex items-center gap-2 transition-colors">
+                    <span>CDC Falls</span> <ExternalLink size={12}/>
                   </a>
                 </li>
              </ul>
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-[#F1F5F9] tracking-wider uppercase mb-6">Legal</h3>
-            <ul className="space-y-4">
-              <li><span className="text-[#94A3B8] cursor-pointer hover:text-[#6366F1] transition-colors">Aviso Legal</span></li>
-              <li><span className="text-[#94A3B8] cursor-pointer hover:text-[#6366F1] transition-colors">Política de Privacidad</span></li>
-              <li><span className="text-[#94A3B8] cursor-pointer hover:text-[#6366F1] transition-colors">Cookies</span></li>
+            <h3 className="text-xs font-black text-white tracking-[0.2em] uppercase mb-8">Legal</h3>
+            <ul className="space-y-4 font-semibold text-[var(--color-text-secondary)]">
+              <li className="hover:text-white cursor-pointer transition-colors">Privacidad</li>
+              <li className="hover:text-white cursor-pointer transition-colors">Términos</li>
             </ul>
           </div>
         </div>
         
-        <div className="pt-8 border-t border-[#1E293B]">
-          <p className="text-center text-[#64748B]">
-            &copy; {new Date().getFullYear()} Fall-Detect S.L. Todos los derechos reservados.
+        <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-[var(--color-text-secondary)] text-sm font-medium">
+            &copy; {new Date().getFullYear()} Fall Detect S.L.
           </p>
+          <div className="flex gap-8 text-sm font-bold text-white/20">
+            <span>Diseñado en Vigo</span>
+            <span>v2.0.4</span>
+          </div>
         </div>
       </div>
     </footer>
