@@ -36,6 +36,10 @@ router.get('/:id', async (req, res) => {
   res.json(result)
 });
 
+router.get('/user/:userId', async (req, res) => {
+  const result = await db.query(`SELECT * FROM public.devices WHERE device_id IN (SELECT device_id FROM public.device_access WHERE account_id = ${req.params.userId})` )
+})
+
 // Create device
 router.post('/', async (req, res) => {
   const { id, alias, patientId, active, lastSeenAt } = req.body;

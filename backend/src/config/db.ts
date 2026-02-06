@@ -3,11 +3,11 @@ const { Pool } = pg
 
 // Pool único para toda la app (NO crear uno por query)
 const pool = new Pool({
-  host: 'aws-1-eu-west-1.pooler.supabase.com', // sin espacios
-  port: 5432,
-  database: 'postgres',
-  user: 'postgres.hkdhszhqwcereylipjuc',
-  password: 'hB8nRQmpZOPXaV2E', // mejor mover a .env (abajo te dejo cómo)
+  host: process.env.DB_HOST, // sin espacios
+  port: Number(process.env.DB_PORT),
+  database: process.env.DB_DATABASE,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD, // mejor mover a .env (abajo te dejo cómo)
   ssl: { rejectUnauthorized: false }, // necesario casi siempre en Supabase
   max: 10,
   idleTimeoutMillis: 30_000,
