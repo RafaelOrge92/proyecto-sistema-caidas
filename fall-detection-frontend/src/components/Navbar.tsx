@@ -26,6 +26,7 @@ export const Navbar = () => {
                         <div className="flex gap-4 border-l pl-4 border-blue-700">
                             <Link to="/admin/users" className="hover:text-blue-300 text-sm">Usuarios</Link>
                             <Link to="/admin/devices" className="hover:text-blue-300 text-sm">Dispositivos</Link>
+                            <Link to="/admin/events" className="hover:text-blue-300 text-sm">Eventos</Link>
                         </div>
                     </>
                 )}
