@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 app = FastAPI(title="ESP32 Backend", version="1.0.0")
 
 SEEN_EVENTS: Set[str] = set()
+SEEN_SAMPLES: Set[str] = set()
 
 class Heartbeat(BaseModel):
     deviceId: str = Field(..., min_length=1)
@@ -30,6 +31,13 @@ class EventIngest(BaseModel):
     eventType: Literal["FALL", "EMERGENCY_BUTTON", "SIMULATED", "TILT"]
     occurredAt: Optional[str] = None
     samples: Optional[List[EventSample]] = None
+
+
+class EventSamplesPayload(BaseModel):
+    deviceId: str = Field(..., min_length=1)
+    eventUid: str = Field(..., min_length=1)
+    samples: List[EventSample]
+    units: Optional[str] = None
 
 
 class TiltPayload(BaseModel):
@@ -86,6 +94,38 @@ async def ingest_event(payload: EventIngest, request: Request):
         "eventId": f"local-{payload.eventUid}",
         "duplicated": duplicated,
         "received": payload.model_dump(),
+        "serverTimestamp": server_ts,
+    }
+
+
+@app.post("/api/v1/events/samples")
+async def ingest_samples(payload: EventSamplesPayload, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    server_ts = datetime.now(timezone.utc).isoformat()
+
+    new_count = 0
+    dup_count = 0
+    for s in payload.samples:
+        key = f"{payload.eventUid}:{s.seq}"
+        if key in SEEN_SAMPLES:
+            dup_count += 1
+        else:
+            SEEN_SAMPLES.add(key)
+            new_count += 1
+
+    print(
+        f"[SAMPLES] from={client_ip} deviceId={payload.deviceId} "
+        f"eventUid={payload.eventUid} samples={len(payload.samples)} "
+        f"new={new_count} dup={dup_count} units={payload.units or 'null'} "
+        f"server_ts={server_ts}"
+    )
+
+    return {
+        "ok": True,
+        "eventId": f"local-{payload.eventUid}",
+        "received": payload.model_dump(),
+        "new": new_count,
+        "duplicated": dup_count,
         "serverTimestamp": server_ts,
     }
 

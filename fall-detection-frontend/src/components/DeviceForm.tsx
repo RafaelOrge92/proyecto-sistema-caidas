@@ -10,7 +10,7 @@ interface DeviceFormProps {
 
 export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, onCancel }) => {
     const [formData, setFormData] = useState<Partial<Device>>({
-        deviceId: '',
+        id: '',
         alias: '',
         assignedUserId: '',
     });
@@ -25,7 +25,7 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, 
 
         if (initialData) {
             setFormData({
-                deviceId: initialData.deviceId,
+                id: initialData.id,
                 alias: initialData.alias,
                 assignedUserId: initialData.assignedUserId || ''
             });
@@ -34,7 +34,7 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, 
 
     const validate = () => {
         let tempErrors: any = {};
-        if (!formData.deviceId?.trim()) tempErrors.deviceId = "El ID del dispositivo es obligatorio.";
+        if (!formData.id?.trim()) tempErrors.id = "El ID del dispositivo es obligatorio.";
         if (!formData.alias?.trim()) tempErrors.alias = "El alias es obligatorio.";
 
         setErrors(tempErrors);
@@ -70,11 +70,11 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, 
                 <input
                     type="text"
                     className="w-full border p-2 rounded"
-                    value={formData.deviceId}
-                    onChange={e => setFormData({ ...formData, deviceId: e.target.value })}
+                    value={formData.id}
+                    onChange={e => setFormData({ ...formData, id: e.target.value })}
                     disabled={!!initialData} // Usually ID is immutable
                 />
-                {errors.deviceId && <p className="text-red-500 text-xs">{errors.deviceId}</p>}
+                {errors.id && <p className="text-red-500 text-xs">{errors.id}</p>}
             </div>
 
             <div>
@@ -97,7 +97,7 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, 
                 >
                     <option value="">-- Sin asignar --</option>
                     {users
-                        .filter(u => u.role === 'USUARIO')
+                        .filter(u => u.role === 'MEMBER')
                         .map(user => (
                             <option key={user.id} value={user.id}>
                                 {user.fullName}

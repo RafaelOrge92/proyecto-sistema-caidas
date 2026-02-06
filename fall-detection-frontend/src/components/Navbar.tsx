@@ -28,44 +28,10 @@ export const Navbar = () => {
                                 FALL-DETECT
                             </span>
                         </Link>
-
-                        {/* Links de Navegación */}
-                        <div className="hidden md:flex items-center gap-6">
-                            <Link 
-                                to="/dashboard" 
-                                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#252B35] text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#2D3440] transition-all hover-lift"
-                            >
-                                <LayoutDashboard className="w-4 h-4" />
-                                <span className="font-medium">Dashboard</span>
-                            </Link>
-                            
-                            {user.role === 'ADMIN' && (
-                                <>
-                                    <Link 
-                                        to="/admin" 
-                                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white hover:from-[#818CF8] hover:to-[#A78BFA] transition-all hover-lift shadow-lg"
-                                    >
-                                        <Users className="w-4 h-4" />
-                                        <span className="font-semibold">Panel Admin</span>
-                                    </Link>
-                                    
-                                    <div className="flex items-center gap-4 pl-6 border-l border-[#1E293B]">
-                                        <Link 
-                                            to="/admin/users" 
-                                            className="px-4 py-2 text-sm text-[#94A3B8] hover:text-[#06B6D4] transition-colors font-medium"
-                                        >
-                                            Usuarios
-                                        </Link>
-                                        <Link 
-                                            to="/admin/devices" 
-                                            className="px-4 py-2 text-sm text-[#94A3B8] hover:text-[#06B6D4] transition-colors font-medium flex items-center gap-1"
-                                        >
-                                            <HardDrive className="w-3 h-3" />
-                                            Dispositivos
-                                        </Link>
-                                    </div>
-                                </>
-                            )}
+                        <div className="flex gap-4 border-l pl-4 border-blue-700">
+                            <Link to="/admin/users" className="hover:text-blue-300 text-sm">Usuarios</Link>
+                            <Link to="/admin/devices" className="hover:text-blue-300 text-sm">Dispositivos</Link>
+                            <Link to="/admin/events" className="hover:text-blue-300 text-sm">Eventos</Link>
                         </div>
                     </div>
 

@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { UsersPage } from './pages/UsersPage';
 import { DevicePage } from './pages/DevicePage';
+import { EventsPage } from './pages/EventsPage';
 import { Dashboard } from './pages/Dashboard';
 import Admin from './pages/Admin';
 import { Navbar } from './components/Navbar';
@@ -78,6 +79,12 @@ const AppContent = () => {
         <Route path="/admin/devices" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <DevicePage />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/events" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <EventsPage />
           </ProtectedRoute>
         } />
 
