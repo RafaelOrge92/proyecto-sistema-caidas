@@ -82,7 +82,7 @@ export const DevicePage: React.FC = () => {
 
               <h3 className="font-bold text-lg text-gray-800 mb-1">{device.alias}</h3>
               <p className="text-gray-500 text-sm mb-4 font-mono bg-gray-100 inline-block px-2 py-1 rounded">
-                ID: {device.deviceId}
+                ID: {device.id}
               </p>
 
               <div className="mt-2">
@@ -97,7 +97,7 @@ export const DevicePage: React.FC = () => {
                   >
                     <option value="">-- Disponible (Sin asignar) --</option>
                     {users
-                      .filter(u => u.role === 'USUARIO')
+                      .filter(u => u.role === 'MEMBER')
                       .map(user => (
                         <option key={user.id} value={user.id}>
                           {user.fullName}

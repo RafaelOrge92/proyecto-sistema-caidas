@@ -19,7 +19,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
     fullName: '',
     email: '',
     password: '',
-    role: 'USUARIO',
+    role: 'MEMBER',
     isActive: true
   });
 
