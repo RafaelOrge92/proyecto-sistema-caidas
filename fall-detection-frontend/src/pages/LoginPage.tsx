@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { ShieldAlert, Mail, Lock, LogIn } from 'lucide-react';
@@ -8,6 +8,36 @@ export const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
+
+    useEffect(() => {
+        /* global google */
+        if (typeof (window as any).google !== 'undefined') {
+            (window as any).google.accounts.id.initialize({
+                client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '256181323796-i873dtd0jeccpppfq0fvbutpm7sr5aa3.apps.googleusercontent.com',
+                callback: handleGoogleResponse
+            });
+            (window as any).google.accounts.id.renderButton(
+                document.getElementById('googleButton'),
+                { theme: 'outline', size: 'large', width: 300 }
+            );
+        }
+    }, []);
+
+    const handleGoogleResponse = async (response: any) => {
+        setLoading(true);
+        try {
+            const res = await axios.post('http://localhost:3000/api/auth/google', {
+                credential: response.credential
+            });
+            login(res.data.token, res.data.user.role);
+            window.location.href = '/dashboard';
+        } catch (error) {
+            console.error("Error logging in with Google:", error);
+            alert("Error al iniciar sesión con Google");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -44,70 +74,83 @@ export const LoginPage = () => {
                     </div>
 
                     {/* Formulario */}
-                    <form onSubmit={handleSubmit} className="p-10 space-y-8">
-                        {/* Campo Email */}
-                        <div className="space-y-3">
-                            <label className="text-[#94A3B8] text-sm font-semibold flex items-center gap-2">
-                                <Mail className="w-4 h-4" />
-                                Email
-                            </label>
-                            <input 
-                                type="email" 
-                                placeholder="correo@ejemplo.com" 
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                className="w-full bg-[#252B35] border border-[#1E293B] text-[#F1F5F9] px-5 py-4 rounded-lg text-base
-                                         focus:outline-none focus:border-[#6366F1] focus:ring-2 focus:ring-[#6366F1]/20 
-                                         transition-all placeholder:text-[#64748B]"
-                            />
+                    <div className="p-10 space-y-8">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Campo Email */}
+                            <div className="space-y-3">
+                                <label className="text-[#94A3B8] text-sm font-semibold flex items-center gap-2">
+                                    <Mail className="w-4 h-4" />
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    placeholder="correo@ejemplo.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                    className="w-full bg-[#252B35] border border-[#1E293B] text-[#F1F5F9] px-5 py-3.5 rounded-lg text-base
+                                             focus:outline-none focus:border-[#6366F1] focus:ring-2 focus:ring-[#6366F1]/20 
+                                             transition-all placeholder:text-[#64748B]"
+                                />
+                            </div>
+
+                            {/* Campo Contraseña */}
+                            <div className="space-y-3">
+                                <label className="text-[#94A3B8] text-sm font-semibold flex items-center gap-2">
+                                    <Lock className="w-4 h-4" />
+                                    Contraseña
+                                </label>
+                                <input
+                                    type="password"
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    className="w-full bg-[#252B35] border border-[#1E293B] text-[#F1F5F9] px-5 py-3.5 rounded-lg text-base
+                                             focus:outline-none focus:border-[#6366F1] focus:ring-2 focus:ring-[#6366F1]/20 
+                                             transition-all placeholder:text-[#64748B]"
+                                />
+                            </div>
+
+                            {/* Botón Submit */}
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white py-3 px-4 rounded-lg 
+                                         font-semibold flex items-center justify-center gap-2
+                                         hover:from-[#818CF8] hover:to-[#A78BFA] 
+                                         focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:ring-offset-2 focus:ring-offset-[#1A1F26]
+                                         transition-all duration-300 hover-lift shadow-lg glow-primary
+                                         disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <span>Verificando...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <LogIn className="w-5 h-5" />
+                                        <span>Iniciar Sesión</span>
+                                    </>
+                                )}
+                            </button>
+                        </form>
+
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-[#1E293B]"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-[#1A1F26] text-[#64748B]">O continuar con</span>
+                            </div>
                         </div>
 
-                        {/* Campo Contraseña */}
-                        <div className="space-y-3">
-                            <label className="text-[#94A3B8] text-sm font-semibold flex items-center gap-2">
-                                <Lock className="w-4 h-4" />
-                                Contraseña
-                            </label>
-                            <input 
-                                type="password" 
-                                placeholder="••••••••" 
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                className="w-full bg-[#252B35] border border-[#1E293B] text-[#F1F5F9] px-5 py-4 rounded-lg text-base
-                                         focus:outline-none focus:border-[#6366F1] focus:ring-2 focus:ring-[#6366F1]/20 
-                                         transition-all placeholder:text-[#64748B]"
-                            />
-                        </div>
-
-                        {/* Botón Submit */}
-                        <button 
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white py-3 px-4 rounded-lg 
-                                     font-semibold flex items-center justify-center gap-2
-                                     hover:from-[#818CF8] hover:to-[#A78BFA] 
-                                     focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:ring-offset-2 focus:ring-offset-[#1A1F26]
-                                     transition-all duration-300 hover-lift shadow-lg glow-primary
-                                     disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {loading ? (
-                                <>
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    <span>Verificando...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <LogIn className="w-5 h-5" />
-                                    <span>Iniciar Sesión</span>
-                                </>
-                            )}
-                        </button>
-                    </form>
+                        <div id="googleButton" className="w-full flex justify-center"></div>
+                    </div>
 
                     {/* Footer */}
-                    <div className="px-8 pb-8 text-center">
+                    <div className="px-8 pb-8 text-center border-t border-[#1E293B]/50 pt-6">
                         <p className="text-[#64748B] text-sm">
                             Sistema de Monitoreo en Tiempo Real
                         </p>
