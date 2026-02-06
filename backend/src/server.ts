@@ -5,6 +5,7 @@ import { authRoutes } from './routes/auth';
 import { usersRoutes } from './routes/users';
 import { devicesRoutes } from './routes/devices';
 import { eventsRoutes } from './routes/events';
+import { db } from './config/db';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -38,7 +39,9 @@ app.use('/api/devices', devicesRoutes);
 app.use('/api/events', eventsRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  const r = await db.query('select 1 as ok')
+  console.log(r) // [{ ok: 1 }]
   res.json({ status: 'ok' });
 });
 
