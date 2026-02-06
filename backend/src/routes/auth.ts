@@ -10,7 +10,7 @@ router.post('/login', async (req, res) => {
 
   try {
     // Query database for user by email
-    const database = db();
+    const database = db;
     const users = await database.query(
       'SELECT account_id, email, password_hash, role, full_name FROM public.accounts WHERE email = $1',
       [email]

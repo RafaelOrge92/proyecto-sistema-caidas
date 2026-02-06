@@ -67,27 +67,27 @@ export const setEvents = (newEvents: any[]) => {
 
 // Get all events
 router.get('/', async (req, res) => {
-  const result = db().query('SELECT * FROM public.events')
+  const result = db.query('SELECT * FROM public.events')
   res.json(result)
 });
 
 // Get events by device
 router.get('/device/:deviceId', async (req, res) => {
-  const result = db().query(`SELECT * FROM public.events WHERE device_id = ${req.params.deviceId}`)
+  const result = db.query(`SELECT * FROM public.events WHERE device_id = ${req.params.deviceId}`)
   res.json(result)
 });
 
 
 // Get event by id
 router.get('/:id', (req, res) => {
-  const result = db().query(`SELECT * FROM public.events WHERE event_id = ${req.params.id}`)
+  const result = db.query(`SELECT * FROM public.events WHERE event_id = ${req.params.id}`)
   res.json(result)
 });
 
 // Create event
 router.post('/', (req, res) => {
   const { deviceId, eventType, status, eventUid, ocurredAt, reviewedBy, reviewedAt, review_comment } = req.body;
-  const result = db().query(`INSERT INTO public.events (event_uid, device_id, event_type, status, ocurred_at, reviewed_by, review_comment)
+  const result = db.query(`INSERT INTO public.events (event_uid, device_id, event_type, status, ocurred_at, reviewed_by, review_comment)
     values (${eventUid}, ${deviceId}, ${eventType}, ${status}, ${ocurredAt} ${reviewedBy}, ${reviewedAt}, ${review_comment})`)
   res.status(201).json(result)
 });

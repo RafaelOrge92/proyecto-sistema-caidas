@@ -6,7 +6,7 @@ const router = Router();
 // Get all users
 router.get('/', async (req, res) => {
   try {
-    const database = db();
+    const database = db;
     const users = await database.query(
       'SELECT account_id as id, email, role, full_name as "fullName", phone, created_at as "createdAt", updated_at as "updatedAt" FROM public.accounts ORDER BY created_at DESC'
     );
@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 // Get user by id
 router.get('/:id', async (req, res) => {
   try {
-    const database = db();
+    const database = db;
     const users = await database.query(
       'SELECT account_id as id, email, role, full_name as "fullName", phone, created_at as "createdAt", updated_at as "updatedAt" FROM public.accounts WHERE account_id = $1',
       [req.params.id]
@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const database = db();
+    const database = db;
 
     // Insert new user (password_hash will store the plain password for simplicity)
     const result = await database.query(
@@ -66,7 +66,7 @@ router.put('/:id', async (req, res) => {
   const { email, fullName, phone, role } = req.body;
 
   try {
-    const database = db();
+    const database = db;
 
     // Check if user exists
     const existingUsers = await database.query(
@@ -96,7 +96,7 @@ router.put('/:id', async (req, res) => {
 // If you want true soft delete, you'd need to add an is_active column to the schema
 router.patch('/:id/deactivate', async (req, res) => {
   try {
-    const database = db();
+    const database = db;
 
     // Check if user exists
     const existingUsers = await database.query(
