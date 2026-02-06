@@ -53,4 +53,8 @@ router.post('/', async (req, res) => {
   res.status(201).json(result)
 });
 
+router.get('/heartbeat', async (req, res) => {
+  
+})
+
 export const devicesRoutes = router;
