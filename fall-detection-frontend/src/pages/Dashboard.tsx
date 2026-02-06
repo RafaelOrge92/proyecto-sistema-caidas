@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { AdminService } from '../services/adminService';
 import { FallEvent, Device } from '../types';
+// IMPORTANTE: Asegúrate de que todos estos iconos estén en la lista de importación
+import { Activity, AlertTriangle, CheckCircle, RefreshCw, Wifi, WifiOff, Clock } from 'lucide-react';
+import Card from '../components/ui/Card';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -30,7 +33,6 @@ export const Dashboard: React.FC = () => {
   };
 
   const createSimulatedFallAlert = async () => {
-    // Obtener un dispositivo aleatorio
     if (devices.length === 0) {
       alert('No hay dispositivos disponibles');
       return;
@@ -50,7 +52,6 @@ export const Dashboard: React.FC = () => {
       await AdminService.createEvent(newEvent);
       setIsAlertActive(true);
       
-      // Reproducir sonido de alerta
       try {
         const audio = new Audio('https://actions.google.com/sounds/v1/alarms/emergency_it_is_an_emergency.ogg');
         audio.play().catch(() => console.log("Interacción requerida para audio"));
@@ -58,7 +59,6 @@ export const Dashboard: React.FC = () => {
         console.log("No se pudo reproducir sonido");
       }
 
-      // Recargar datos
       await loadData();
     } catch (err) {
       alert('Error al crear simulación de caída');
@@ -102,184 +102,96 @@ export const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-xl text-gray-600">Cargando panel...</div>
+      <div className="flex items-center justify-center min-h-screen bg-[#0F1419]">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#6366F1] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-xl text-[#94A3B8]">Cargando panel...</div>
+        </div>
       </div>
     );
   }
 
-  // Detectar si hay alertas activas
   const activeEvents = events.filter(e => (e as any).status === 'OPEN');
   const shouldAlert = activeEvents.length > 0;
 
   return (
-    <div
-      className={`p-4 md:p-6 min-h-screen transition-all duration-700 ${
-        shouldAlert ? 'bg-red-600' : 'bg-gray-100'
-      }`}
-    >
-      {/* Encabezado */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h2 className={`text-3xl font-bold ${shouldAlert ? 'text-white' : 'text-gray-800'}`}>
-          Panel de Control - {user?.role}
-        </h2>
-        <div className="flex flex-wrap items-center gap-2">
-          {user?.role === 'ADMIN' && (
-            <>
-              <button
-                onClick={createSimulatedFallAlert}
-                className="bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-600 transition shadow-lg"
-              >
-                🚨 Simular Caída
-              </button>
-              <button
-                onClick={loadData}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg"
-              >
-                🔄 Actualizar
-              </button>
-            </>
-          )}
-          {error && (
-            <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-lg text-sm font-medium">
-              {error}
-            </span>
-          )}
+    <div className={`min-h-screen p-8 transition-colors duration-1000 ${shouldAlert ? 'bg-red-950/20' : 'bg-[#0F1419]'}`}>
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Resumen Superior */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <div className="glass-panel p-6">
+            <p className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-1">Estado Global</p>
+            <h2 className="text-3xl font-bold flex items-center gap-2">
+              {shouldAlert ? <span className="text-red-500">Alerta Crítica</span> : <span className="text-green-500">Protegido</span>}
+            </h2>
+          </div>
         </div>
-      </div>
 
-      {/* Alerta Crítica */}
-      {shouldAlert && (
-        <div className="bg-white p-6 rounded-lg shadow-2xl mb-8 border-l-8 border-yellow-400 animate-pulse">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h3 className="text-3xl font-black text-red-600 mb-2">🚨 CAÍDA DETECTADA</h3>
-              <div className="space-y-1 text-gray-700">
-                {activeEvents.map((event) => (
-                  <p key={event.id}>
-                    <strong>Dispositivo:</strong> {(event as any).deviceAlias || (event as any).deviceId}
-                    <br />
-                    <strong>Paciente:</strong> {(event as any).patientName || 'Desconocido'}
-                    <br />
-                    <strong>Hora:</strong> {new Date((event as any).occurredAt).toLocaleTimeString('es-ES')}
-                  </p>
-                ))}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Sección de Alerta Animada si hay caída */}
+          {shouldAlert && (
+            <div className="lg:col-span-3 bg-red-600 rounded-[28px] p-8 flex flex-col md:flex-row justify-between items-center shadow-2xl animate-pulse">
+              <div className="flex items-center gap-6">
+                <div className="bg-white/20 p-4 rounded-2xl">
+                  <AlertTriangle size={48} className="text-white" />
+                </div>
+                <div>
+                  <h2 className="text-4xl font-black text-white">CAÍDA DETECTADA</h2>
+                  <p className="text-red-100 text-lg">Paciente: {activeEvents[0].patientName}</p>
+                </div>
+              </div>
+              <div className="flex gap-4 mt-6 md:mt-0">
+                <button 
+                  onClick={() => confirmFall(activeEvents[0].id)} 
+                  className="bg-white text-red-600 px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition-transform"
+                >
+                  Confirmar Emergencia
+                </button>
+                <button 
+                  onClick={() => confirmFalseAlarm(activeEvents[0].id)} 
+                  className="bg-red-800 text-white px-8 py-4 rounded-full font-bold text-lg border border-red-400/30"
+                >
+                  Falsa Alarma
+                </button>
               </div>
             </div>
-            <div className="flex gap-2 w-full md:w-auto">
-              <button
-                onClick={() => confirmFalseAlarm(activeEvents[0].id)}
-                className="flex-1 md:flex-none bg-yellow-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-yellow-600 shadow-lg transition"
-              >
-                ✓ Falsa Alarma
-              </button>
-              <button
-                onClick={() => confirmFall(activeEvents[0].id)}
-                className="flex-1 md:flex-none bg-red-700 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-800 shadow-lg transition"
-              >
-                🆘 Confirmar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Grid Principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Resumen de Dispositivos */}
-        <div className="bg-white rounded-xl shadow-md p-6 lg:col-span-2">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">📱 Dispositivos Conectados</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {devices.length === 0 ? (
-              <p className="text-gray-600">No hay dispositivos</p>
-            ) : (
-              devices.map((device) => (
-                <div
-                  key={device.id}
-                  className={`p-4 rounded-lg border-2 transition ${
-                    (device as any).isActive
-                      ? 'border-green-400 bg-green-50'
-                      : 'border-gray-300 bg-gray-50'
-                  }`}
-                >
-                  <h4 className="font-bold text-gray-800">
-                    {(device as any).alias || device.id}
-                  </h4>
-                  <p className="text-sm text-gray-600 mt-2">
-                    <strong>Paciente:</strong> {(device as any).patientName || 'N/A'}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Estado:</strong>{' '}
-                    <span
-                      className={
-                        (device as any).isActive
-                          ? 'text-green-600 font-semibold'
-                          : 'text-gray-500'
-                      }
-                    >
-                      {(device as any).isActive ? '🟢 Conectado' : '⚪ Desconectado'}
-                    </span>
-                  </p>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Última conexión:{' '}
-                    {(device as any).lastSeen
-                      ? new Date((device as any).lastSeen).toLocaleTimeString('es-ES')
-                      : 'Nunca'}
-                  </p>
+          {/* Dispositivos */}
+          <section className="lg:col-span-2 space-y-6">
+            <h3 className="text-2xl font-bold ml-2 text-white">Dispositivos Conectados</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {devices.map((device) => (
+                <div key={device.id} className="glass-panel p-8 hover:bg-[#252B35] transition-colors group">
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="p-3 bg-[#6366F1]/10 rounded-2xl text-[#6366F1] group-hover:scale-110 transition-transform">
+                      <Wifi size={24} />
+                    </div>
+                    <span className="text-xs font-bold text-green-500 bg-green-500/10 px-3 py-1 rounded-full uppercase">Online</span>
+                  </div>
+                  <h4 className="text-2xl font-bold mb-1 text-white">{(device as any).alias || device.id}</h4>
+                  <p className="text-[#94A3B8]">Paciente: {(device as any).patientName || 'No asignado'}</p>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
+              ))}
+            </div>
+          </section>
 
-        {/* Historial de Eventos */}
-        <div className="bg-white rounded-xl shadow-md p-6 h-fit">
-          <h4 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">
-            📋 Eventos Recientes
-          </h4>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {events.length === 0 ? (
-              <p className="text-gray-500 text-sm">No hay eventos</p>
-            ) : (
-              events.slice(0, 10).map((event) => (
-                <div
-                  key={event.id}
-                  className={`text-sm p-3 rounded-lg ${
-                    (event as any).status === 'OPEN'
-                      ? 'bg-red-50 border-l-4 border-red-500'
-                      : (event as any).status === 'CONFIRMED_FALL'
-                      ? 'bg-yellow-50 border-l-4 border-yellow-500'
-                      : 'bg-green-50 border-l-4 border-green-500'
-                  }`}
-                >
-                  <p className="font-bold text-gray-800">
-                    {(event as any).deviceAlias || (event as any).deviceId}
-                  </p>
-                  <p className="text-gray-600 text-xs">
-                    {(event as any).patientName}
-                  </p>
-                  <div className="flex justify-between items-center mt-1">
-                    <span className="text-xs text-gray-500">
-                      {new Date((event as any).occurredAt).toLocaleTimeString('es-ES')}
-                    </span>
-                    <span
-                      className={`font-bold text-xs px-2 py-1 rounded ${
-                        (event as any).status === 'OPEN'
-                          ? 'bg-red-200 text-red-800'
-                          : (event as any).status === 'CONFIRMED_FALL'
-                          ? 'bg-yellow-200 text-yellow-800'
-                          : (event as any).status === 'FALSE_ALARM'
-                          ? 'bg-green-200 text-green-800'
-                          : 'bg-blue-200 text-blue-800'
-                      }`}
-                    >
-                      {(event as any).eventType}
-                    </span>
+          {/* Historial Lateral */}
+          <aside className="glass-panel p-8 h-fit">
+            <h3 className="text-2xl font-bold mb-6 text-white">Actividad Reciente</h3>
+            <div className="space-y-6">
+              {events.slice(0, 5).map((event) => (
+                <div key={event.id} className="flex gap-4 items-start border-b border-white/5 pb-4">
+                  <div className={`w-2 h-2 rounded-full mt-2 ${(event as any).status === 'OPEN' ? 'bg-red-500' : 'bg-gray-500'}`} />
+                  <div>
+                    <p className="font-bold text-white">{(event as any).deviceAlias || (event as any).deviceId}</p>
+                    <p className="text-sm text-[#94A3B8]">{new Date((event as any).occurredAt || Date.now()).toLocaleTimeString()}</p>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          </aside>
         </div>
       </div>
     </div>

@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
 };
 
 const LandingLayout = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex flex-col min-h-screen bg-white text-text-main">
+  <div className="flex flex-col min-h-screen bg-[#0F1419] text-[#F1F5F9]">
     <LandingNavbar />
     <main className="flex-grow">
       {children}
@@ -51,7 +51,7 @@ const AppContent = () => {
 
         {/* Landing Pages */}
         <Route path="/" element={<LandingLayout><Home /></LandingLayout>} />
-        <Route path="/about" element={<LandingLayout><About /></LandingLayout>} />
+        <Route path="/About" element={<LandingLayout><About /></LandingLayout>} />
         <Route path="/contact" element={<LandingLayout><Contact /></LandingLayout>} />
 
         {/* Dashboard principal */}
