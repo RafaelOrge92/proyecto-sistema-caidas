@@ -1,26 +1,51 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { ShieldAlert, Mail, Lock, LogIn } from 'lucide-react';
 
 export const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
+    const [error, setError] = useState('');
     const { login } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
         try {
             const res = await axios.post('http://localhost:3000/api/auth/login', { email, password });
             login(res.data.token, res.data.user.role);
             window.location.href = '/dashboard';
         } catch (error) {
-            alert("Credenciales incorrectas");
+            setError("Credenciales incorrectas");
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+        setGoogleLoading(true);
+        setError('');
+        try {
+            const token = credentialResponse.credential;
+            const res = await axios.post('http://localhost:3000/api/auth/google-login', { 
+                token 
+            });
+            login(res.data.token, res.data.user.role);
+            window.location.href = '/dashboard';
+        } catch (error: any) {
+            setError(error.response?.data?.error || "Error en la autenticación de Google");
+        } finally {
+            setGoogleLoading(false);
+        }
+    };
+
+    const handleGoogleError = () => {
+        setError("Error al procesar el login de Google");
     };
 
     return (
@@ -44,7 +69,14 @@ export const LoginPage = () => {
                     </div>
 
                     {/* Formulario */}
-                    <form onSubmit={handleSubmit} className="p-10 space-y-8">
+                    <form onSubmit={handleSubmit} className="p-10 space-y-6">
+                        {/* Mensaje de Error */}
+                        {error && (
+                            <div className="bg-red-900/30 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg text-sm">
+                                {error}
+                            </div>
+                        )}
+
                         {/* Campo Email */}
                         <div className="space-y-3">
                             <label className="text-[#94A3B8] text-sm font-semibold flex items-center gap-2">
@@ -84,7 +116,7 @@ export const LoginPage = () => {
                         {/* Botón Submit */}
                         <button 
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || googleLoading}
                             className="w-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white py-3 px-4 rounded-lg 
                                      font-semibold flex items-center justify-center gap-2
                                      hover:from-[#818CF8] hover:to-[#A78BFA] 
@@ -104,6 +136,24 @@ export const LoginPage = () => {
                                 </>
                             )}
                         </button>
+
+                        {/* Divider */}
+                        <div className="flex items-center gap-4 my-6">
+                            <div className="flex-1 h-px bg-[#1E293B]"></div>
+                            <span className="text-[#64748B] text-xs font-medium">O continúa con</span>
+                            <div className="flex-1 h-px bg-[#1E293B]"></div>
+                        </div>
+
+                        {/* Google Login Button */}
+                        <div className="flex justify-center">
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={handleGoogleError}
+                                text="signin_with"
+                                locale="es_ES"
+                                width="320"
+                            />
+                        </div>
                     </form>
 
                     {/* Footer */}
