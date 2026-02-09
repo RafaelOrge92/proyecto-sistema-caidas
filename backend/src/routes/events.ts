@@ -27,10 +27,24 @@ router.get('/device/:deviceId', async (req, res) => {
 
 // Get event by id
 router.get('/:id', async (req, res) => {
-  const result = await db.query('SELECT * FROM public.devices WHERE event_id = $1',
-  [req.params.id]
-)
-  res.json(result)
+  const { id } = req.params
+  try {
+    const result = await db.query(
+      'SELECT * FROM public.events WHERE event_id::text = $1 OR event_uid::text = $1',
+      [id]
+    )
+    return res.json(result)
+  } catch (error: any) {
+    if (error?.code === '42703' && String(error?.message || '').includes('event_id')) {
+      const fallback = await db.query(
+        'SELECT * FROM public.events WHERE id::text = $1 OR event_uid::text = $1',
+        [id]
+      )
+      return res.json(fallback)
+    }
+    console.error('Error fetching event by id:', error)
+    return res.status(500).json({ error: 'Error al obtener el evento' })
+  }
 });
 
 router.put('/update', async (req, res) => {
