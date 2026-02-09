@@ -48,7 +48,7 @@ router.put('/update', async (req, res) => {
 
 router.post('/ingest', async (req, res) => {
   const {deviceId, eventUid, eventType, ocurredAt} = req.body
-  const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, ocurred_at) 
+  const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, occurred_at) 
     values($1, $2, $3, $4)`,
   [eventUid, deviceId, eventType, ocurredAt])
   res.status(201).json(result)
@@ -68,7 +68,7 @@ router.post('/samples', async (req, res) => {
 // Create event
 router.post('/', async (req, res) => {
   const { deviceId, eventType, status, eventUid, ocurredAt, reviewedBy, reviewedAt, review_comment } = req.body;
-  const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, status, ocurred_at, reviewed_by, review_comment)
+  const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, status, occurred_at, reviewed_by, review_comment)
     values ($1, $2, $3, $4, $5, $6, $7, $8)`,
   [eventUid, deviceId, eventType, status, ocurredAt, reviewedBy, reviewedAt, review_comment])
   res.status(201).json(result)
