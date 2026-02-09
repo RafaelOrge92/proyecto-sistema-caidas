@@ -93,7 +93,7 @@ router.put('/:id', async (req, res) => {
 
 router.post('/asign', async (req, res) => {
   const {accountId, deviceId, accessType} = req.body
-  const result = await db.query(`INSERT INTO public.device_access (account_id, device_id, access_type) values (${accountId}, ${deviceId}, ${accessType})`)
+  const result = await db.query(`INSERT INTO public.device_access (account_id, device_id, access_type) values ($1, $2, $3)`,[accountId, deviceId, accessType])
   res.status(201).json(result)
 })
 
