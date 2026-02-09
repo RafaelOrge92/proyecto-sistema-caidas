@@ -1,17 +1,29 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 
-import { login as apiLogin, loginWithGoogle as apiLoginWithGoogle, logout as apiLogout } from '../api/endpoints';
+import {
+  login as apiLogin,
+  loginWithGoogle as apiLoginWithGoogle,
+  logout as apiLogout,
+  registerMember as apiRegisterMember
+} from '../api/endpoints';
 import { setAuthToken } from '../api/client';
 import type { LoginResponse } from '../api/types';
 
 export type AuthUser = LoginResponse['user'];
+type RegisterPayload = {
+  email: string;
+  fullName: string;
+  password: string;
+  phone?: string | null;
+};
 
 type AuthContextValue = {
   user: AuthUser | null;
   token: string | null;
   isReady: boolean;
   loginWithPassword: (email: string, password: string) => Promise<void>;
+  register: (payload: RegisterPayload) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -70,6 +82,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await storeSession(response.token, response.user);
   };
 
+  const register = async (payload: RegisterPayload) => {
+    await apiRegisterMember(payload);
+    const response = await apiLogin(payload.email, payload.password);
+    setToken(response.token);
+    setUser(response.user);
+    setAuthToken(response.token);
+    await storeSession(response.token, response.user);
+  };
+
   const loginWithGoogle = async (credential: string) => {
     const response = await apiLoginWithGoogle(credential);
     setToken(response.token);
@@ -97,6 +118,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       token,
       isReady,
       loginWithPassword,
+      register,
       loginWithGoogle,
       logout
     }),

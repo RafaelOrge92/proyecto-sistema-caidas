@@ -16,6 +16,8 @@ import { StatusPill } from '../components/StatusPill';
 import { RootStackParamList } from '../navigation/types';
 import { theme } from '../theme';
 
+const LIVE_REFETCH_INTERVAL_MS = 3000;
+
 const DASHBOARD_TILE_HEIGHT = 218;
 const DEVICE_FILTER = {
   ALL: 'ALL',
@@ -152,7 +154,8 @@ export const DevicesScreen = () => {
   const [filter, setFilter] = useState<DeviceFilter>(DEVICE_FILTER.ALL);
   const query = useQuery({
     queryKey: ['devices'],
-    queryFn: ({ signal }) => getDevices(signal)
+    queryFn: ({ signal }) => getDevices(signal),
+    refetchInterval: LIVE_REFETCH_INTERVAL_MS
   });
 
   const devices = useMemo(() => query.data ?? [], [query.data]);

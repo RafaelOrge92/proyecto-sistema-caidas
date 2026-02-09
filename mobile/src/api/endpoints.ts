@@ -53,10 +53,21 @@ export const login = async (email: string, password: string): Promise<LoginRespo
   });
 };
 
-export const loginWithGoogle = async (credential: string): Promise<LoginResponse> => {
-  return apiRequest<LoginResponse>('/auth/google', {
+export const registerMember = async (payload: Pick<CreateUserInput, 'email' | 'fullName' | 'phone' | 'password'>): Promise<AppUser> => {
+  const row = await apiRequest<ApiUserRow>('/users', {
     method: 'POST',
-    body: { credential }
+    body: {
+      ...payload,
+      role: 'MEMBER'
+    }
+  });
+  return mapUserRow(row);
+};
+
+export const loginWithGoogle = async (googleIdToken: string): Promise<LoginResponse> => {
+  return apiRequest<LoginResponse>('/auth/google-login', {
+    method: 'POST',
+    body: { token: googleIdToken }
   });
 };
 
