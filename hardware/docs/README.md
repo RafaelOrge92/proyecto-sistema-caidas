@@ -1,10 +1,22 @@
 # Firmware ESP32 - Contrato HTTP REST
 
-Este documento resume el contrato de comunicacion entre el firmware del ESP32 y el backend del sistema de deteccion de caidas. Es el mismo contrato que usa el backend: mismos endpoints, headers y formato JSON.
+Este documento resume el contrato de comunicacion entre el firmware del ESP32 y el backend del sistema de deteccion de caidas.
+
+## Version de rutas actual
+
+Las rutas vigentes usan prefijo `/api` (sin `/v1`).
+
+Resumen rapido:
+
+- Heartbeat:
+  - Backend Node (`backend/src`): `PUT /api/devices/heartbeat`
+  - Mock local (`hardware/server/server.py`): `POST /api/devices/heartbeat`
+- Ingest evento: `POST /api/events/ingest`
+- Samples evento: `POST /api/events/samples`
 
 ## Configuracion (constantes en firmware)
 
-- `BASE_URL`: `https://api.sistema-caidas.local` (placeholder, aun no desplegado)
+- `BASE_URL`: URL del backend al que envia el firmware.
 - `DEVICE_ID_OVERRIDE`: si esta vacio, el firmware usa el HWID (eFuse) y lo guarda en NVS (formato `ESP32-<HWID>`).
 - `DEVICE_KEY`: opcional (si se usa, se envia en header `X-DEVICE-KEY`)
 
@@ -15,7 +27,11 @@ Este documento resume el contrato de comunicacion entre el firmware del ESP32 y 
 
 ## Endpoint 1: Heartbeat
 
-`POST {BASE_URL}/api/v1/devices/heartbeat`
+`PUT {BASE_URL}/api/devices/heartbeat`
+
+Si usas el mock local de `hardware/server/server.py`, ese endpoint es:
+
+`POST {BASE_URL}/api/devices/heartbeat`
 
 Notas de entorno:
 - En local sin TLS usa `http://localhost:8000` y el sketch `esp32/esp32_http.ino`.
@@ -45,7 +61,7 @@ Notas:
 
 ## Endpoint 2: Ingest de evento (cabecera)
 
-`POST {BASE_URL}/api/v1/events/ingest`
+`POST {BASE_URL}/api/events/ingest`
 
 ### JSON base (FALL - cabecera)
 ```json
@@ -85,7 +101,7 @@ Campos:
 
 ## Endpoint 3: Samples de acelerometro (opcional)
 
-`POST {BASE_URL}/api/v1/events/samples`
+`POST {BASE_URL}/api/events/samples`
 
 Se usa para enviar el bloque de muestras del acelerometro asociado a un evento `FALL`.
 Si el backend no expone este endpoint, el firmware envia solo la cabecera del evento.
@@ -113,12 +129,12 @@ Comportamiento:
 - Captura por interrupcion (FALLING) con debounce ~60ms para no perder pulsaciones mientras hay requests en vuelo.
 - Envia `EMERGENCY_BUTTON` al pulsar el boton.
 - Inclinometro KY-017 en `GPIO 26` (configurable). Es un interruptor mecanico, no mide angulos.
-- Se envia evento `TILT` (solo `tilted:true`) por `/api/v1/events/ingest`. No se reporta el retorno a normal.
+- Se envia evento `TILT` (solo `tilted:true`) por `/api/events/ingest`. No se reporta el retorno a normal.
 - Filtros inclinometro: debounce `150ms`, hold `2000ms`, cooldown `3000ms` (ajustables).
 - Acelerometro MPU6050 por I2C (`SDA=21`, `SCL=22`) con rango ±8g y muestreo a 50Hz.
 - Deteccion de caida por maquina de estados: free-fall -> impacto -> stillness (confirmacion).
 - Valores actuales (configurables): free-fall `<0.55g` por `>=120ms`, impacto `>=1.70g`, stillness `>=1200ms`.
-- Se envia cabecera `FALL` por `/api/v1/events/ingest` y muestras por `/api/v1/events/samples` cuando existe.
+- Se envia cabecera `FALL` por `/api/events/ingest` y muestras por `/api/events/samples` cuando existe.
 - UUID v4 generado por evento y reutilizado en los reintentos.
 - NTP para UTC (si falla, `occurredAt: null`).
 - Heartbeat siempre activo cada 2 min para actualizar `last_seen_at`.
