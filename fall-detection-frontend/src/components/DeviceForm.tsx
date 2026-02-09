@@ -44,23 +44,7 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) return;
-        setIsSubmitting(true);
-
-        try {
-            if (initialData) {
-                await AdminService.updateDevice(initialData.id, formData);
-                alert("Dispositivo actualizado correctamente");
-            } else {
-                await AdminService.createDevice(formData);
-                alert("Dispositivo registrado correctamente");
-            }
-            onSuccess();
-        } catch (error) {
-            console.error(error);
-            alert("Error al guardar dispositivo.");
-        } finally {
-            setIsSubmitting(false);
-        }
+        alert("La creacion de dispositivos esta deshabilitada por ahora");
     };
 
     return (
@@ -112,10 +96,9 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, 
                 </button>
                 <button
                     type="submit"
-                    disabled={isSubmitting}
-                    className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:bg-purple-300"
+                    className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
                 >
-                    {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar' : 'Registrar')}
+                    {initialData ? 'Actualizar' : 'Registrar'}
                 </button>
             </div>
         </form>
