@@ -15,19 +15,19 @@ export const UserDashboard: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [devRes, eventRes] = await Promise.all([
-          AdminService.getDevices(),
-          AdminService.getEvents()
-        ]);
+        if (!user?.id) return;
 
-        // Filtramos solo los dispositivos asignados a este usuario
-        const filteredDevices = devRes.data.filter(d => d.assignedUserId === user?.id);
-        setMyDevices(filteredDevices);
+        // Usar el endpoint específico para dispositivos por usuario
+        const devRes = await AdminService.getDevicesByUser(user.id);
+        setMyDevices(devRes.data);
 
-        // Filtramos eventos solo de sus dispositivos
-        const deviceIds = filteredDevices.map(d => d.id);
-        const filteredEvents = eventRes.data.filter(e => deviceIds.includes(e.deviceId));
-        setMyEvents(filteredEvents);
+        // Obtener eventos solo de los dispositivos del usuario
+        const deviceIds = devRes.data.map(d => d.id);
+        if (deviceIds.length > 0) {
+          const eventRes = await AdminService.getEvents();
+          const filteredEvents = eventRes.data.filter(e => deviceIds.includes(e.deviceId));
+          setMyEvents(filteredEvents);
+        }
 
       } catch (error) {
         console.error("Error al cargar datos del usuario", error);
