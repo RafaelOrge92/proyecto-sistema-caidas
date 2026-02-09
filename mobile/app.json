@@ -2,6 +2,7 @@
   "expo": {
     "name": "FallGuard Mobile",
     "slug": "fallguard-mobile",
+    "scheme": "fallguardmobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -27,6 +28,9 @@
       "backgroundColor": "#0B1016",
       "barStyle": "light-content"
     },
+    "plugins": [
+      "expo-web-browser"
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }
