@@ -63,7 +63,7 @@ router.post('/', async (req, res) => {
 
 // Update user
 router.put('/:id', async (req, res) => {
-  const { email, password ,fullName, phone, role } = req.body;
+  const { email, password ,fullName, phone, role, id } = req.body;
 
   try {
     const database = db;
@@ -71,7 +71,7 @@ router.put('/:id', async (req, res) => {
     // Check if user exists
     const existingUsers = await database.query(
       'SELECT account_id FROM public.accounts WHERE account_id = $1',
-      [req.params.id]
+      [id]
     );
 
     if (existingUsers.length === 0) {
@@ -81,7 +81,7 @@ router.put('/:id', async (req, res) => {
     // Update user
     const result = await database.query(
       'UPDATE public.accounts SET email = COALESCE($1, email), password_hash = COALESCE($2, password_hash) ,full_name = COALESCE($3, full_name), phone = COALESCE($4, phone), role = COALESCE($5, role), updated_at = now() WHERE account_id = $5 RETURNING account_id as id, email, role, full_name as "fullName", phone, updated_at as "updatedAt"',
-      [email, password, fullName, phone, role, req.params.id]
+      [email, password, fullName, phone, role, id]
     );
 
     res.json(result[0]);
@@ -91,7 +91,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.post('/asign', async (req, res) => {
+router.post('/assign', async (req, res) => {
   const {accountId, deviceId, accessType} = req.body
   const result = await db.query(`INSERT INTO public.device_access (account_id, device_id, access_type) values ($1, $2, $3)`,[accountId, deviceId, accessType])
   res.status(201).json(result)
