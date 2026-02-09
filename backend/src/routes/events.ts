@@ -20,14 +20,14 @@ router.get('/', async (req, res) => {
 
 // Get events by device
 router.get('/device/:deviceId', async (req, res) => {
-  const result = await db.query(`SELECT * FROM public.events WHERE device_id = ${req.params.deviceId}`)
+  const result = await db.query(`SELECT * FROM public.events WHERE device_id = $1`, [req.params.deviceId])
   res.json(result)
 });
 
 
 // Get event by id
 router.get('/:id', async (req, res) => {
-  const result = await db.query('SELECT * FROM public.devices WHERE device_id = $1',
+  const result = await db.query('SELECT * FROM public.devices WHERE event_id = $1',
   [req.params.id]
 )
   res.json(result)
