@@ -119,6 +119,9 @@ static const uint32_t IMU_SAMPLE_MS = 20; // 50 Hz
 static const float IMU_LPF_ALPHA = 0.2f;  // filtro simple para |a|
 static const bool IMU_DEBUG = false;
 static const uint32_t IMU_DEBUG_MS = 200;
+// Evita spam de logs I2C cuando el IMU esta desconectado/inestable.
+static const bool IMU_DISABLE_ON_I2C_ERRORS = true;
+static const uint8_t IMU_MAX_CONSECUTIVE_READ_FAILS = 5;
 
 // Umbrales y ventanas
 // Ajustes para reducir falsos positivos en movimientos "en ondas"
@@ -220,6 +223,12 @@ static bool IMU_impactFromIdle = false;
 static bool IMU_softImpact = false;
 static bool IMU_softFreefall = false;
 static bool IMU_postSettled = false;
+<<<<<<< Updated upstream
+=======
+static bool IMU_present = false;
+static bool IMU_disabledByReadErrors = false;
+static uint8_t IMU_readFailStreak = 0;
+>>>>>>> Stashed changes
 
 static void IMU_logEvent(const char* event) {
   Serial.printf("{\"type\":\"imu\",\"event\":\"%s\"}\n", event);
@@ -479,9 +488,22 @@ static void IMU_init(uint32_t now) {
     Wire.begin(IMU_SDA, IMU_SCL);
   }
   uint8_t who = 0;
+<<<<<<< Updated upstream
   if (IMU_readReg(IMU_REG_WHO_AM_I, who)) {
     (void)who;
   } else {
+=======
+  IMU_present = IMU_readReg(IMU_REG_WHO_AM_I, who) && who == 0x68;
+  IMU_disabledByReadErrors = false;
+  IMU_readFailStreak = 0;
+  if (IMU_present) {
+    IMU_writeReg(IMU_REG_PWR_MGMT_1, 0x00);
+    IMU_writeReg(IMU_REG_ACCEL_CONFIG, IMU_ACCEL_CFG);
+    IMU_writeReg(IMU_REG_GYRO_CONFIG, IMU_GYRO_CFG);
+    IMU_writeReg(IMU_REG_CONFIG, IMU_DLPF_CFG);
+  } else {
+    Serial.println("[IMU] no detectado, se omiten lecturas IMU");
+>>>>>>> Stashed changes
   }
   IMU_writeReg(IMU_REG_PWR_MGMT_1, 0x00);
   IMU_writeReg(IMU_REG_ACCEL_CONFIG, IMU_ACCEL_CFG);
@@ -552,6 +574,13 @@ static void IMU_processSendQueue(uint32_t now) {
 }
 
 static void IMU_loop(uint32_t now) {
+<<<<<<< Updated upstream
+=======
+  if (!IMU_present || IMU_disabledByReadErrors) {
+    IMU_processSendQueue(now);
+    return;
+  }
+>>>>>>> Stashed changes
   if (now - IMU_lastSampleMs < IMU_SAMPLE_MS) {
     IMU_processSendQueue(now);
     return;
@@ -560,9 +589,19 @@ static void IMU_loop(uint32_t now) {
 
   float ax, ay, az;
   if (!IMU_readAccelGyro(ax, ay, az)) {
+    if (IMU_readFailStreak < 255) IMU_readFailStreak++;
+    if (IMU_DISABLE_ON_I2C_ERRORS && IMU_readFailStreak >= IMU_MAX_CONSECUTIVE_READ_FAILS) {
+      IMU_disabledByReadErrors = true;
+      IMU_present = false;
+      Serial.printf(
+        "[IMU] desactivado tras %u fallos I2C consecutivos\n",
+        (unsigned int)IMU_readFailStreak
+      );
+    }
     IMU_processSendQueue(now);
     return;
   }
+  IMU_readFailStreak = 0;
 
   IMU_bufferPre(ax, ay, az);
   float mag = sqrtf(ax * ax + ay * ay + az * az);
