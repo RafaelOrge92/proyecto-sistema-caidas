@@ -38,6 +38,7 @@ router.get('/:id', async (req, res) => {
 
 router.get('/user/:userId', async (req, res) => {
   const result = await db.query(`SELECT * FROM public.devices WHERE device_id IN (SELECT device_id FROM public.device_access WHERE account_id = ${req.params.userId})` )
+  res.json(result)
 })
 
 // Create device
@@ -65,5 +66,9 @@ router.put('/heartbeat', async (req, res) => {
   }
 })
 
+router.get('/podium', async (req, res) => {
+  const result = db.query('SELECT COUNT(event_id), device_id FROM public.events GROUP BY device_id ')
+  res.json(result)
+})
 
 export const devicesRoutes = router;
