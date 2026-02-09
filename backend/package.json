@@ -19,7 +19,6 @@
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "google-auth-library": "^10.5.0",
-    "i": "^0.3.7",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.18.0"
   },
