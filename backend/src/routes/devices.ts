@@ -7,13 +7,13 @@ const router = Router();
 //get all devices
 
 router.get('/', async (req, res) => {
-  const result = await db.query('SELECT * FROM public.devices')
+  const result = await db.query('SELECT *, (SELECT first_name as patient_first_name, patient_last_name, CONCAT(first_name, " ", last_name) as patient_full_name FROM public.patients WHERE patient_id = public.patients.patient_id) FROM public.devices')
   res.json(result)
 })
 
 // Get device by id
 router.get('/:id', async (req, res) => {
-  const result = await db.query(`SELECT * FROM public.devices WHERE device_id = $1`,
+  const result = await db.query(`SELECT *, (SELECT first_name as patient_first_name, patient_last_name, CONCAT(first_name, " ", last_name) as patient_full_name FROM public.patients WHERE patient_id = public.patients.patient_id) FROM public.devices WHERE device_id = $1`,
     [req.params.id]
   )
   res.json(result)
@@ -41,7 +41,7 @@ router.post('/', async (req, res) => {
   res.status(201).json(result)
 });
 
-router.put('/heartbeat', async (req, res) => {
+const handleHeartbeat = async (req: any, res: any) => {
   const {timestamp, deviceId} = req.body
   console.log('Recibido')
   try{
@@ -51,7 +51,10 @@ router.put('/heartbeat', async (req, res) => {
     console.error('Cannot access device')
     res.status(500).json({error: 'No se puede acceder al dispositivo'})
   }
-})
+}
+
+router.put('/heartbeat', handleHeartbeat)
+router.post('/heartbeat', handleHeartbeat)
 
 router.get('/podium', async (req, res) => {
   const result = db.query('SELECT COUNT(event_id), device_id FROM public.events GROUP BY device_id ')

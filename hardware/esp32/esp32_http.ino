@@ -77,7 +77,7 @@ static const uint32_t TILT_DEBOUNCE_MS = 150; // antirrebote (mas estricto)
 static const uint32_t TILT_HOLD_MS = 2000;   // inclinacion valida si se mantiene
 static const uint32_t TILT_COOLDOWN_MS = 3000; // evita spam
 static const bool TILT_REPORT_NORMAL = false; // NO enviar tilted:false (se ignora el retorno a normal)
-static const char* TILT_ENDPOINT = "/api/v1/events/ingest";
+static const char* TILT_ENDPOINT = "/api/events/ingest";
 static const char* TILT_EVENT_TYPE = "TILT";
 
 static bool TILT_lastReading = false;
@@ -162,8 +162,8 @@ static const uint16_t FALL_POST_SAMPLES = 100; // ~2s
 static const uint16_t FALL_MAX_SAMPLES = FALL_PRE_SAMPLES + FALL_POST_SAMPLES;
 
 // Endpoints
-static const char* FALL_HEADER_ENDPOINT = "/api/v1/events/ingest";
-static const char* FALL_SAMPLES_ENDPOINT = "/api/v1/events/samples"; // backend puede no existir aun
+static const char* FALL_HEADER_ENDPOINT = "/api/events/ingest";
+static const char* FALL_SAMPLES_ENDPOINT = "/api/events/samples"; // backend puede no existir aun
 
 // NVS para persistencia minima del header
 static const char* IMU_NVS_NS = "fallq";
@@ -223,26 +223,34 @@ static bool IMU_impactFromIdle = false;
 static bool IMU_softImpact = false;
 static bool IMU_softFreefall = false;
 static bool IMU_postSettled = false;
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 static bool IMU_present = false;
 static bool IMU_disabledByReadErrors = false;
 static uint8_t IMU_readFailStreak = 0;
 >>>>>>> Stashed changes
+=======
+static bool IMU_present = false;
+>>>>>>> origin/develop
 
 static void IMU_logEvent(const char* event) {
+  if (!IMU_present) return;
   Serial.printf("{\"type\":\"imu\",\"event\":\"%s\"}\n", event);
 }
 
 static void IMU_logEventU32(const char* event, const char* key, uint32_t value) {
+  if (!IMU_present) return;
   Serial.printf("{\"type\":\"imu\",\"event\":\"%s\",\"%s\":%lu}\n", event, key, (unsigned long)value);
 }
 
 static void IMU_logEventI32(const char* event, const char* key, int32_t value) {
+  if (!IMU_present) return;
   Serial.printf("{\"type\":\"imu\",\"event\":\"%s\",\"%s\":%ld}\n", event, key, (long)value);
 }
 
 static void IMU_logState(uint8_t st, uint32_t now) {
+  if (!IMU_present) return;
   if (now - IMU_lastLogMs < 1000) return;
   IMU_lastLogMs = now;
   const char* name = "UNKNOWN";
@@ -258,6 +266,7 @@ static void IMU_logState(uint8_t st, uint32_t now) {
 }
 
 static void IMU_logDebug(float ax, float ay, float az, float magRaw, float magFilt, uint32_t now) {
+  if (!IMU_present) return;
   if (!IMU_DEBUG) return;
   if (now - IMU_lastDebugMs < IMU_DEBUG_MS) return;
   IMU_lastDebugMs = now;
@@ -272,6 +281,7 @@ static void IMU_logDebug(float ax, float ay, float az, float magRaw, float magFi
 }
 
 static void IMU_logFreefall(float magRaw, uint32_t ffMs, uint32_t now) {
+  if (!IMU_present) return;
   if (!IMU_DEBUG) return;
   if (now - IMU_lastFfLogMs < 1000) return;
   IMU_lastFfLogMs = now;
@@ -488,6 +498,7 @@ static void IMU_init(uint32_t now) {
     Wire.begin(IMU_SDA, IMU_SCL);
   }
   uint8_t who = 0;
+<<<<<<< HEAD
 <<<<<<< Updated upstream
   if (IMU_readReg(IMU_REG_WHO_AM_I, who)) {
     (void)who;
@@ -496,19 +507,21 @@ static void IMU_init(uint32_t now) {
   IMU_present = IMU_readReg(IMU_REG_WHO_AM_I, who) && who == 0x68;
   IMU_disabledByReadErrors = false;
   IMU_readFailStreak = 0;
+=======
+  IMU_present = IMU_readReg(IMU_REG_WHO_AM_I, who);
+>>>>>>> origin/develop
   if (IMU_present) {
     IMU_writeReg(IMU_REG_PWR_MGMT_1, 0x00);
     IMU_writeReg(IMU_REG_ACCEL_CONFIG, IMU_ACCEL_CFG);
     IMU_writeReg(IMU_REG_GYRO_CONFIG, IMU_GYRO_CFG);
     IMU_writeReg(IMU_REG_CONFIG, IMU_DLPF_CFG);
+<<<<<<< HEAD
   } else {
     Serial.println("[IMU] no detectado, se omiten lecturas IMU");
 >>>>>>> Stashed changes
+=======
+>>>>>>> origin/develop
   }
-  IMU_writeReg(IMU_REG_PWR_MGMT_1, 0x00);
-  IMU_writeReg(IMU_REG_ACCEL_CONFIG, IMU_ACCEL_CFG);
-  IMU_writeReg(IMU_REG_GYRO_CONFIG, IMU_GYRO_CFG);
-  IMU_writeReg(IMU_REG_CONFIG, IMU_DLPF_CFG);
 
   imuPrefs.begin(IMU_NVS_NS, false);
   IMU_loadPendingFromNvs();
@@ -574,6 +587,7 @@ static void IMU_processSendQueue(uint32_t now) {
 }
 
 static void IMU_loop(uint32_t now) {
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
   if (!IMU_present || IMU_disabledByReadErrors) {
@@ -581,6 +595,12 @@ static void IMU_loop(uint32_t now) {
     return;
   }
 >>>>>>> Stashed changes
+=======
+  if (!IMU_present) {
+    IMU_processSendQueue(now);
+    return;
+  }
+>>>>>>> origin/develop
   if (now - IMU_lastSampleMs < IMU_SAMPLE_MS) {
     IMU_processSendQueue(now);
     return;
@@ -1117,7 +1137,7 @@ static void sendHeartbeat() {
     return;
   }
 
-  String url = String(BASE_URL) + "/api/v1/devices/heartbeat";
+  String url = String(BASE_URL) + "/api/devices/heartbeat";
 
   WiFiClient client;
   HTTPClient http;
@@ -1210,7 +1230,7 @@ static void processQueue() {
   uint32_t now = millis();
   if (now < qNextMs[0]) return;
 
-  String url = String(BASE_URL) + "/api/v1/events/ingest";
+  String url = String(BASE_URL) + "/api/events/ingest";
   WiFiClient client;
   HTTPClient http;
 

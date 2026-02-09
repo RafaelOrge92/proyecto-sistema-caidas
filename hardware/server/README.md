@@ -22,3 +22,15 @@ Levantar servidor:
 ```bash
 uvicorn server:app --host 0.0.0.0 --port 8000
 ```
+
+## Endpoints del mock
+
+Base local:
+- `http://localhost:8000`
+
+Rutas:
+- `GET /health`
+- `POST /api/devices/heartbeat`
+- `POST /api/events/ingest`
+- `POST /api/events/samples`
+- `POST /api/devices/tilt`

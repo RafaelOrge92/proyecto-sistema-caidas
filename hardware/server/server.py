@@ -51,7 +51,7 @@ def health():
     return {"ok": True, "ts": datetime.now(timezone.utc).isoformat()}
 
 
-@app.post("/api/v1/devices/heartbeat")
+@app.post("/api/devices/heartbeat")
 async def heartbeat(payload: Heartbeat, request: Request):
     client_ip = request.client.host if request.client else "unknown"
 
@@ -72,7 +72,7 @@ async def heartbeat(payload: Heartbeat, request: Request):
     }
 
 
-@app.post("/api/v1/events/ingest")
+@app.post("/api/events/ingest")
 async def ingest_event(payload: EventIngest, request: Request):
     client_ip = request.client.host if request.client else "unknown"
     server_ts = datetime.now(timezone.utc).isoformat()
@@ -98,7 +98,7 @@ async def ingest_event(payload: EventIngest, request: Request):
     }
 
 
-@app.post("/api/v1/events/samples")
+@app.post("/api/events/samples")
 async def ingest_samples(payload: EventSamplesPayload, request: Request):
     client_ip = request.client.host if request.client else "unknown"
     server_ts = datetime.now(timezone.utc).isoformat()
@@ -130,7 +130,7 @@ async def ingest_samples(payload: EventSamplesPayload, request: Request):
     }
 
 
-@app.post("/api/v1/devices/tilt")
+@app.post("/api/devices/tilt")
 async def tilt_event(payload: TiltPayload, request: Request):
     client_ip = request.client.host if request.client else "unknown"
     server_ts = datetime.now(timezone.utc).isoformat()

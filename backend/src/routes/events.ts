@@ -47,10 +47,11 @@ router.put('/update', async (req, res) => {
 })
 
 router.post('/ingest', async (req, res) => {
-  const {deviceId, eventUid, eventType, ocurredAt} = req.body
+  const { deviceId, eventUid, eventType, occurredAt, ocurredAt } = req.body
+  const eventOccurredAt = occurredAt ?? ocurredAt ?? null
   const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, occurred_at) 
-    values($1, $2, $3, $4)`,
-  [eventUid, deviceId, eventType, ocurredAt])
+    values($1, $2, $3, COALESCE($4::timestamptz, now()))`,
+  [eventUid, deviceId, eventType, eventOccurredAt])
   res.status(201).json(result)
 })
 

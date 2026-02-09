@@ -10,6 +10,7 @@ export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [events, setEvents] = useState<FallEvent[]>([]);
   const [devices, setDevices] = useState<Device[]>([]);
+  const [podium, setPodium] = useState<any[]>([]);
   const [isAlertActive, setIsAlertActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,10 +21,18 @@ export const Dashboard: React.FC = () => {
         AdminService.getEvents(),
         AdminService.getDevices()
       ]);
-      
+
       setEvents(eventsRes.data);
       setDevices(devicesRes.data);
       setError(null);
+
+      try {
+        const podiumRes = await AdminService.getDevicePodium();
+        setPodium(podiumRes.data);
+      } catch (podiumError) {
+        console.error('Error loading podium:', podiumError);
+        setPodium([]);
+      }
     } catch (err) {
       setError("⚠️ Sin conexión con el servidor de alertas.");
       console.error('Error loading data:', err);
@@ -113,6 +122,12 @@ export const Dashboard: React.FC = () => {
 
   const activeEvents = events.filter(e => (e as any).status === 'OPEN');
   const shouldAlert = activeEvents.length > 0;
+  
+  // Estadísticas de eventos
+  const totalEvents = events.length;
+  const confirmedFalls = events.filter(e => e.status === 'CONFIRMED_FALL').length;
+  const falseAlarms = events.filter(e => e.status === 'FALSE_ALARM').length;
+  const activeDevices = devices.filter(d => (d as any).isActive).length;
 
   return (
     <div className={`min-h-screen p-8 transition-colors duration-1000 ${shouldAlert ? 'bg-red-950/20' : 'bg-[#0F1419]'}`}>
@@ -126,7 +141,63 @@ export const Dashboard: React.FC = () => {
               {shouldAlert ? <span className="text-red-500">Alerta Crítica</span> : <span className="text-green-500">Protegido</span>}
             </h2>
           </div>
+          
+          <div className="glass-panel p-6">
+            <p className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-1">Dispositivos Activos</p>
+            <h2 className="text-3xl font-bold text-white flex items-center gap-2">
+              <Wifi size={28} className="text-[#6366F1]" />
+              {activeDevices} / {devices.length}
+            </h2>
+          </div>
+          
+          <div className="glass-panel p-6">
+            <p className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-1">Total Eventos</p>
+            <h2 className="text-3xl font-bold text-white flex items-center gap-2">
+              <Activity size={28} className="text-cyan-400" />
+              {totalEvents}
+            </h2>
+          </div>
+          
+          <div className="glass-panel p-6">
+            <p className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-1">Falsas Alarmas</p>
+            <h2 className="text-3xl font-bold text-white flex items-center gap-2">
+              <CheckCircle size={28} className="text-emerald-400" />
+              {falseAlarms}
+            </h2>
+          </div>
         </div>
+
+        {/* Widget Podium de Dispositivos */}
+        {podium.length > 0 && (
+          <div className="glass-panel p-8 mb-12">
+            <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
+              <Activity size={28} className="text-amber-400" />
+              Dispositivos Más Activos
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {podium.slice(0, 3).map((item, index) => (
+                <div key={item.device_id} className="bg-[#1A1F26] rounded-xl p-6 border border-white/5 hover:border-white/10 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`text-4xl font-bold ${
+                      index === 0 ? 'text-amber-400' : 
+                      index === 1 ? 'text-gray-300' : 
+                      'text-amber-700'
+                    }`}>
+                      #{index + 1}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-[#94A3B8]">Eventos</p>
+                      <p className="text-3xl font-bold text-white">{item.count}</p>
+                    </div>
+                  </div>
+                  <p className="text-white font-semibold truncate">
+                    Dispositivo {item.device_id}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Sección de Alerta Animada si hay caída */}
