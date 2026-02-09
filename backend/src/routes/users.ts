@@ -80,7 +80,7 @@ router.put('/:id', async (req, res) => {
 
     // Update user
     const result = await database.query(
-      'UPDATE public.accounts SET email = COALESCE($1, email), password_hash = COALESCE($2, password_hash) ,full_name = COALESCE($3, full_name), phone = COALESCE($4, phone), role = COALESCE($5, role), updated_at = now() WHERE account_id = $5 RETURNING account_id as id, email, role, full_name as "fullName", phone, updated_at as "updatedAt"',
+      'UPDATE public.accounts SET email = COALESCE($1, email), password_hash = COALESCE($2, password_hash) ,full_name = COALESCE($3, full_name), phone = COALESCE($4, phone), role = COALESCE($5, role), updated_at = now() WHERE account_id = $6 RETURNING account_id as id, email, role, full_name as "fullName", phone, updated_at as "updatedAt"',
       [email, password, fullName, phone, role, id]
     );
 
