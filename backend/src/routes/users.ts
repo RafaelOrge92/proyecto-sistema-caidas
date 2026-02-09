@@ -63,7 +63,7 @@ router.post('/', async (req, res) => {
 
 // Update user
 router.put('/:id', async (req, res) => {
-  const { email, fullName, phone, role } = req.body;
+  const { email, password ,fullName, phone, role } = req.body;
 
   try {
     const database = db;
@@ -80,8 +80,8 @@ router.put('/:id', async (req, res) => {
 
     // Update user
     const result = await database.query(
-      'UPDATE public.accounts SET email = COALESCE($1, email), full_name = COALESCE($2, full_name), phone = COALESCE($3, phone), role = COALESCE($4, role), updated_at = now() WHERE account_id = $5 RETURNING account_id as id, email, role, full_name as "fullName", phone, updated_at as "updatedAt"',
-      [email, fullName, phone, role, req.params.id]
+      'UPDATE public.accounts SET email = COALESCE($1, email), password_hash = COALESCE($2, password_hash) ,full_name = COALESCE($3, full_name), phone = COALESCE($4, phone), role = COALESCE($5, role), updated_at = now() WHERE account_id = $5 RETURNING account_id as id, email, role, full_name as "fullName", phone, updated_at as "updatedAt"',
+      [email, password, fullName, phone, role, req.params.id]
     );
 
     res.json(result[0]);
@@ -90,6 +90,13 @@ router.put('/:id', async (req, res) => {
     res.status(500).json({ error: 'Error al actualizar usuario' });
   }
 });
+
+router.post('/asign', async (req, res) => {
+  const {accountId, deviceId, accessType} = req.body
+  const result = await db.query(`INSERT INTO public.device_access (account_id, device_id, access_type) values (${accountId}, ${deviceId}, ${accessType})`)
+  res.status(201).json(result)
+})
+
 
 // Deactivate user (soft delete)
 // Note: The accounts table doesn't have an is_active column, so this will add a comment
