@@ -18,19 +18,19 @@
 
 👨‍💼 ADMIN (Control total):
    Email:     superadmin@demo.local
-   Contraseña: 1234
+   Contraseña: hash
 
 👤 USUARIO #1 (Regular):
    Email:     maria@demo.local
-   Contraseña: 1234
+   Contraseña: hash
 
 👤 USUARIO #2 (Regular):
    Email:     pablo@demo.local
-   Contraseña: 1234
+   Contraseña: hash
 
 👤 USUARIO #3 (Regular):
    Email:     lucia@demo.local
-   Contraseña: 1234
+   Contraseña: hash
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
