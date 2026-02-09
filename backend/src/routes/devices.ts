@@ -7,13 +7,30 @@ const router = Router();
 //get all devices
 
 router.get('/', async (req, res) => {
-  const result = await db.query('SELECT *, (SELECT first_name as patient_first_name, patient_last_name, CONCAT(first_name, " ", last_name) as patient_full_name FROM public.patients WHERE patient_id = public.patients.patient_id) FROM public.devices')
+  const result = await db.query(`
+    SELECT
+      d.*,
+      p.first_name AS patient_first_name,
+      p.last_name AS patient_last_name,
+      CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name
+    FROM public.devices d
+    LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+  `)
   res.json(result)
 })
 
 // Get device by id
 router.get('/:id', async (req, res) => {
-  const result = await db.query(`SELECT *, (SELECT first_name as patient_first_name, patient_last_name, CONCAT(first_name, " ", last_name) as patient_full_name FROM public.patients WHERE patient_id = public.patients.patient_id) FROM public.devices WHERE device_id = $1`,
+  const result = await db.query(`
+    SELECT
+      d.*,
+      p.first_name AS patient_first_name,
+      p.last_name AS patient_last_name,
+      CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name
+    FROM public.devices d
+    LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+    WHERE d.device_id = $1
+  `,
     [req.params.id]
   )
   res.json(result)
