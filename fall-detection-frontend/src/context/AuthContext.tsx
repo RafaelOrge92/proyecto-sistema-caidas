@@ -1,37 +1,55 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+
+interface AuthUser {
+    token: string;
+    role: string;
+    id: string;
+    fullName: string;
+    email: string;
+}
+
 interface AuthContextType {
-    user: { token: string; role: string } | null;
+    user: AuthUser | null;
     loading: boolean;
-    login: (token: string, role: string) => void;
+    login: (token: string, role: string, id: string, fullName: string, email: string) => void;
     logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<{ token: string; role: string } | null>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
+        const id = localStorage.getItem('userId');
+        const fullName = localStorage.getItem('userFullName');
+        const email = localStorage.getItem('userEmail');
 
-        if (token && role) {
-            setUser({ token, role });
+        if (token && role && id && fullName && email) {
+            setUser({ token, role, id, fullName, email });
         }
         
         setLoading(false);
     }, []);
 
-    const login = (token: string, role: string) => {
+    const login = (token: string, role: string, id: string, fullName: string, email: string) => {
         localStorage.setItem('token', token);
         localStorage.setItem('role', role);
-        setUser({ token, role });
+        localStorage.setItem('userId', id);
+        localStorage.setItem('userFullName', fullName);
+        localStorage.setItem('userEmail', email);
+        setUser({ token, role, id, fullName, email });
     };
 
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userFullName');
+        localStorage.removeItem('userEmail');
         setUser(null);
     };
 

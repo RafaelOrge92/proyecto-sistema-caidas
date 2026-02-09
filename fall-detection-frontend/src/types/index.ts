@@ -13,6 +13,7 @@ export interface User {
 
 export interface Device {
   id: string;
+  deviceId?: string;
   alias?: string;
   patientName?: string;
   patientId?: string;

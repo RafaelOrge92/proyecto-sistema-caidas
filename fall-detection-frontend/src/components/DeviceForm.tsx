@@ -91,15 +91,15 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, 
             <div>
                 <label className="block text-sm font-bold">Asignar a Usuario (Opcional)</label>
                 <select
-                    className="w-full border p-2 rounded"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-[var(--color-primary)] transition-all"
                     value={formData.assignedUserId || ""}
                     onChange={e => setFormData({ ...formData, assignedUserId: e.target.value })}
                 >
-                    <option value="">-- Sin asignar --</option>
+                    <option value="" className="bg-[#0F1419]">-- Sin asignar --</option>
                     {users
                         .filter(u => u.role === 'MEMBER')
                         .map(user => (
-                            <option key={user.id} value={user.id}>
+                            <option key={user.id} value={user.id} className="bg-[#0F1419]">
                                 {user.fullName}
                             </option>
                         ))}

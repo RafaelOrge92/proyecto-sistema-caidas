@@ -1,14 +1,17 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShieldAlert, LayoutDashboard, Users, HardDrive, LogOut } from 'lucide-react';
 
 export const Navbar = () => {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
+    const { user } = useAuth();
 
     const handleLogout = () => {
-        logout();
-        navigate('/login');
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userFullName');
+        localStorage.removeItem('userEmail');
+        window.location.replace('/');
     };
 
     if (!user) return null;
@@ -20,7 +23,7 @@ export const Navbar = () => {
                     {/* Logo y Navegación Principal */}
                     <div className="flex items-center gap-8">
                         {/* Logo */}
-                        <Link to="/dashboard" className="flex items-center gap-2 group">
+                        <Link to={user.role === 'ADMIN' ? '/dashboard' : '/my-protection'} className="flex items-center gap-2 group">
                             <div className="bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] p-2 rounded-lg shadow-lg glow-primary">
                                 <ShieldAlert className="w-6 h-6 text-white" />
                             </div>
@@ -28,11 +31,19 @@ export const Navbar = () => {
                                 FALL-DETECT
                             </span>
                         </Link>
-                        <div className="flex gap-4 border-l pl-4 border-blue-700">
-                            <Link to="/admin/users" className="hover:text-blue-300 text-sm">Usuarios</Link>
-                            <Link to="/admin/devices" className="hover:text-blue-300 text-sm">Dispositivos</Link>
-                            <Link to="/admin/events" className="hover:text-blue-300 text-sm">Eventos</Link>
-                        </div>
+                        
+                        {/* Navegación según el rol */}
+                        {user.role === 'ADMIN' ? (
+                            <div className="flex gap-4 border-l pl-4 border-blue-700">
+                                <Link to="/admin/users" className="hover:text-blue-300 text-sm">Usuarios</Link>
+                                <Link to="/admin/devices" className="hover:text-blue-300 text-sm">Dispositivos</Link>
+                                <Link to="/admin/events" className="hover:text-blue-300 text-sm">Eventos</Link>
+                            </div>
+                        ) : (
+                            <div className="flex gap-4 border-l pl-4 border-blue-700">
+                                <Link to="/my-protection" className="hover:text-blue-300 text-sm">Mi Protección</Link>
+                            </div>
+                        )}
                     </div>
 
                     {/* Usuario y Logout */}

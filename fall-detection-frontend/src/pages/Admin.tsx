@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AdminService } from '../services/adminService';
 import { User, Device } from '../types';
 import { Users, HardDrive, RefreshCw, Activity } from 'lucide-react';
@@ -7,9 +8,10 @@ import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 
 const Admin = () => {
-  const [activeTab, setActiveTab] = useState<'users' | 'devices'>('users');
+  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'devices'>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [devices, setDevices] = useState<Device[]>([]);
+  const navigate = useNavigate();
 
   // Lógica de carga... (mantener igual)
 
@@ -22,6 +24,15 @@ const Admin = () => {
             <p className="text-xl text-[var(--color-text-secondary)] font-medium">Gestión avanzada de infraestructura y seguridad.</p>
           </div>
           <div className="flex bg-white/5 p-1 rounded-full backdrop-blur-xl border border-white/10">
+            <button
+              onClick={() => {
+                setActiveTab('home');
+                navigate('/');
+              }}
+              className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'home' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
+            >
+              Home
+            </button>
             <button 
               onClick={() => setActiveTab('users')}
               className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}

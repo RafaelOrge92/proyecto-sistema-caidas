@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { AdminService } from '../services/adminService';
 import { User } from '../types';
 import { Search, UserPlus, MoreHorizontal, ShieldCheck } from 'lucide-react';
+import { UserModal } from '../components/UserModal';
 
 export const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => { loadUsers(); }, []);
 
@@ -24,7 +26,10 @@ export const UsersPage: React.FC = () => {
           <h1 className="text-5xl font-bold tracking-tight mb-2">Usuarios</h1>
           <p className="text-xl text-[var(--color-text-secondary)]">Gestiona el acceso y roles de tu equipo.</p>
         </div>
-        <button className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-6 py-3 rounded-full font-semibold transition-all shadow-lg flex items-center gap-2">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-6 py-3 rounded-full font-semibold transition-all shadow-lg flex items-center gap-2"
+        >
           <UserPlus size={20} /> Nuevo Usuario
         </button>
       </header>
@@ -66,6 +71,12 @@ export const UsersPage: React.FC = () => {
           </div>
         ))}
       </div>
+
+      <UserModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={loadUsers}
+      />
     </div>
   );
 };

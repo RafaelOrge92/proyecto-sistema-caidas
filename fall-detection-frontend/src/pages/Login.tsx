@@ -23,8 +23,9 @@ const Login = () => {
       });
 
       const { token, user } = response.data;
-      login(token, user.role);
-      navigate('/dashboard');
+      login(token, user.role, user.id, user.fullName, user.email);
+      // Redirigir según el rol
+      navigate(user.role === 'ADMIN' ? '/dashboard' : '/my-protection');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Error al iniciar sesión');
       console.error('Login error:', err);
