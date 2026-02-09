@@ -27,11 +27,20 @@ export const AdminService = {
   createUser: async (user: Omit<User, 'id'> & { password?: string }) => {
     return api.post('/users', user);
   },
-  softDeleteUser: async (id: string) => {
-    return api.patch(`/users/${id}/deactivate`);
-  },
+  
+  // ⚠️ ADVERTENCIA: El endpoint PATCH /users/:id/deactivate NO existe en el backend
+  // TODO: Implementar en backend antes de usar
+  // softDeleteUser: async (id: string) => {
+  //   return api.patch(`/users/${id}/deactivate`);
+  // },
+  
   updateUser: async (id: string, user: Partial<User>) => {
     return api.put(`/users/${id}`, user);
+  },
+
+  getUserById: async (id: string) => {
+    const response = await api.get<any>(`/users/${id}`);
+    return { data: response.data };
   },
 
   // --- DISPOSITIVOS ---
@@ -62,19 +71,90 @@ export const AdminService = {
     };
     return api.post('/devices', payload);
   },
-  updateDevice: async (id: string, device: Partial<Device>) => {
-    // Backend keys likely matched DB but there is no explicit PUT route in sample, 
-    // assuming it might be added or we try to map anyway
-    return api.put(`/devices/${id}`, device);
+  
+  getDeviceById: async (id: string) => {
+    const response = await api.get<any>(`/devices/${id}`);
+    const d = response.data[0]; // Backend retorna array
+    const data = {
+      id: d.device_id,
+      alias: d.alias,
+      patientId: d.patient_id,
+      isActive: d.is_active,
+      lastSeen: d.last_seen_at?.toString(),
+      assignedUserId: null,
+      patientName: undefined
+    } as Device;
+    return { data };
   },
-  assignDevice: async (deviceId: string, userId: string) => {
-    // This route might not exist in the basic implementation provided
-    return api.patch(`/devices/${deviceId}/assign`, { userId });
+
+  getDevicesByUser: async (userId: string) => {
+    const response = await api.get<any[]>(`/devices/user/${userId}`);
+    const data = response.data.map((d: any) => ({
+      id: d.device_id,
+      alias: d.alias,
+      patientId: d.patient_id,
+      isActive: d.is_active,
+      lastSeen: d.last_seen_at?.toString(),
+      assignedUserId: null,
+      patientName: undefined
+    })) as Device[];
+    return { data };
   },
+
+  getDevicePodium: async () => {
+    const response = await api.get<any[]>('/devices/podium');
+    return { data: response.data };
+  },
+  
+  // ⚠️ ADVERTENCIA: El endpoint PUT /devices/:id NO existe en el backend
+  // TODO: Implementar en backend antes de usar
+  // updateDevice: async (id: string, device: Partial<Device>) => {
+  //   return api.put(`/devices/${id}`, device);
+  // },
+  
+  // ⚠️ ADVERTENCIA: El endpoint PATCH /devices/:deviceId/assign NO existe en el backend
+  // Usar POST /users/asign en su lugar (ver DevicePage.tsx)
+  // TODO: Implementar en backend antes de usar
+  // assignDevice: async (deviceId: string, userId: string) => {
+  //   return api.patch(`/devices/${deviceId}/assign`, { userId });
+  // },
 
   // --- EVENTOS ---
   getEvents: async () => {
     const response = await api.get<any[]>('/events');
+    const data = response.data.map((e: any) => ({
+      id: e.event_id,
+      deviceId: e.device_id,
+      eventType: e.event_type,
+      status: e.status,
+      occurredAt: e.occurred_at,
+      reviewedBy: e.reviewed_by,
+      reviewedAt: e.reviewed_at,
+      reviewComment: e.review_comment,
+      createdAt: e.created_at
+    })) as FallEvent[];
+    return { data };
+  },
+  
+  getEventById: async (id: string) => {
+    const response = await api.get<any>(`/events/${id}`);
+    const e = response.data[0]; // Backend retorna array
+    const data = {
+      id: e.event_id,
+      deviceId: e.device_id,
+      eventType: e.event_type,
+      status: e.status,
+      occurredAt: e.occurred_at,
+      reviewedBy: e.reviewed_by,
+      reviewedAt: e.reviewed_at,
+      reviewComment: e.review_comment,
+      createdAt: e.created_at
+    } as FallEvent;
+    return { data };
+  },
+
+  getEventsByDevice: async (deviceId: string) => {
+    const response = await api.get<any[]>(`/events/device/${deviceId}`);
     const data = response.data.map((e: any) => ({
       id: e.event_id,
       deviceId: e.device_id,
@@ -105,14 +185,15 @@ export const AdminService = {
   },
 
   updateEvent: async (id: string, data: any) => {
-    return api.patch(`/events/${id}`, data);
+    // Backend usa PUT /events/update con {id, status} en el body
+    return api.put('/events/update', { id, ...data });
   },
 
   confirmFalseAlarm: async (id: string) => {
-    return api.patch(`/events/${id}`, { status: 'FALSE_ALARM' });
+    return api.put('/events/update', { id, status: 'FALSE_ALARM' });
   },
 
   confirmFall: async (id: string) => {
-    return api.patch(`/events/${id}`, { status: 'CONFIRMED_FALL' });
+    return api.put('/events/update', { id, status: 'CONFIRMED_FALL' });
   }
 };

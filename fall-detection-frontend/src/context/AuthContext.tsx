@@ -44,13 +44,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser({ token, role, id, fullName, email });
     };
 
-    const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('role');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('userFullName');
-        localStorage.removeItem('userEmail');
-        setUser(null);
+    const logout = async () => {
+        try {
+            // Llamar al endpoint de logout en el servidor
+            await fetch('http://localhost:3000/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        } catch (error) {
+            console.error('Error al cerrar sesión en el servidor:', error);
+        } finally {
+            // Limpiar localStorage siempre
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userFullName');
+            localStorage.removeItem('userEmail');
+            setUser(null);
+        }
     };
 
     return (
