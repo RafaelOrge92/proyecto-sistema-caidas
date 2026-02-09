@@ -27,14 +27,16 @@ router.get('/device/:deviceId', async (req, res) => {
 
 // Get event by id
 router.get('/:id', async (req, res) => {
-  const result = await db.query(`SELECT * FROM public.events WHERE event_id = ${req.params.id}`)
+  const result = await db.query('SELECT * FROM public.devices WHERE device_id = $1',
+  [req.params.id]
+)
   res.json(result)
 });
 
 router.put('/update', async (req, res) => {
   const {id, status} = req.body
   try{
-    const result = await db.query(`UPDATE public.events SET status = '${status} WHERE event_id = ${id}'`)
+    const result = await db.query(`UPDATE public.events SET status = '$1 WHERE event_id = $2'`,[status,id])
     res.json(result)
   } catch (error) {
     console.error('Error updating event:', error)
@@ -46,8 +48,9 @@ router.put('/update', async (req, res) => {
 
 router.post('/ingest', async (req, res) => {
   const {deviceId, eventUid, eventType, ocurredAt} = req.body
-  const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, ocurred_at) 
-    values(${eventUid}, ${deviceId}, ${eventType}, ${ocurredAt})`)
+  const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, occurred_at) 
+    values($1, $2, $3, $4)`,
+  [eventUid, deviceId, eventType, ocurredAt])
   res.status(201).json(result)
 })
 
@@ -55,7 +58,9 @@ router.post('/samples', async (req, res) => {
   const {eventUid} = req.body
   const samples = req.body as Sample[]
   samples.forEach(async(sam) => {
-    const result = await db.query(`INSERT INTO public.event_samples (event_id, seq, t_ms, acc_x, acc_y, acc_z) values(${eventUid}, ${sam.seq}, ${sam.tMs}, ${sam.accX},${sam.accY}, ${sam.accZ})`)
+    const result = await db.query(`INSERT INTO public.event_samples (event_uid, seq, t_ms, acc_x, acc_y, acc_z) values($1, $2, $3, $4,$5, $6)`,
+      [eventUid, sam.seq, sam.tMs, sam.accX, sam.accY, sam.accZ]
+    )
     res.status(201).json(result)
   })
 })
@@ -63,8 +68,9 @@ router.post('/samples', async (req, res) => {
 // Create event
 router.post('/', async (req, res) => {
   const { deviceId, eventType, status, eventUid, ocurredAt, reviewedBy, reviewedAt, review_comment } = req.body;
-  const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, status, ocurred_at, reviewed_by, review_comment)
-    values (${eventUid}, ${deviceId}, ${eventType}, ${status}, ${ocurredAt} ${reviewedBy}, ${reviewedAt}, ${review_comment})`)
+  const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, status, occurred_at, reviewed_by, review_comment)
+    values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+  [eventUid, deviceId, eventType, status, ocurredAt, reviewedBy, reviewedAt, review_comment])
   res.status(201).json(result)
 });
 
