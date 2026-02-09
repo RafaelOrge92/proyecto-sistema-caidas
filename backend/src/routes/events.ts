@@ -58,7 +58,7 @@ router.post('/samples', async (req, res) => {
   const {eventUid} = req.body
   const samples = req.body as Sample[]
   samples.forEach(async(sam) => {
-    const result = await db.query(`INSERT INTO public.event_samples (event_id, seq, t_ms, acc_x, acc_y, acc_z) values($1, $2, $3, $4,$5, $6)`,
+    const result = await db.query(`INSERT INTO public.event_samples (event_uid, seq, t_ms, acc_x, acc_y, acc_z) values($1, $2, $3, $4,$5, $6)`,
       [eventUid, sam.seq, sam.tMs, sam.accX, sam.accY, sam.accZ]
     )
     res.status(201).json(result)
