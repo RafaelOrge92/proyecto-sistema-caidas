@@ -41,7 +41,7 @@ router.post('/', async (req, res) => {
   res.status(201).json(result)
 });
 
-router.put('/heartbeat', async (req, res) => {
+const handleHeartbeat = async (req: any, res: any) => {
   const {timestamp, deviceId} = req.body
   console.log('Recibido')
   try{
@@ -51,7 +51,10 @@ router.put('/heartbeat', async (req, res) => {
     console.error('Cannot access device')
     res.status(500).json({error: 'No se puede acceder al dispositivo'})
   }
-})
+}
+
+router.put('/heartbeat', handleHeartbeat)
+router.post('/heartbeat', handleHeartbeat)
 
 router.get('/podium', async (req, res) => {
   const result = db.query('SELECT COUNT(event_id), device_id FROM public.events GROUP BY device_id ')
