@@ -3,25 +3,6 @@ import { db } from '../config/db';
 
 const router = Router();
 
-// Mock devices data
-const devices = [
-  {
-    id: 'ESP32-001',
-    alias: 'Salón (Casa Carmen)',
-    patientName: 'Carmen García',
-    patientId: 'P001',
-    isActive: true,
-    lastSeen: new Date(Date.now() - 2 * 60000).toISOString()
-  },
-  {
-    id: 'ESP32-002',
-    alias: 'Dormitorio (Casa Antonio)',
-    patientName: 'Antonio Pérez',
-    patientId: 'P002',
-    isActive: true,
-    lastSeen: new Date(Date.now() - 25 * 60000).toISOString()
-  }
-];
 
 //get all devices
 
@@ -32,12 +13,16 @@ router.get('/', async (req, res) => {
 
 // Get device by id
 router.get('/:id', async (req, res) => {
-  const result = await db.query(`SELECT * FROM public.devices WHERE device_id = ${req.params.id}`)
+  const result = await db.query(`SELECT * FROM public.devices WHERE device_id = $1`,
+    [req.params.id]
+  )
   res.json(result)
 });
 
 router.get('/user/:userId', async (req, res) => {
-  const result = await db.query(`SELECT * FROM public.devices WHERE device_id IN (SELECT device_id FROM public.device_access WHERE account_id = ${req.params.userId})` )
+  const result = await db.query(`SELECT * FROM public.devices WHERE device_id IN (SELECT device_id FROM public.device_access WHERE account_id = $1)`,
+    [req.params.userId]
+   )
   res.json(result)
 })
 
@@ -50,7 +35,9 @@ router.post('/', async (req, res) => {
   } 
  
   const result = await db.query(`INSERT into public.devices (device_id, patient_id, alias, is_active, last_seen_at)
-    values (${id}, ${patientId}, ${alias}, ${active}, ${lastSeenAt})`)
+    values ($1, $2, $3, $4, $5)`,
+  [id, patientId, alias, active, lastSeenAt]
+  )
   res.status(201).json(result)
 });
 
@@ -58,7 +45,7 @@ router.put('/heartbeat', async (req, res) => {
   const {timestamp, deviceId} = req.body
   console.log('Recibido')
   try{
-   const result = await db.query(`UPDATE public.devices SET last_seen_at = ${timestamp} WHERE device_id = ${deviceId}`)
+   const result = await db.query(`UPDATE public.devices SET last_seen_at = $1 WHERE device_id = $2`,[timestamp,deviceId])
    res.json(result)
   } catch (error){
     console.error('Cannot access device')
