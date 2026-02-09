@@ -15,6 +15,8 @@ import { AnimatedReveal } from '../components/AnimatedReveal';
 import { theme } from '../theme';
 import { formatDateTime } from '../utils/format';
 
+const LIVE_REFETCH_INTERVAL_MS = 3000;
+
 const getEventTypeLabel = (eventType?: string) => {
   switch (eventType) {
     case 'FALL':
@@ -32,7 +34,8 @@ export const EventDetailsScreen = ({ route, navigation }: NativeStackScreenProps
   const { eventId } = route.params;
   const query = useQuery({
     queryKey: ['event', eventId],
-    queryFn: ({ signal }) => getEvent(eventId, signal)
+    queryFn: ({ signal }) => getEvent(eventId, signal),
+    refetchInterval: LIVE_REFETCH_INTERVAL_MS
   });
 
   const event = query.data;

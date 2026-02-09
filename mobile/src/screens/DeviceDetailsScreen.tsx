@@ -15,6 +15,8 @@ import { AnimatedReveal } from '../components/AnimatedReveal';
 import { theme } from '../theme';
 import { formatDateTime } from '../utils/format';
 
+const LIVE_REFETCH_INTERVAL_MS = 3000;
+
 const getPatientDisplayName = (
   device?: { patientFullName?: string; patientFirstName?: string; patientLastName?: string; patientId?: string } | null
 ) => {
@@ -27,11 +29,13 @@ export const DeviceDetailsScreen = ({ route, navigation }: NativeStackScreenProp
   const { deviceId } = route.params;
   const deviceQuery = useQuery({
     queryKey: ['device', deviceId],
-    queryFn: ({ signal }) => getDevice(deviceId, signal)
+    queryFn: ({ signal }) => getDevice(deviceId, signal),
+    refetchInterval: LIVE_REFETCH_INTERVAL_MS
   });
   const eventsQuery = useQuery({
     queryKey: ['events', 'device', deviceId],
-    queryFn: ({ signal }) => getEventsByDevice(deviceId, signal)
+    queryFn: ({ signal }) => getEventsByDevice(deviceId, signal),
+    refetchInterval: LIVE_REFETCH_INTERVAL_MS
   });
 
   const device = deviceQuery.data;

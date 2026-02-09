@@ -17,6 +17,8 @@ import { RootStackParamList } from '../navigation/types';
 import { theme } from '../theme';
 import { formatDateTime } from '../utils/format';
 
+const LIVE_REFETCH_INTERVAL_MS = 3000;
+
 const FEATURED_TILE_HEIGHT = 218;
 
 const EVENT_STATUS_FILTER = {
@@ -212,7 +214,8 @@ export const EventsScreen = () => {
 
   const query = useQuery({
     queryKey: ['events'],
-    queryFn: ({ signal }) => getEvents(signal)
+    queryFn: ({ signal }) => getEvents(signal),
+    refetchInterval: LIVE_REFETCH_INTERVAL_MS
   });
 
   const events = useMemo(() => query.data ?? [], [query.data]);

@@ -18,6 +18,8 @@ import { RootStackParamList } from '../navigation/types';
 import { theme } from '../theme';
 import { formatDateTime } from '../utils/format';
 
+const LIVE_REFETCH_INTERVAL_MS = 3000;
+
 const getEventTypeLabel = (eventType?: FallEvent['eventType']) => {
   switch (eventType) {
     case 'FALL':
@@ -61,7 +63,8 @@ export const AlertsScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const query = useQuery({
     queryKey: ['events'],
-    queryFn: ({ signal }) => getEvents(signal)
+    queryFn: ({ signal }) => getEvents(signal),
+    refetchInterval: LIVE_REFETCH_INTERVAL_MS
   });
 
   const alerts = useMemo(() => {
