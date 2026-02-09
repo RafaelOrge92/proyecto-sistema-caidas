@@ -3,9 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import { UsersPage } from './pages/UsersPage';
 import { DevicePage } from './pages/DevicePage';
 import { EventsPage } from './pages/EventsPage';
+import { UserDashboard } from './pages/UserDashboard';
 import { Dashboard } from './pages/Dashboard';
 import Admin from './pages/Admin';
 import { Navbar } from './components/Navbar';
@@ -32,9 +34,9 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
 };
 
 const LandingLayout = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex flex-col min-h-screen bg-[#0F1419] text-[#F1F5F9]">
+  <div className="flex flex-col min-h-screen bg-bg-primary text-text-primary">
     <LandingNavbar />
-    <main className="flex-grow">
+    <main className="grow">
       {children}
     </main>
     <LandingFooter />
@@ -50,6 +52,7 @@ const AppContent = () => {
       
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
         {/* Landing Pages */}
         <Route path="/" element={<LandingLayout><Home /></LandingLayout>} />
@@ -86,6 +89,13 @@ const AppContent = () => {
         <Route path="/admin/events" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <EventsPage />
+          </ProtectedRoute>
+        } />
+
+        {/* Dashboard de usuario */}
+        <Route path="/my-protection" element={
+          <ProtectedRoute allowedRoles={['MEMBER', 'USUARIO', 'CUIDADOR']}>
+            <UserDashboard />
           </ProtectedRoute>
         } />
 

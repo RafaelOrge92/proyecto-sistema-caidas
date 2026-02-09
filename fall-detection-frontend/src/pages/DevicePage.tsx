@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { AdminService } from '../services/adminService';
 import { Device, User } from '../types';
 import { Laptop, Plus, Settings2, Link as LinkIcon } from 'lucide-react';
+import { DeviceModal } from '../components/DeviceModal';
 
 export const DevicePage: React.FC = () => {
   const [devices, setDevices] = useState<Device[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -33,7 +35,10 @@ export const DevicePage: React.FC = () => {
           <h1 className="text-5xl font-bold tracking-tight text-white">Dispositivos</h1>
           <p className="text-xl text-[#94A3B8] mt-2">Hardware vinculado a tu red de protección.</p>
         </div>
-        <button className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 transition-transform shadow-xl">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 transition-transform shadow-xl"
+        >
           <Plus size={24} />
         </button>
       </header>
@@ -79,6 +84,12 @@ export const DevicePage: React.FC = () => {
           </div>
         ))}
       </div>
+
+      <DeviceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={loadData}
+      />
     </div>
   );
 };

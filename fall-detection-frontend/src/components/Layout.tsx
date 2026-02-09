@@ -1,15 +1,18 @@
 import { ReactElement } from 'react';
-import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { ShieldAlert, LayoutDashboard, Users, LogOut } from 'lucide-react';
 
 const Layout = (): ReactElement => {
-  const navigate = useNavigate();
   const location = useLocation();
 
   const handleLogout = (): void => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
-    navigate('/login');
+    localStorage.removeItem('role');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userFullName');
+    localStorage.removeItem('userEmail');
+    window.location.replace('/');
   };
 
   const isActive = (path: string): string => 

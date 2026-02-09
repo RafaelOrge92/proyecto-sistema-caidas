@@ -1,16 +1,16 @@
 import React from 'react';
-import { UserForm } from './UserForm'; // Para DeviceModal importar DeviceForm
-import { User } from '../types'; // Para DeviceModal importar Device
+import { DeviceForm } from './DeviceForm';
+import { Device } from '../types';
 import { X } from 'lucide-react';
 
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
-    dataToEdit?: any; 
+    dataToEdit?: Device; 
 }
 
-export const UserModal: React.FC<ModalProps> = ({ isOpen, onClose, onSuccess, dataToEdit }) => {
+export const DeviceModal: React.FC<ModalProps> = ({ isOpen, onClose, onSuccess, dataToEdit }) => {
     if (!isOpen) return null;
 
     return (
@@ -23,14 +23,14 @@ export const UserModal: React.FC<ModalProps> = ({ isOpen, onClose, onSuccess, da
                 <div className="p-8">
                     <div className="flex justify-between items-center mb-8">
                         <h3 className="text-3xl font-bold tracking-tight text-white">
-                            {dataToEdit ? 'Editar' : 'Nuevo'} <span className="text-[var(--color-text-secondary)]">Usuario</span>
+                            {dataToEdit ? 'Editar' : 'Nuevo'} <span className="text-[var(--color-text-secondary)]">Dispositivo</span>
                         </h3>
                         <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-gray-400 transition-colors">
                             <X size={20} />
                         </button>
                     </div>
 
-                    <UserForm
+                    <DeviceForm
                         initialData={dataToEdit}
                         onSuccess={() => { onSuccess(); onClose(); }}
                         onCancel={onClose}
