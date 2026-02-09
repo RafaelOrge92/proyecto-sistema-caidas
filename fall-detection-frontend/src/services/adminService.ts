@@ -35,7 +35,8 @@ export const AdminService = {
   // },
   
   updateUser: async (id: string, user: Partial<User>) => {
-    return api.put(`/users/${id}`, user);
+    // El backend espera el id en el body también
+    return api.put(`/users/${id}`, { ...user, id });
   },
 
   getUserById: async (id: string) => {
