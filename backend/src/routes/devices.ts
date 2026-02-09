@@ -7,13 +7,13 @@ const router = Router();
 //get all devices
 
 router.get('/', async (req, res) => {
-  const result = await db.query('SELECT * FROM public.devices')
+  const result = await db.query('SELECT *, (SELECT first_name as patient_first_name, patient_last_name, CONCAT(first_name, " ", last_name) as patient_full_name FROM public.patients WHERE patient_id = public.patients.patient_id) FROM public.devices')
   res.json(result)
 })
 
 // Get device by id
 router.get('/:id', async (req, res) => {
-  const result = await db.query(`SELECT * FROM public.devices WHERE device_id = $1`,
+  const result = await db.query(`SELECT *, (SELECT first_name as patient_first_name, patient_last_name, CONCAT(first_name, " ", last_name) as patient_full_name FROM public.patients WHERE patient_id = public.patients.patient_id) FROM public.devices WHERE device_id = $1`,
     [req.params.id]
   )
   res.json(result)
