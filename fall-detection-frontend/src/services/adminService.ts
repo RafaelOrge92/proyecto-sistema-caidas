@@ -2,9 +2,8 @@
 import axios from 'axios';
 import { User, Device, FallEvent } from '../types';
 
-const API_URL = 'http://localhost:3000/api'; // Ajusta a tu backend
+const API_URL = 'http://localhost:3000/api';
 
-// Configuración base con Token (asumiendo que guardas el token en localStorage al hacer Login)
 const api = axios.create({
   baseURL: API_URL,
 });
@@ -18,38 +17,183 @@ api.interceptors.request.use((config) => {
 export const AdminService = {
   // --- USUARIOS ---
   getUsers: async () => {
-    return api.get<User[]>('/users'); // Asume que devuelve un array
+    const response = await api.get<any[]>('/users');
+    const data = response.data.map(user => ({
+      ...user,
+      isActive: true // Backend doesn't support soft delete state yet
+    })) as User[];
+    return { data };
   },
   createUser: async (user: Omit<User, 'id'> & { password?: string }) => {
     return api.post('/users', user);
   },
-  softDeleteUser: async (id: string) => {
-    // Soft delete: Cambia isActive a false en vez de borrar el registro
-    return api.patch(`/users/${id}/deactivate`);
-  },
-
-  // --- DISPOSITIVOS ---
-  getDevices: async () => {
-    return api.get<Device[]>('/devices');
-  },
-  createDevice: async (device: Partial<Device>) => {
-    return api.post('/devices', device);
-  },
-  updateDevice: async (id: string, device: Partial<Device>) => {
-    return api.put(`/devices/${id}`, device);
-  },
-  assignDevice: async (deviceId: string, userId: string) => {
-    return api.patch(`/devices/${deviceId}/assign`, { userId });
-  },
+  
+  // ⚠️ ADVERTENCIA: El endpoint PATCH /users/:id/deactivate NO existe en el backend
+  // TODO: Implementar en backend antes de usar
+  // softDeleteUser: async (id: string) => {
+  //   return api.patch(`/users/${id}/deactivate`);
+  // },
+  
   updateUser: async (id: string, user: Partial<User>) => {
     return api.put(`/users/${id}`, user);
   },
 
+  getUserById: async (id: string) => {
+    const response = await api.get<any>(`/users/${id}`);
+    return { data: response.data };
+  },
+
+  // --- DISPOSITIVOS ---
+  getDevices: async () => {
+    const response = await api.get<any[]>('/devices');
+    // Map snake_case DB columns to camelCase frontend types
+    const data = response.data.map((d: any) => ({
+      id: d.device_id,
+      alias: d.alias,
+      patientId: d.patient_id,
+      isActive: d.is_active,
+      lastSeen: d.last_seen_at?.toString(),
+      // These are not returned by simple SELECT * from devices
+      assignedUserId: null, 
+      patientName: undefined 
+    })) as Device[];
+    return { data };
+  },
+  createDevice: async (device: Partial<Device>) => {
+    // Map frontend camelCase to backend expected snake_case/body params
+    // Backend expects: id, alias, patientId, active, lastSeenAt
+    const payload = {
+      id: device.id,
+      alias: device.alias,
+      patientId: device.patientId,
+      active: device.isActive,
+      lastSeenAt: device.lastSeen
+    };
+    return api.post('/devices', payload);
+  },
+  
+  getDeviceById: async (id: string) => {
+    const response = await api.get<any>(`/devices/${id}`);
+    const d = response.data[0]; // Backend retorna array
+    const data = {
+      id: d.device_id,
+      alias: d.alias,
+      patientId: d.patient_id,
+      isActive: d.is_active,
+      lastSeen: d.last_seen_at?.toString(),
+      assignedUserId: null,
+      patientName: undefined
+    } as Device;
+    return { data };
+  },
+
+  getDevicesByUser: async (userId: string) => {
+    const response = await api.get<any[]>(`/devices/user/${userId}`);
+    const data = response.data.map((d: any) => ({
+      id: d.device_id,
+      alias: d.alias,
+      patientId: d.patient_id,
+      isActive: d.is_active,
+      lastSeen: d.last_seen_at?.toString(),
+      assignedUserId: null,
+      patientName: undefined
+    })) as Device[];
+    return { data };
+  },
+
+  getDevicePodium: async () => {
+    const response = await api.get<any[]>('/devices/podium');
+    return { data: response.data };
+  },
+  
+  // ⚠️ ADVERTENCIA: El endpoint PUT /devices/:id NO existe en el backend
+  // TODO: Implementar en backend antes de usar
+  // updateDevice: async (id: string, device: Partial<Device>) => {
+  //   return api.put(`/devices/${id}`, device);
+  // },
+  
+  // ⚠️ ADVERTENCIA: El endpoint PATCH /devices/:deviceId/assign NO existe en el backend
+  // Usar POST /users/asign en su lugar (ver DevicePage.tsx)
+  // TODO: Implementar en backend antes de usar
+  // assignDevice: async (deviceId: string, userId: string) => {
+  //   return api.patch(`/devices/${deviceId}/assign`, { userId });
+  // },
+
   // --- EVENTOS ---
   getEvents: async () => {
-    return api.get<FallEvent[]>('/events');
+    const response = await api.get<any[]>('/events');
+    const data = response.data.map((e: any) => ({
+      id: e.event_id,
+      deviceId: e.device_id,
+      eventType: e.event_type,
+      status: e.status,
+      occurredAt: e.occurred_at,
+      reviewedBy: e.reviewed_by,
+      reviewedAt: e.reviewed_at,
+      reviewComment: e.review_comment,
+      createdAt: e.created_at
+    })) as FallEvent[];
+    return { data };
   },
+  
+  getEventById: async (id: string) => {
+    const response = await api.get<any>(`/events/${id}`);
+    const e = response.data[0]; // Backend retorna array
+    const data = {
+      id: e.event_id,
+      deviceId: e.device_id,
+      eventType: e.event_type,
+      status: e.status,
+      occurredAt: e.occurred_at,
+      reviewedBy: e.reviewed_by,
+      reviewedAt: e.reviewed_at,
+      reviewComment: e.review_comment,
+      createdAt: e.created_at
+    } as FallEvent;
+    return { data };
+  },
+
+  getEventsByDevice: async (deviceId: string) => {
+    const response = await api.get<any[]>(`/events/device/${deviceId}`);
+    const data = response.data.map((e: any) => ({
+      id: e.event_id,
+      deviceId: e.device_id,
+      eventType: e.event_type,
+      status: e.status,
+      occurredAt: e.occurred_at,
+      reviewedBy: e.reviewed_by,
+      reviewedAt: e.reviewed_at,
+      reviewComment: e.review_comment,
+      createdAt: e.created_at
+    })) as FallEvent[];
+    return { data };
+  },
+  
+  createEvent: async (event: any) => {
+    // Backend expects specific body keys
+    const payload = {
+       deviceId: event.deviceId,
+       eventType: event.eventType,
+       status: event.status,
+       eventUid: event.id || crypto.randomUUID?.() || 'uid-' + Date.now(), 
+       ocurredAt: event.occurredAt || new Date().toISOString(), // Note spelling 'ocurredAt' in backend
+       reviewedBy: event.reviewedBy,
+       reviewedAt: event.reviewedAt,
+       review_comment: event.reviewComment
+    };
+    return api.post('/events', payload);
+  },
+
+  updateEvent: async (id: string, data: any) => {
+    // Backend usa PUT /events/update con {id, status} en el body
+    return api.put('/events/update', { id, ...data });
+  },
+
   confirmFalseAlarm: async (id: string) => {
-    return api.patch(`/events/${id}/false-alarm`);
+    return api.put('/events/update', { id, status: 'FALSE_ALARM' });
+  },
+
+  confirmFall: async (id: string) => {
+    return api.put('/events/update', { id, status: 'CONFIRMED_FALL' });
   }
 };

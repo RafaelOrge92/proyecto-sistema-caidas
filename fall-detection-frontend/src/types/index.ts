@@ -1,28 +1,41 @@
 // src/types/index.ts
 
-export type UserRole = 'ADMIN' | 'CUIDADOR' | 'USUARIO';
+export type UserRole = 'ADMIN' | 'MEMBER';
 
 export interface User {
-  id: string;        // UUID o número
+  id: string;
   fullName: string;
   email: string;
   role: UserRole;
-  isActive: boolean; // Para el Soft Delete
+  isActive: boolean;
+  phone?: string;
 }
 
 export interface Device {
-  id: string;         // ID interno de la BD
-  deviceId: string;   // El ID físico del ESP32 (ej: ESP32-001) [cite: 56]
-  alias: string;      // Nombre amigable
-  assignedUserId: string | null; // ID del usuario asociado
+  id: string;
+  deviceId?: string;
+  alias?: string;
+  patientName?: string;
+  patientId?: string;
+  isActive?: boolean;
+  lastSeen?: string;
+  assignedUserId?: string | null;
 }
 
 export interface FallEvent {
   id: string;
   deviceId: string;
-  timestamp: string;
-  fallDetected: boolean;
-  status: 'PENDIENTE' | 'CONFIRMADA' | 'FALSA_ALARMA';
+  deviceAlias?: string;
+  patientName?: string;
+  timestamp?: string;
+  occurredAt?: string;
+  createdAt?: string;
+  eventType?: 'FALL' | 'EMERGENCY_BUTTON' | 'SIMULATED';
+  status?: 'OPEN' | 'CONFIRMED_FALL' | 'FALSE_ALARM' | 'RESOLVED' | 'PENDIENTE';
+  fallDetected?: boolean;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  reviewComment?: string | null;
   accelerometerData?: {
     x: number;
     y: number;

@@ -1,47 +1,79 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import { UsersPage } from './pages/UsersPage';
 import { DevicePage } from './pages/DevicePage';
-import { Dashboard } from './pages/Dashboard'; // Importa tu Dashboard
+import { EventsPage } from './pages/EventsPage';
+import { UserDashboard } from './pages/UserDashboard';
+import { Dashboard } from './pages/Dashboard';
+import Admin from './pages/Admin';
 import { Navbar } from './components/Navbar';
 
-const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) => {
-  const { user, loading } = useAuth(); // Necesitamos que tu Context devuelva 'loading'
+// Landing Imports
+import LandingNavbar from './components/landing/LandingNavbar';
+import LandingFooter from './components/landing/LandingFooter';
+import Home from './pages/landing/Home';
+import About from './pages/landing/About';
+import Contact from './pages/landing/Contact';
 
-  // Si aún está leyendo el localStorage, no redirigimos todavía
+const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) => {
+  const { user, loading } = useAuth();
+
   if (loading) return <div className="p-10 text-center">Iniciando sistema...</div>;
 
   if (!user) return <Navigate to="/login" />;
 
   if (!allowedRoles.includes(user.role)) {
-    return <Navigate to="/" />; // Si no tiene rol, al Dashboard principal [cite: 89]
+    return <Navigate to="/" />;
   }
 
   return <>{children}</>;
 };
 
-// Componente para organizar el Layout
+const LandingLayout = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex flex-col min-h-screen bg-bg-primary text-text-primary">
+    <LandingNavbar />
+    <main className="grow">
+      {children}
+    </main>
+    <LandingFooter />
+  </div>
+);
+
 const AppContent = () => {
   const { user } = useAuth();
 
   return (
     <BrowserRouter>
-      {/* Solo mostramos la Navbar si el usuario está autenticado [cite: 8, 83] */}
       {user && <Navbar />} 
       
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
-        {/* Ruta principal para todos los roles: Dashboard de caídas [cite: 84, 87, 91] */}
-        <Route path="/" element={
-          <ProtectedRoute allowedRoles={['ADMIN', 'CUIDADOR', 'USUARIO']}>
+        {/* Landing Pages */}
+        <Route path="/" element={<LandingLayout><Home /></LandingLayout>} />
+        <Route path="/About" element={<LandingLayout><About /></LandingLayout>} />
+        <Route path="/contact" element={<LandingLayout><Contact /></LandingLayout>} />
+
+        {/* Dashboard principal */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MEMBER']}>
             <Dashboard />
           </ProtectedRoute>
         } />
 
-        {/* Rutas exclusivas para ADMIN: Lo que hizo Pablo [cite: 32, 68, 69] */}
+        {/* Panel de administración (nuevo) */}
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <Admin />
+          </ProtectedRoute>
+        } />
+
+        {/* Rutas legadas (mantener por compatibilidad) */}
         <Route path="/admin/users" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <UsersPage />
@@ -54,6 +86,19 @@ const AppContent = () => {
           </ProtectedRoute>
         } />
 
+        <Route path="/admin/events" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <EventsPage />
+          </ProtectedRoute>
+        } />
+
+        {/* Dashboard de usuario */}
+        <Route path="/my-protection" element={
+          <ProtectedRoute allowedRoles={['MEMBER', 'USUARIO', 'CUIDADOR']}>
+            <UserDashboard />
+          </ProtectedRoute>
+        } />
+
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
@@ -61,10 +106,14 @@ const AppContent = () => {
 };
 
 function App() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID';
+
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </GoogleOAuthProvider>
   );
 }
 

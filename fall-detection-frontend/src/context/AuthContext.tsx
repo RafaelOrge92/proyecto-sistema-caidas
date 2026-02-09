@@ -1,42 +1,70 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+interface AuthUser {
+    token: string;
+    role: string;
+    id: string;
+    fullName: string;
+    email: string;
+}
+
 interface AuthContextType {
-    user: { token: string; role: string } | null;
-    loading: boolean; // 👈 Añadimos esto para controlar la carga inicial
-    login: (token: string, role: string) => void;
+    user: AuthUser | null;
+    loading: boolean;
+    login: (token: string, role: string, id: string, fullName: string, email: string) => void;
     logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<{ token: string; role: string } | null>(null);
-    const [loading, setLoading] = useState(true); // 👈 Empieza en true
+    const [user, setUser] = useState<AuthUser | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
+        const id = localStorage.getItem('userId');
+        const fullName = localStorage.getItem('userFullName');
+        const email = localStorage.getItem('userEmail');
 
-        console.log("Datos detectados en storage:", { token, role });
-
-        if (token && role) {
-            setUser({ token, role });
+        if (token && role && id && fullName && email) {
+            setUser({ token, role, id, fullName, email });
         }
         
-        // Una vez que intentamos leer, dejamos de cargar
-        setLoading(false); 
+        setLoading(false);
     }, []);
 
-    const login = (token: string, role: string) => {
+    const login = (token: string, role: string, id: string, fullName: string, email: string) => {
         localStorage.setItem('token', token);
         localStorage.setItem('role', role);
-        setUser({ token, role });
-        // Aseguramos que el login guarde el JWT según los requisitos 
+        localStorage.setItem('userId', id);
+        localStorage.setItem('userFullName', fullName);
+        localStorage.setItem('userEmail', email);
+        setUser({ token, role, id, fullName, email });
     };
 
-    const logout = () => {
-        localStorage.clear();
-        setUser(null);
+    const logout = async () => {
+        try {
+            // Llamar al endpoint de logout en el servidor
+            await fetch('http://localhost:3000/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        } catch (error) {
+            console.error('Error al cerrar sesión en el servidor:', error);
+        } finally {
+            // Limpiar localStorage siempre
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userFullName');
+            localStorage.removeItem('userEmail');
+            setUser(null);
+        }
     };
 
     return (

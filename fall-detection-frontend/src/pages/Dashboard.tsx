@@ -1,155 +1,268 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { AdminService } from '../services/adminService';
-import { FallEvent } from '../types';
- 
+import { FallEvent, Device } from '../types';
+// IMPORTANTE: Asegúrate de que todos estos iconos estén en la lista de importación
+import { Activity, AlertTriangle, CheckCircle, RefreshCw, Wifi, WifiOff, Clock } from 'lucide-react';
+import Card from '../components/ui/Card';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [events, setEvents] = useState<FallEvent[]>([]);
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [podium, setPodium] = useState<any[]>([]);
   const [isAlertActive, setIsAlertActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const createSimulatedAlert = () => {
-    const simulatedEvent: FallEvent = {
-      id: `SIM-${Date.now()}`,
-      deviceId: 'ESP32-SIM-001',
-      timestamp: new Date().toISOString(),
-      fallDetected: true,
-      status: 'PENDIENTE',
-      accelerometerData: { x: 2.8, y: 3.1, z: 0.4 }
-    };
-    setEvents((prev) => [simulatedEvent, ...prev]);
-    setIsAlertActive(true);
-  };
-
-  const clearSimulatedAlerts = () => {
-    setEvents((prev) => prev.filter((e) => !e.id.startsWith('SIM-')));
-    setIsAlertActive(false);
-  };
+  const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
     try {
-      const res = await AdminService.getEvents();
-      setEvents((prev) => {
-        const simulated = prev.filter((e) => e.id.startsWith('SIM-'));
-        const merged = [...simulated, ...res.data];
+      const [eventsRes, devicesRes] = await Promise.all([
+        AdminService.getEvents(),
+        AdminService.getDevices()
+      ]);
 
-        // Lógica de detección: busca eventos PENDIENTES con caída [cite: 49, 70]
-        const activeFall = merged.find((e: FallEvent) => e.fallDetected && e.status === 'PENDIENTE');
-
-        if (activeFall) {
-          setIsAlertActive(true);
-          // Alerta sonora (Extra) [cite: 97]
-          const audio = new Audio('https://actions.google.com/sounds/v1/alarms/emergency_it_is_an_emergency.ogg');
-          audio.play().catch(() => console.log("Interacción requerida para audio"));
-        } else {
-          setIsAlertActive(false);
-        }
-
-        return merged;
-      });
+      setEvents(eventsRes.data);
+      setDevices(devicesRes.data);
       setError(null);
+
+      try {
+        const podiumRes = await AdminService.getDevicePodium();
+        setPodium(podiumRes.data);
+      } catch (podiumError) {
+        console.error('Error loading podium:', podiumError);
+        setPodium([]);
+      }
     } catch (err) {
       setError("⚠️ Sin conexión con el servidor de alertas.");
+      console.error('Error loading data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createSimulatedFallAlert = async () => {
+    if (devices.length === 0) {
+      alert('No hay dispositivos disponibles');
+      return;
+    }
+
+    const randomDevice = devices[Math.floor(Math.random() * devices.length)];
+    
+    try {
+      const newEvent = {
+        deviceId: randomDevice.id,
+        deviceAlias: (randomDevice as any).alias || randomDevice.id,
+        patientName: (randomDevice as any).patientName || 'Paciente Desconocido',
+        eventType: 'FALL',
+        status: 'OPEN'
+      };
+
+      await AdminService.createEvent(newEvent);
+      setIsAlertActive(true);
+      
+      try {
+        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/emergency_it_is_an_emergency.ogg');
+        audio.play().catch(() => console.log("Interacción requerida para audio"));
+      } catch (e) {
+        console.log("No se pudo reproducir sonido");
+      }
+
+      await loadData();
+    } catch (err) {
+      alert('Error al crear simulación de caída');
+      console.error('Error creating simulated alert:', err);
+    }
+  };
+
+  const confirmFalseAlarm = async (eventId: string) => {
+    try {
+      await AdminService.updateEvent(eventId, {
+        status: 'FALSE_ALARM',
+        reviewedBy: user?.email || 'admin'
+      });
+      setIsAlertActive(false);
+      await loadData();
+    } catch (err) {
+      alert("Error al procesar la confirmación");
+      console.error('Error updating event:', err);
+    }
+  };
+
+  const confirmFall = async (eventId: string) => {
+    try {
+      await AdminService.updateEvent(eventId, {
+        status: 'CONFIRMED_FALL',
+        reviewedBy: user?.email || 'admin',
+        reviewComment: 'Caída confirmada por admin'
+      });
+      await loadData();
+    } catch (err) {
+      alert("Error al confirmar la caída");
+      console.error('Error updating event:', err);
     }
   };
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 3000); // Polling cada 3 segundos [cite: 48]
+    const interval = setInterval(loadData, 3000);
     return () => clearInterval(interval);
   }, []);
 
-  const handleFalseAlarm = async (id: string) => {
-    if (id.startsWith('SIM-')) {
-      setEvents((prev) =>
-        prev.map((e) =>
-          e.id === id ? { ...e, status: 'FALSA_ALARMA', fallDetected: false } : e
-        )
-      );
-      setIsAlertActive(false);
-      return;
-    }
-    try {
-      await AdminService.confirmFalseAlarm(id); // Funcionalidad Extra 
-      loadData();
-    } catch (err) {
-      alert("Error al procesar la confirmación");
-    }
-  };
-
-  return (
-    <div className={`p-4 md:p-6 min-h-screen transition-all duration-700 ${isAlertActive ? 'bg-red-600' : 'bg-gray-100'}`}>
-      
-      {/* Encabezado Responsive  */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h2 className={`text-2xl font-bold ${isAlertActive ? 'text-white' : 'text-gray-800'}`}>
-          Panel de Control - {user?.role}
-        </h2>
-        <div className="flex flex-wrap items-center gap-2">
-          {user?.role === 'ADMIN' && (
-            <>
-              <button
-                onClick={createSimulatedAlert}
-                className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold hover:bg-orange-600"
-              >
-                Simular caída
-              </button>
-              <button
-                onClick={clearSimulatedAlerts}
-                className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-semibold hover:bg-gray-300"
-              >
-                Limpiar simulación
-              </button>
-            </>
-          )}
-          {error && <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">{error}</span>}
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#0F1419]">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#6366F1] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-xl text-[#94A3B8]">Cargando panel...</div>
         </div>
       </div>
+    );
+  }
 
-      {/* Alerta Crítica  */}
-      {isAlertActive && (
-        <div className="bg-white p-6 rounded-lg shadow-2xl mb-8 border-l-8 border-yellow-400 animate-pulse">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-              <h3 className="text-2xl font-black text-red-600">🚨 CAÍDA DETECTADA</h3>
-              <p className="text-gray-600">Revisar inmediatamente al usuario del dispositivo.</p>
-            </div>
-            <button 
-              onClick={() => handleFalseAlarm(events.find(e => e.fallDetected)?.id || '')}
-              className="w-full md:w-auto bg-red-600 text-white px-8 py-3 rounded-full font-bold hover:bg-red-700 shadow-lg"
-            >
-              Confirmar Falsa Alarma
-            </button>
-          </div>
-        </div>
-      )}
+  const activeEvents = events.filter(e => (e as any).status === 'OPEN');
+  const shouldAlert = activeEvents.length > 0;
+  
+  // Estadísticas de eventos
+  const totalEvents = events.length;
+  const confirmedFalls = events.filter(e => e.status === 'CONFIRMED_FALL').length;
+  const falseAlarms = events.filter(e => e.status === 'FALSE_ALARM').length;
+  const activeDevices = devices.filter(d => (d as any).isActive).length;
 
-      {/* Grid Principal [cite: 81, 84] */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  return (
+    <div className={`min-h-screen p-8 transition-colors duration-1000 ${shouldAlert ? 'bg-red-950/20' : 'bg-[#0F1419]'}`}>
+      <div className="max-w-7xl mx-auto">
         
-        {/* Espacio para la Gráfica de RAFA  */}
-        <div className="lg:col-span-2">
-          {/* <LiveChart data={events} /> */}
+        {/* Resumen Superior */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <div className="glass-panel p-6">
+            <p className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-1">Estado Global</p>
+            <h2 className="text-3xl font-bold flex items-center gap-2">
+              {shouldAlert ? <span className="text-red-500">Alerta Crítica</span> : <span className="text-green-500">Protegido</span>}
+            </h2>
+          </div>
+          
+          <div className="glass-panel p-6">
+            <p className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-1">Dispositivos Activos</p>
+            <h2 className="text-3xl font-bold text-white flex items-center gap-2">
+              <Wifi size={28} className="text-[#6366F1]" />
+              {activeDevices} / {devices.length}
+            </h2>
+          </div>
+          
+          <div className="glass-panel p-6">
+            <p className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-1">Total Eventos</p>
+            <h2 className="text-3xl font-bold text-white flex items-center gap-2">
+              <Activity size={28} className="text-cyan-400" />
+              {totalEvents}
+            </h2>
+          </div>
+          
+          <div className="glass-panel p-6">
+            <p className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-1">Falsas Alarmas</p>
+            <h2 className="text-3xl font-bold text-white flex items-center gap-2">
+              <CheckCircle size={28} className="text-emerald-400" />
+              {falseAlarms}
+            </h2>
+          </div>
         </div>
 
-        {/* Historial de Eventos [cite: 86, 94] */}
-        <div className="bg-white rounded-xl shadow-md p-4 h-fit">
-          <h4 className="font-bold text-gray-700 mb-4 border-b pb-2">Eventos Recientes</h4>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {events.map(event => (
-              <div key={event.id} className="text-sm flex justify-between items-center p-2 hover:bg-gray-50 rounded">
-                <div>
-                  <p className="font-mono text-xs text-gray-500">{event.deviceId}</p>
-                  <p className="text-gray-700">{new Date(event.timestamp).toLocaleTimeString()}</p>
+        {/* Widget Podium de Dispositivos */}
+        {podium.length > 0 && (
+          <div className="glass-panel p-8 mb-12">
+            <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
+              <Activity size={28} className="text-amber-400" />
+              Dispositivos Más Activos
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {podium.slice(0, 3).map((item, index) => (
+                <div key={item.device_id} className="bg-[#1A1F26] rounded-xl p-6 border border-white/5 hover:border-white/10 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`text-4xl font-bold ${
+                      index === 0 ? 'text-amber-400' : 
+                      index === 1 ? 'text-gray-300' : 
+                      'text-amber-700'
+                    }`}>
+                      #{index + 1}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-[#94A3B8]">Eventos</p>
+                      <p className="text-3xl font-bold text-white">{item.count}</p>
+                    </div>
+                  </div>
+                  <p className="text-white font-semibold truncate">
+                    Dispositivo {item.device_id}
+                  </p>
                 </div>
-                <span className={`font-bold ${event.fallDetected ? 'text-red-500' : 'text-green-500'}`}>
-                  {event.fallDetected ? 'CAÍDA' : 'NORMAL'}
-                </span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Sección de Alerta Animada si hay caída */}
+          {shouldAlert && (
+            <div className="lg:col-span-3 bg-red-600 rounded-[28px] p-8 flex flex-col md:flex-row justify-between items-center shadow-2xl animate-pulse">
+              <div className="flex items-center gap-6">
+                <div className="bg-white/20 p-4 rounded-2xl">
+                  <AlertTriangle size={48} className="text-white" />
+                </div>
+                <div>
+                  <h2 className="text-4xl font-black text-white">CAÍDA DETECTADA</h2>
+                  <p className="text-red-100 text-lg">Paciente: {activeEvents[0].patientName}</p>
+                </div>
+              </div>
+              <div className="flex gap-4 mt-6 md:mt-0">
+                <button 
+                  onClick={() => confirmFall(activeEvents[0].id)} 
+                  className="bg-white text-red-600 px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition-transform"
+                >
+                  Confirmar Emergencia
+                </button>
+                <button 
+                  onClick={() => confirmFalseAlarm(activeEvents[0].id)} 
+                  className="bg-red-800 text-white px-8 py-4 rounded-full font-bold text-lg border border-red-400/30"
+                >
+                  Falsa Alarma
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Dispositivos */}
+          <section className="lg:col-span-2 space-y-6">
+            <h3 className="text-2xl font-bold ml-2 text-white">Dispositivos Conectados</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {devices.map((device) => (
+                <div key={device.id} className="glass-panel p-8 hover:bg-[#252B35] transition-colors group">
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="p-3 bg-[#6366F1]/10 rounded-2xl text-[#6366F1] group-hover:scale-110 transition-transform">
+                      <Wifi size={24} />
+                    </div>
+                    <span className="text-xs font-bold text-green-500 bg-green-500/10 px-3 py-1 rounded-full uppercase">Online</span>
+                  </div>
+                  <h4 className="text-2xl font-bold mb-1 text-white">{(device as any).alias || device.id}</h4>
+                  <p className="text-[#94A3B8]">Paciente: {(device as any).patientName || 'No asignado'}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Historial Lateral */}
+          <aside className="glass-panel p-8 h-fit">
+            <h3 className="text-2xl font-bold mb-6 text-white">Actividad Reciente</h3>
+            <div className="space-y-6">
+              {events.slice(0, 5).map((event) => (
+                <div key={event.id} className="flex gap-4 items-start border-b border-white/5 pb-4">
+                  <div className={`w-2 h-2 rounded-full mt-2 ${(event as any).status === 'OPEN' ? 'bg-red-500' : 'bg-gray-500'}`} />
+                  <div>
+                    <p className="font-bold text-white">{(event as any).deviceAlias || (event as any).deviceId}</p>
+                    <p className="text-sm text-[#94A3B8]">{new Date((event as any).occurredAt || Date.now()).toLocaleTimeString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </aside>
         </div>
       </div>
     </div>

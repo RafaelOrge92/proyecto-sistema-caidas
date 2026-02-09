@@ -1,0 +1,39 @@
+# Dependencias
+node_modules/
+
+# Compilado
+dist/
+build/
+*.js
+*.js.map
+!src/**/*.js
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Archivos de entorno
+.env
+.env.local
+.env.*.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cache
+.cache/
+.eslintcache
+
+# Temporales
+tmp/
+temp/

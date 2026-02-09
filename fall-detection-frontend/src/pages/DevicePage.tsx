@@ -1,136 +1,233 @@
 import React, { useState, useEffect } from 'react';
 import { AdminService } from '../services/adminService';
-import { Device, User } from '../types';
+import { Device, User, FallEvent } from '../types';
+import { Laptop, Plus, Settings2, Link as LinkIcon, X, Activity, Calendar } from 'lucide-react';
 import { DeviceModal } from '../components/DeviceModal';
 
 export const DevicePage: React.FC = () => {
   const [devices, setDevices] = useState<Device[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deviceToEdit, setDeviceToEdit] = useState<Device | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [assigningDeviceId, setAssigningDeviceId] = useState<string | null>(null);
+  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [deviceEvents, setDeviceEvents] = useState<FallEvent[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
-  const loadData = () => {
-    setLoading(true);
-    Promise.all([AdminService.getDevices(), AdminService.getUsers()])
-      .then(([devRes, userRes]) => {
-        setDevices(devRes.data);
-        setUsers(userRes.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  };
-
-  const handleCreate = () => {
-    setDeviceToEdit(undefined);
-    setIsModalOpen(true);
-  };
-
-  const handleEdit = (device: Device) => {
-    setDeviceToEdit(device);
-    setIsModalOpen(true);
-  };
-
-  const handleSuccess = () => {
-    loadData();
-    setIsModalOpen(false);
-  };
-
-  // Quick assignment change from card
-  const handleAssign = async (deviceId: string, userId: string) => {
+  const loadDeviceDetails = async (device: Device) => {
+    setSelectedDevice(device);
+    setLoadingEvents(true);
     try {
-      await AdminService.assignDevice(deviceId, userId);
-      // Optimistic update
-      setDevices(devices.map(d => d.id === deviceId ? { ...d, assignedUserId: userId || null } : d));
-    } catch (e) {
-      alert("Error al asignar dispositivo.");
+      const response = await AdminService.getEventsByDevice(device.id);
+      setDeviceEvents(response.data);
+    } catch (error) {
+      console.error('Error cargando eventos del dispositivo:', error);
+      setDeviceEvents([]);
+    } finally {
+      setLoadingEvents(false);
     }
   };
 
-  if (loading) return <p className="p-6">Cargando inventario...</p>;
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [devRes, userRes] = await Promise.all([
+        AdminService.getDevices(), 
+        AdminService.getUsers()
+      ]);
+      setDevices(devRes.data);
+      setUsers(userRes.data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAssignDevice = async (deviceId: string, userId: string) => {
+    if (!userId) return; // No hacer nada si se selecciona "Disponible"
+    
+    setAssigningDeviceId(deviceId);
+    
+    try {
+      // Usar el endpoint POST /users/asign (con typo en backend)
+      await fetch('http://localhost:3000/api/users/asign', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          accountId: userId,
+          deviceId: deviceId,
+          accessType: 'MONITORING'
+        })
+      });
+      
+      // Recargar datos para reflejar cambios
+      await loadData();
+    } catch (error) {
+      console.error('Error asignando dispositivo:', error);
+      alert('Error al asignar el dispositivo');
+    } finally {
+      setAssigningDeviceId(null);
+    }
+  };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Inventario de Dispositivos IoT</h2>
+    <div className="p-8 max-w-7xl mx-auto reveal">
+      <header className="flex justify-between items-end mb-12">
+        <div>
+          <h1 className="text-5xl font-bold tracking-tight text-white">Dispositivos</h1>
+          <p className="text-xl text-[#94A3B8] mt-2">Hardware vinculado a tu red de protección.</p>
+        </div>
         <button
-          onClick={handleCreate}
-          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 shadow"
+          onClick={() => setIsModalOpen(true)}
+          className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 transition-transform shadow-xl"
         >
-          + Nuevo Dispositivo
+          <Plus size={24} />
         </button>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {devices.map(device => {
-          const assignedUser = users.find(u => u.id === device.assignedUserId);
-          return (
-            <div key={device.id} className="border border-gray-200 p-5 rounded-lg shadow-sm bg-white hover:shadow-md transition-shadow relative">
-              <div className="absolute top-4 right-4">
-                <button
-                  onClick={() => handleEdit(device)}
-                  className="text-gray-400 hover:text-blue-600"
-                  title="Editar"
-                >
-                  ✏️
-                </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {devices.map((device) => (
+          /* TODO lo de abajo debe estar dentro de este único DIV con clase glass-panel */
+          <div key={device.id} className="glass-panel p-8 group relative overflow-hidden">
+            <div className="flex justify-between items-start mb-10">
+              <div className="w-14 h-14 bg-[#252B35] rounded-2xl flex items-center justify-center text-[#6366F1]">
+                <Laptop size={28} />
               </div>
+              <button 
+                className="text-gray-500 hover:text-white transition-colors"
+                onClick={() => loadDeviceDetails(device)}
+              >
+                <Settings2 size={20} />
+              </button>
+            </div>
 
-              <h3 className="font-bold text-lg text-gray-800 mb-1">{device.alias}</h3>
-              <p className="text-gray-500 text-sm mb-4 font-mono bg-gray-100 inline-block px-2 py-1 rounded">
-                ID: {device.deviceId}
-              </p>
+            <h3 className="text-2xl font-bold mb-2 text-white">{(device as any).alias || 'Sin nombre'}</h3>
+            <p className="text-xs font-mono text-[#94A3B8] mb-8 tracking-widest uppercase">ID: {device.deviceId}</p>
 
-              <div className="mt-2">
-                <label className="text-xs font-bold uppercase text-gray-500 tracking-wide block mb-1">
-                  Asignado a:
-                </label>
-                <div className="relative">
-                  <select
-                    className={`w-full border p-2 rounded appearance-none ${device.assignedUserId ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}
-                    value={device.assignedUserId || ""}
-                    onChange={(e) => handleAssign(device.id, e.target.value)}
-                  >
-                    <option value="">-- Disponible (Sin asignar) --</option>
-                    {users
-                      .filter(u => u.role === 'USUARIO')
-                      .map(user => (
-                        <option key={user.id} value={user.id}>
-                          {user.fullName}
-                        </option>
-                      ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
-                  </div>
-                </div>
-                {assignedUser && (
-                  <p className="text-xs text-green-700 mt-1">
-                    ✅ Vinculado a {assignedUser.fullName}
-                  </p>
-                )}
+            <div className="space-y-4">
+              <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-tighter block">Asignación de Usuario</label>
+              <div className="relative">
+                <select
+                  value={device.assignedUserId || ""}
+                  className="w-full bg-[#0F1419] border-none text-white rounded-xl py-3 px-4 appearance-none focus:ring-2 focus:ring-[#6366F1] transition-all cursor-pointer disabled:opacity-50"
+                  onChange={(e) => handleAssignDevice(device.id, e.target.value)}
+                  disabled={assigningDeviceId === device.id}
+                >
+                  <option value="">
+                    {assigningDeviceId === device.id ? 'Asignando...' : 'Disponible'}
+                  </option>
+                  {users.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
+                </select>
+                <LinkIcon size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
               </div>
             </div>
-          );
-        })}
-        {devices.length === 0 && (
-          <div className="col-span-full text-center py-10 bg-gray-50 rounded border border-dashed">
-            <p className="text-gray-500">No hay dispositivos registrados.</p>
-            <button onClick={handleCreate} className="text-purple-600 underline mt-2">Registrar el primero</button>
+
+            {/* Indicador de Estado - Asegúrate que esté DENTRO del div superior */}
+            <div className="absolute top-0 right-0 p-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Activo</span>
+              </div>
+            </div>
           </div>
-        )}
+        ))}
       </div>
 
       <DeviceModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={handleSuccess}
-        deviceToEdit={deviceToEdit}
+        onSuccess={loadData}
       />
+
+      {/* Modal de Detalles del Dispositivo */}
+      {selectedDevice && (
+                <div 
+                  className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                  onClick={() => setSelectedDevice(null)}
+                >
+                  <div 
+                    className="bg-[#1A1F26] rounded-2xl max-w-4xl w-full p-8 border border-white/10 relative max-h-[90vh] overflow-y-auto"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button 
+                      onClick={() => setSelectedDevice(null)}
+                      className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                    >
+                      <X size={24} />
+                    </button>
+
+                    <div className="mb-8">
+                      <h2 className="text-3xl font-bold text-white mb-2">
+                        {(selectedDevice as any).alias || 'Dispositivo'}
+                      </h2>
+                      <p className="text-[#94A3B8] font-mono text-sm">ID: {selectedDevice.id}</p>
+                    </div>
+
+                    <div className="mb-8">
+                      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <Activity size={20} className="text-indigo-400" />
+                        Historial de Eventos
+                      </h3>
+              
+                      {loadingEvents ? (
+                        <div className="flex justify-center py-12">
+                          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                      ) : deviceEvents.length > 0 ? (
+                        <div className="space-y-3">
+                          {deviceEvents.map((event) => (
+                            <div 
+                              key={event.id} 
+                              className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors border border-white/5"
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex items-center gap-3">
+                                  <Calendar size={16} className="text-indigo-400" />
+                                  <span className="text-white font-semibold text-sm">
+                                    {event.occurredAt ? new Date(event.occurredAt).toLocaleString() : '-'}
+                                  </span>
+                                </div>
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                  event.status === 'OPEN' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                                  event.status === 'CONFIRMED_FALL' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
+                                  event.status === 'FALSE_ALARM' ? 'bg-gray-500/10 text-gray-400 border border-gray-500/20' :
+                                  'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                }`}>
+                                  {event.status}
+                                </span>
+                              </div>
+                              <p className="text-[#94A3B8] text-sm">{event.eventType}</p>
+                              {event.reviewedBy && (
+                                <p className="text-xs text-[#64748B] mt-2">
+                                  Revisado por: {event.reviewedBy}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12 text-[#64748B]">
+                          <Activity size={48} className="mx-auto mb-4 opacity-20" />
+                          <p>No hay eventos registrados para este dispositivo</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <button 
+                      onClick={() => setSelectedDevice(null)}
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold transition-all"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
+              )}
     </div>
   );
 };
