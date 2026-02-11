@@ -1,7 +1,9 @@
 import express, { Router } from 'express';
 import jwt, { SignOptions } from 'jsonwebtoken';
+import { randomBytes } from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { db } from '../config/db';
+import { hashPassword, isBcryptHash, verifyPassword } from '../utils/password';
 
 const router = Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '');
@@ -10,8 +12,11 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '');
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email y contrasena son requeridos' });
+  }
+
   try {
-    // Query database for user by email
     const database = db;
     const users = await database.query(
       'SELECT account_id, email, password_hash, role, full_name FROM public.accounts WHERE email = $1',
@@ -19,14 +24,28 @@ router.post('/login', async (req, res) => {
     );
 
     if (users.length === 0) {
-      return res.status(401).json({ error: 'Email o contraseña incorrectos' });
+      return res.status(401).json({ error: 'Email o contrasena incorrectos' });
     }
 
     const user = users[0];
+    const isValidPassword = await verifyPassword(password, user.password_hash);
 
-    // Comparación directa de contraseña
-    if (password !== user.password_hash) {
-      return res.status(401).json({ error: 'Email o contraseña incorrectos' });
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Email o contrasena incorrectos' });
+    }
+
+    // Progressive migration: upgrade legacy plain-text passwords to bcrypt on successful login.
+    if (!isBcryptHash(user.password_hash)) {
+      try {
+        const migratedHash = await hashPassword(password);
+        await database.query(
+          'UPDATE public.accounts SET password_hash = $1, updated_at = now() WHERE account_id = $2',
+          [migratedHash, user.account_id]
+        );
+      } catch (migrationError) {
+        // Keep login successful even if migration update fails.
+        console.error('Password migration warning:', migrationError);
+      }
     }
 
     const jwtSecret = (process.env.JWT_SECRET || 'dev-secret-change-me') as jwt.Secret;
@@ -72,7 +91,6 @@ router.post('/google-login', async (req, res) => {
   }
 
   try {
-    // Verificar el token de Google
     const ticket = await googleClient.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID
@@ -80,26 +98,27 @@ router.post('/google-login', async (req, res) => {
 
     const payload = ticket.getPayload();
     if (!payload) {
-      return res.status(401).json({ error: 'Token de Google inválido' });
+      return res.status(401).json({ error: 'Token de Google invalido' });
     }
 
     const { email, name } = payload;
 
-    // Buscar o crear usuario en la base de datos
     const database = db;
-    let users = await database.query(
+    const users = await database.query(
       'SELECT account_id, email, role, full_name FROM public.accounts WHERE email = $1',
       [email]
     );
 
     let user;
     if (users.length === 0) {
-      // Crear nuevo usuario si no existe
+      const generatedPassword = `google-${randomBytes(24).toString('hex')}`;
+      const generatedPasswordHash = await hashPassword(generatedPassword);
+
       const newUser = await database.query(
         `INSERT INTO public.accounts (email, full_name, password_hash, role)
          VALUES ($1, $2, $3, $4)
          RETURNING account_id, email, role, full_name`,
-        [email, name, 'google-auth', 'MEMBER']
+        [email, name, generatedPasswordHash, 'MEMBER']
       );
       user = newUser[0];
     } else {

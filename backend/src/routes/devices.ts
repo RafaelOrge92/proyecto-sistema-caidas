@@ -65,10 +65,19 @@ router.post('/', async (req, res) => {
 });
 
 const handleHeartbeat = async (req: any, res: any) => {
-  const {timestamp, deviceId} = req.body
+  const timestamp = req.body?.timestamp ?? req.body?.lastSeenAt ?? req.body?.last_seen_at ?? null
+  const deviceId = req.body?.deviceId ?? req.body?.id ?? req.body?.device_id
+
+  if (!deviceId) {
+    return res.status(400).json({ error: 'deviceId es requerido' })
+  }
+
   console.log('Recibido')
   try{
-   const result = await db.query(`UPDATE public.devices SET last_seen_at = $1 WHERE device_id = $2`,[timestamp,deviceId])
+   const result = await db.query(
+    `UPDATE public.devices SET last_seen_at = COALESCE($1::timestamptz, now()) WHERE device_id = $2`,
+    [timestamp, deviceId]
+   )
    res.json(result)
   } catch (error){
     console.error('Cannot access device')
