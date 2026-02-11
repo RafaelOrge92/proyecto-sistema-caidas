@@ -72,6 +72,14 @@ export const AdminService = {
     };
     return api.post('/devices', payload);
   },
+
+  assignDeviceToUser: async (deviceId: string, userId: string, accessType: string = 'MONITORING') => {
+    return api.post('/users/assign', {
+      accountId: userId,
+      deviceId,
+      accessType
+    });
+  },
   
   getDeviceById: async (id: string) => {
     const response = await api.get<any>(`/devices/${id}`);

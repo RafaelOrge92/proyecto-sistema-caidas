@@ -1,5 +1,6 @@
-import express, { Router } from 'express';
+import express, { Router, Request, Response } from 'express';
 import { db } from '../config/db';
+import { authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
@@ -14,28 +15,58 @@ interface Sample {
 const isMissingColumnError = (error: any, column: string) =>
   error?.code === '42703' && String(error?.message || '').includes(column);
 
+/**
+ * Verifica si un usuario tiene acceso a un dispositivo
+ */
+const userHasDeviceAccess = async (userId: string, deviceId: string): Promise<boolean> => {
+  const result = await db.query(
+    'SELECT COUNT(*) as count FROM public.device_access WHERE account_id = $1 AND device_id = $2',
+    [userId, deviceId]
+  );
+  return result[0]?.count > 0;
+};
+
 
 // Get all events
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   const result = await db.query('SELECT * FROM public.events')
   res.json(result)
 });
 
 // Get events by device
-router.get('/device/:deviceId', async (req, res) => {
-  const result = await db.query(`SELECT * FROM public.events WHERE device_id = $1`, [req.params.deviceId])
+router.get('/device/:deviceId', authenticateToken, async (req, res) => {
+  // Permitir si es ADMIN o si el usuario tiene acceso al dispositivo
+  const deviceId = req.params.deviceId as string;
+  if (req.user?.role !== 'ADMIN') {
+    const hasAccess = await userHasDeviceAccess(req.user?.sub || '', deviceId);
+    if (!hasAccess) {
+      return res.status(403).json({ error: 'No tienes permiso para ver los eventos de este dispositivo' });
+    }
+  }
+
+  const result = await db.query(`SELECT * FROM public.events WHERE device_id = $1`, [deviceId])
   res.json(result);
 });
 
 
 // Get event by id
-router.get('/:id', async (req, res) => {
-  const { id } = req.params
+router.get('/:id', authenticateToken, async (req, res) => {
+  const id = req.params.id as string;
   try {
     const result = await db.query(
       'SELECT * FROM public.events WHERE event_id::text = $1 OR event_uid::text = $1',
       [id]
     )
+    
+    // Verificar acceso si no es ADMIN
+    if (result.length > 0 && req.user?.role !== 'ADMIN') {
+      const event = result[0];
+      const hasAccess = await userHasDeviceAccess(req.user?.sub || '', event.device_id);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No tienes permiso para ver este evento' });
+      }
+    }
+    
     return res.json(result)
   } catch (error: any) {
     if (error?.code === '42703' && String(error?.message || '').includes('event_id')) {
@@ -43,6 +74,16 @@ router.get('/:id', async (req, res) => {
         'SELECT * FROM public.events WHERE id::text = $1 OR event_uid::text = $1',
         [id]
       )
+      
+      // Verificar acceso si no es ADMIN
+      if (fallback.length > 0 && req.user?.role !== 'ADMIN') {
+        const event = fallback[0];
+        const hasAccess = await userHasDeviceAccess(req.user?.sub || '', event.device_id);
+        if (!hasAccess) {
+          return res.status(403).json({ error: 'No tienes permiso para ver este evento' });
+        }
+      }
+      
       return res.json(fallback)
     }
     console.error('Error fetching event by id:', error)
@@ -50,7 +91,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.put('/update', async (req, res) => {
+router.put('/update', authenticateToken, requireAdmin, async (req, res) => {
   const {id, status} = req.body
   if (!id || !status) {
     return res.status(400).json({error: 'id y status son requeridos'})

@@ -52,19 +52,7 @@ export const DevicePage: React.FC = () => {
     setAssigningDeviceId(deviceId);
     
     try {
-      // Usar el endpoint POST /users/asign (con typo en backend)
-      await fetch('http://localhost:3000/api/users/asign', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          accountId: userId,
-          deviceId: deviceId,
-          accessType: 'MONITORING'
-        })
-      });
+      await AdminService.assignDeviceToUser(deviceId, userId, 'MONITORING');
       
       // Recargar datos para reflejar cambios
       await loadData();
@@ -108,7 +96,7 @@ export const DevicePage: React.FC = () => {
             </div>
 
             <h3 className="text-2xl font-bold mb-2 text-white">{(device as any).alias || 'Sin nombre'}</h3>
-            <p className="text-xs font-mono text-[#94A3B8] mb-8 tracking-widest uppercase">ID: {device.deviceId}</p>
+            <p className="text-xs font-mono text-[#94A3B8] mb-8 tracking-widest uppercase">ID: {device.id}</p>
 
             <div className="space-y-4">
               <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-tighter block">Asignación de Usuario</label>
