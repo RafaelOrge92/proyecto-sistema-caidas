@@ -15,6 +15,8 @@ const char* WIFI_PASS = "TU_PASS";
 const char* BASE_URL = "http://TU_BACKEND.com";
 // Si esta vacio, se usa MAC y se guarda en NVS
 const char* DEVICE_ID_OVERRIDE = "";
+// Clave compartida con backend (guardar el valor real fuera del repo).
+const char* DEVICE_KEY = "CHANGE_ME_DEVICE_KEY";
 
 // =====================
 // Cola persistente (NVS)
@@ -31,6 +33,11 @@ static uint32_t qNextMs[MAX_QUEUE];
 // Device ID (MAC -> NVS)
 // =====================
 static String deviceId;
+
+static void addDeviceAuthHeaders(HTTPClient& http) {
+  http.addHeader("X-Device-Id", deviceId);
+  http.addHeader("X-Device-Key", DEVICE_KEY);
+}
 
 static bool isInvalidDeviceId(const String& id) {
   return id.length() == 0 || id == "ESP32-000000000000";
@@ -431,6 +438,7 @@ static bool IMU_sendFallHeader() {
   }
   http.setTimeout(5000);
   http.addHeader("Content-Type", "application/json");
+  addDeviceAuthHeaders(http);
 
   char payload[256];
   if (IMU_eventTs == "null" || IMU_eventTs.length() == 0) {
@@ -473,6 +481,7 @@ static bool IMU_sendFallSamples(const String& samplesJson) {
   }
   http.setTimeout(5000);
   http.addHeader("Content-Type", "application/json");
+  addDeviceAuthHeaders(http);
   int code = http.POST((uint8_t*)samplesJson.c_str(), samplesJson.length());
   http.getString();
   IMU_logEventI32("samples_response", "code", code);
@@ -999,6 +1008,7 @@ static void TILT_sendEvent(bool tilted) {
   }
   http.setTimeout(5000);
   http.addHeader("Content-Type", "application/json");
+  addDeviceAuthHeaders(http);
 
   String eventUid = uuid_v4();
   String ts = utcIsoNow();
@@ -1102,6 +1112,7 @@ static void sendHeartbeat() {
   http.setTimeout(5000);
 
   http.addHeader("Content-Type", "application/json");
+  addDeviceAuthHeaders(http);
 
   int rssi = WiFi.RSSI();
   String ts = utcIsoNow();
@@ -1195,6 +1206,7 @@ static void processQueue() {
   }
   http.setTimeout(5000);
   http.addHeader("Content-Type", "application/json");
+  addDeviceAuthHeaders(http);
 
   int code = http.POST((uint8_t*)queue[0].c_str(), queue[0].length());
   String body = http.getString();
@@ -1236,6 +1248,9 @@ void setup() {
   loadQueue();
   Serial.printf("[QUEUE] loaded %u pending\n", qCount);
   Serial.printf("[ID] deviceId=%s\n", deviceId.c_str());
+  if (strcmp(DEVICE_KEY, "CHANGE_ME_DEVICE_KEY") == 0) {
+    Serial.println("[AUTH] WARNING: DEVICE_KEY sin configurar");
+  }
 
   // === TILT SENSOR BEGIN ===
   TILT_init();

@@ -1,6 +1,7 @@
 import express, { Router, Request, Response } from 'express';
 import { db } from '../config/db';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
+import { authenticateDevice } from '../middleware/deviceAuth';
 
 const router = Router();
 
@@ -118,8 +119,10 @@ router.put('/update', authenticateToken, requireAdmin, async (req, res) => {
   
 })
 
-router.post('/ingest', async (req, res) => {
-  const deviceId = req.body?.deviceId ?? req.body?.device_id
+router.post('/ingest', authenticateDevice, async (req, res) => {
+  const authenticatedDeviceId = (req as any).deviceIdAuth as string | undefined
+  const payloadDeviceId = req.body?.deviceId ?? req.body?.device_id
+  const deviceId = authenticatedDeviceId ?? payloadDeviceId
   const eventUid = req.body?.eventUid ?? req.body?.event_uid
   const eventType = req.body?.eventType ?? req.body?.event_type
   const eventOccurredAt = req.body?.occurredAt ?? req.body?.ocurredAt ?? req.body?.occurred_at ?? null
@@ -128,13 +131,18 @@ router.post('/ingest', async (req, res) => {
     return res.status(400).json({ error: 'deviceId, eventUid y eventType son requeridos' })
   }
 
+  if (payloadDeviceId && authenticatedDeviceId && payloadDeviceId !== authenticatedDeviceId) {
+    return res.status(400).json({ error: 'deviceId del body no coincide con dispositivo autenticado' })
+  }
+
   const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, occurred_at) 
     values($1, $2, $3, COALESCE($4::timestamptz, now()))`,
   [eventUid, deviceId, eventType, eventOccurredAt])
   res.status(201).json(result)
 })
 
-router.post('/samples', async (req, res) => {
+router.post('/samples', authenticateDevice, async (req, res) => {
+  const authenticatedDeviceId = (req as any).deviceIdAuth as string | undefined
   const eventUid = req.body?.eventUid ?? req.body?.event_uid
   const samples = Array.isArray(req.body?.samples)
     ? (req.body.samples as Sample[])
@@ -152,17 +160,23 @@ router.post('/samples', async (req, res) => {
     let eventId: string | null = null
     try {
       const event = await db.query(
-        `SELECT event_id::text as event_id FROM public.events WHERE event_uid::text = $1 LIMIT 1`,
+        `SELECT event_id::text as event_id, device_id FROM public.events WHERE event_uid::text = $1 LIMIT 1`,
         [eventUid]
       )
       eventId = event[0]?.event_id ?? null
+      if (authenticatedDeviceId && event[0]?.device_id && event[0].device_id !== authenticatedDeviceId) {
+        return res.status(403).json({ error: 'Evento no pertenece al dispositivo autenticado' })
+      }
     } catch (error: any) {
       if (isMissingColumnError(error, 'event_id')) {
         const fallback = await db.query(
-          `SELECT id::text as event_id FROM public.events WHERE event_uid::text = $1 LIMIT 1`,
+          `SELECT id::text as event_id, device_id FROM public.events WHERE event_uid::text = $1 LIMIT 1`,
           [eventUid]
         )
         eventId = fallback[0]?.event_id ?? null
+        if (authenticatedDeviceId && fallback[0]?.device_id && fallback[0].device_id !== authenticatedDeviceId) {
+          return res.status(403).json({ error: 'Evento no pertenece al dispositivo autenticado' })
+        }
       } else {
         throw error
       }

@@ -66,7 +66,12 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
 
 // Update user
 router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
-  const { email, password ,fullName, phone, role, id } = req.body;
+  const routeId = req.params.id as string;
+  const { email, password ,fullName, phone, role, id: bodyId } = req.body;
+
+  if (bodyId && bodyId !== routeId) {
+    return res.status(400).json({ error: 'El id del body no coincide con el id de la URL' });
+  }
 
   try {
     const database = db;
@@ -78,7 +83,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
     // Check if user exists
     const existingUsers = await database.query(
       'SELECT account_id FROM public.accounts WHERE account_id = $1',
-      [id]
+      [routeId]
     );
 
     if (existingUsers.length === 0) {
@@ -88,7 +93,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
     // Update user
     const result = await database.query(
       'UPDATE public.accounts SET email = COALESCE($1, email), password_hash = COALESCE($2, password_hash) ,full_name = COALESCE($3, full_name), phone = COALESCE($4, phone), role = COALESCE($5, role), updated_at = now() WHERE account_id = $6 RETURNING account_id as id, email, role, full_name as "fullName", phone, updated_at as "updatedAt"',
-      [email, passwordHash, fullName, phone, role, id]
+      [email, passwordHash, fullName, phone, role, routeId]
     );
 
     res.json(result[0]);

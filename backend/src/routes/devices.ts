@@ -1,6 +1,7 @@
 import express, { response, Router, Request, Response } from 'express';
 import { db } from '../config/db';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
+import { authenticateDevice } from '../middleware/deviceAuth';
 
 const router = Router();
 
@@ -68,7 +69,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const result = await db.query(`INSERT into public.devices (device_id, patient_id, alias, is_active, last_seen_at)
       values ($1, $2, $3, $4, $5)`,
-    [id, patientId || null, alias || null, active || true, lastSeenAt || null]
+    [id, patientId || null, alias || null, active ?? true, lastSeenAt || null]
     )
     res.status(201).json(result);
   } catch (error: any) {
@@ -83,10 +84,16 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
 
 const handleHeartbeat = async (req: Request, res: Response) => {
   const timestamp = req.body?.timestamp ?? req.body?.lastSeenAt ?? req.body?.last_seen_at ?? null
-  const deviceId = req.body?.deviceId ?? req.body?.id ?? req.body?.device_id
+  const authenticatedDeviceId = (req as any).deviceIdAuth as string | undefined
+  const payloadDeviceId = req.body?.deviceId ?? req.body?.id ?? req.body?.device_id
+  const deviceId = authenticatedDeviceId ?? payloadDeviceId
 
   if (!deviceId) {
     return res.status(400).json({ error: 'deviceId es requerido' })
+  }
+
+  if (payloadDeviceId && authenticatedDeviceId && payloadDeviceId !== authenticatedDeviceId) {
+    return res.status(400).json({ error: 'deviceId del body no coincide con dispositivo autenticado' })
   }
 
   console.log('Recibido')
@@ -102,7 +109,7 @@ const handleHeartbeat = async (req: Request, res: Response) => {
   }
 }
 
-router.put('/heartbeat', handleHeartbeat)
-router.post('/heartbeat', handleHeartbeat)
+router.put('/heartbeat', authenticateDevice, handleHeartbeat)
+router.post('/heartbeat', authenticateDevice, handleHeartbeat)
 
 export const devicesRoutes = router;
