@@ -44,7 +44,25 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) return;
-        alert("La creacion de dispositivos esta deshabilitada por ahora");
+        setIsSubmitting(true);
+        try {
+            await AdminService.createDevice({
+                id: formData.id?.trim(),
+                alias: formData.alias?.trim(),
+                isActive: true
+            });
+
+            if (formData.assignedUserId) {
+                await AdminService.assignDeviceToUser(formData.id as string, formData.assignedUserId);
+            }
+
+            onSuccess();
+        } catch (error) {
+            console.error('Error creando dispositivo:', error);
+            setErrors({ submit: 'No se pudo crear el dispositivo.' });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -90,15 +108,18 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, 
                 </select>
             </div>
 
+            {errors.submit && <p className="text-red-500 text-xs">{errors.submit}</p>}
+
             <div className="flex gap-2 justify-end">
                 <button type="button" onClick={onCancel} className="px-4 py-2 text-gray-600 hover:text-gray-800">
                     Cancelar
                 </button>
                 <button
                     type="submit"
-                    className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+                    className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-60"
+                    disabled={isSubmitting}
                 >
-                    {initialData ? 'Actualizar' : 'Registrar'}
+                    {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar' : 'Registrar')}
                 </button>
             </div>
         </form>
