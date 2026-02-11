@@ -105,9 +105,50 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
 
 router.post('/assign', authenticateToken, requireAdmin, async (req, res) => {
   const {accountId, deviceId, accessType} = req.body
-  const result = await db.query(`INSERT INTO public.device_access (account_id, device_id, access_type) values ($1, $2, $3)`,[accountId, deviceId, accessType])
-  res.status(201).json(result)
+  
+  // Validaciones
+  if (!accountId) {
+    return res.status(400).json({ error: 'accountId es requerido' });
+  }
+  if (!deviceId) {
+    return res.status(400).json({ error: 'deviceId es requerido' });
+  }
+  if (!accessType) {
+    return res.status(400).json({ error: 'accessType es requerido' });
+  }
+  
+  try {
+    // Verificar que el usuario existe
+    const userExists = await db.query('SELECT account_id FROM public.accounts WHERE account_id = $1', [accountId]);
+    if (userExists.length === 0) {
+      return res.status(404).json({ error: `Usuario '${accountId}' no existe` });
+    }
+    
+    // Verificar que el dispositivo existe
+    const deviceExists = await db.query('SELECT device_id FROM public.devices WHERE device_id = $1', [deviceId]);
+    if (deviceExists.length === 0) {
+      return res.status(404).json({ error: `Dispositivo '${deviceId}' no existe` });
+    }
+    
+    // Asignar dispositivo a usuario
+    const result = await db.query(
+      `INSERT INTO public.device_access (account_id, device_id, access_type) values ($1, $2, $3)`,
+      [accountId, deviceId, accessType]
+    );
+    res.status(201).json(result);
+  } catch (error: any) {
+    console.error('Error asignando dispositivo:', error);
+    if (error?.code === '23505') {
+      return res.status(409).json({ error: `El dispositivo '${deviceId}' ya está asignado a un usuario` });
+    }
+    if (error?.code === '23502') {
+      return res.status(400).json({ error: 'Parámetros incompletos o inválidos' });
+    }
+    
+    res.status(500).json({ error: 'Error al asignar dispositivo' });
+  }
 })
+
 
 
 // Deactivate user (soft delete)
