@@ -14,9 +14,14 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
       d.*,
       p.first_name AS patient_first_name,
       p.last_name AS patient_last_name,
-      CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name
+      CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name,
+      a.account_id AS assigned_user_id,
+      a.full_name AS assigned_user_name,
+      a.email AS assigned_user_email
     FROM public.devices d
     LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+    LEFT JOIN public.device_access da ON d.device_id = da.device_id AND da.access_type = 'MEMBER'
+    LEFT JOIN public.accounts a ON da.account_id = a.account_id
   `)
   res.json(result)
 })
@@ -74,10 +79,17 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
     res.status(201).json(result);
   } catch (error: any) {
     console.error('Error creating device:', error);
-    // Si el error es por patient_id NOT NULL, sugerir que se debe hacer nullable
+    
+    // Error de duplicate key constraint (El dispositivo ya existe)
+    if (error?.code === '23505' && error?.constraint === 'devices_pkey') {
+      return res.status(409).json({ error: `El dispositivo con ID '${id}' ya existe.` });
+    }
+    
+    // Si el error es por patient_id NOT NULL
     if (error?.message?.includes('patient_id')) {
       return res.status(400).json({ error: 'patient_id debe ser nullable en la base de datos. Ejecuta: ALTER TABLE public.devices ALTER COLUMN patient_id DROP NOT NULL;' });
     }
+    
     res.status(500).json({ error: 'Error al crear dispositivo' });
   }
 });
@@ -96,7 +108,6 @@ const handleHeartbeat = async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'deviceId del body no coincide con dispositivo autenticado' })
   }
 
-  console.log('Recibido')
   try{
    const result = await db.query(
     `UPDATE public.devices SET last_seen_at = COALESCE($1::timestamptz, now()) WHERE device_id = $2`,

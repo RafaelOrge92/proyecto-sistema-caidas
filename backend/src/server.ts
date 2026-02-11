@@ -49,10 +49,8 @@ app.get('/api/health', async (req, res) => {
     inet_server_addr() as server_ip,
     inet_server_port() as server_port`
 )
-console.log('INFO:', info)
 
 const c = await db.query('select count(*)::int as n from public.events')
-console.log('EVENTS COUNT:', c[0].n)
   res.json({ status: 'ok' });
 });
 

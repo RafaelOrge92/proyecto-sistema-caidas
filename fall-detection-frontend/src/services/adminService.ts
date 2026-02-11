@@ -54,9 +54,9 @@ export const AdminService = {
       patientId: d.patient_id,
       isActive: d.is_active,
       lastSeen: d.last_seen_at?.toString(),
-      // These are not returned by simple SELECT * from devices
-      assignedUserId: null, 
-      patientName: undefined 
+      assignedUserId: d.assigned_user_id || null,
+      assignedUserName: d.assigned_user_name || null,
+      patientName: d.patient_full_name || undefined
     })) as Device[];
     return { data };
   },
@@ -73,7 +73,7 @@ export const AdminService = {
     return api.post('/devices', payload);
   },
 
-  assignDeviceToUser: async (deviceId: string, userId: string, accessType: string = 'MONITORING') => {
+  assignDeviceToUser: async (deviceId: string, userId: string, accessType: string = 'MEMBER') => {
     return api.post('/users/assign', {
       accountId: userId,
       deviceId,

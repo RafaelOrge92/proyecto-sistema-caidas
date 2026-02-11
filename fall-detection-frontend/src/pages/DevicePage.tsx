@@ -52,7 +52,7 @@ export const DevicePage: React.FC = () => {
     setAssigningDeviceId(deviceId);
     
     try {
-      await AdminService.assignDeviceToUser(deviceId, userId, 'MONITORING');
+      await AdminService.assignDeviceToUser(deviceId, userId, 'MEMBER');
       
       // Recargar datos para reflejar cambios
       await loadData();
@@ -114,6 +114,11 @@ export const DevicePage: React.FC = () => {
                 </select>
                 <LinkIcon size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
               </div>
+              {device.assignedUserName && (
+                <p className="text-xs text-green-400">
+                  ✓ Asignado a: {device.assignedUserName}
+                </p>
+              )}
             </div>
 
             {/* Indicador de Estado - Asegúrate que esté DENTRO del div superior */}
