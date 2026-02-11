@@ -1,10 +1,11 @@
 import express, { Router } from 'express';
 import { db } from '../config/db';
+import { authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
 // Get all users
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const database = db;
     const users = await database.query(
@@ -18,12 +19,13 @@ router.get('/', async (req, res) => {
 });
 
 // Get user by id
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
+    const id = req.params.id as string;
     const database = db;
     const users = await database.query(
       'SELECT account_id as id, email, role, full_name as "fullName", phone, created_at as "createdAt", updated_at as "updatedAt" FROM public.accounts WHERE account_id = $1',
-      [req.params.id]
+      [id]
     );
 
     if (users.length === 0) {
@@ -38,7 +40,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create user
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   const { email, fullName, phone, role, password } = req.body;
 
   if (!email || !fullName) {
@@ -62,7 +64,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update user
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   const { email, password ,fullName, phone, role, id } = req.body;
 
   try {
@@ -91,7 +93,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.post('/assign', async (req, res) => {
+router.post('/assign', authenticateToken, requireAdmin, async (req, res) => {
   const {accountId, deviceId, accessType} = req.body
   const result = await db.query(`INSERT INTO public.device_access (account_id, device_id, access_type) values ($1, $2, $3)`,[accountId, deviceId, accessType])
   res.status(201).json(result)
@@ -101,14 +103,15 @@ router.post('/assign', async (req, res) => {
 // Deactivate user (soft delete)
 // Note: The accounts table doesn't have an is_active column, so this will add a comment
 // If you want true soft delete, you'd need to add an is_active column to the schema
-router.patch('/:id/deactivate', async (req, res) => {
+router.patch('/:id/deactivate', authenticateToken, requireAdmin, async (req, res) => {
   try {
+    const id = req.params.id as string;
     const database = db;
 
     // Check if user exists
     const existingUsers = await database.query(
       'SELECT account_id as id, email, role, full_name as "fullName", phone FROM public.accounts WHERE account_id = $1',
-      [req.params.id]
+      [id]
     );
 
     if (existingUsers.length === 0) {

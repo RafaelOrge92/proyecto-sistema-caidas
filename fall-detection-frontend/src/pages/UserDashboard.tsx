@@ -21,12 +21,13 @@ export const UserDashboard: React.FC = () => {
         const devRes = await AdminService.getDevicesByUser(user.id);
         setMyDevices(devRes.data);
 
-        // Obtener eventos solo de los dispositivos del usuario
+        // Obtener eventos de cada dispositivo del usuario
         const deviceIds = devRes.data.map(d => d.id);
         if (deviceIds.length > 0) {
-          const eventRes = await AdminService.getEvents();
-          const filteredEvents = eventRes.data.filter(e => deviceIds.includes(e.deviceId));
-          setMyEvents(filteredEvents);
+          const eventPromises = deviceIds.map(id => AdminService.getEventsByDevice(id));
+          const eventResults = await Promise.all(eventPromises);
+          const allEvents = eventResults.flatMap(res => res.data);
+          setMyEvents(allEvents);
         }
 
       } catch (error) {
