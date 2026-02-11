@@ -68,7 +68,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const result = await db.query(`INSERT into public.devices (device_id, patient_id, alias, is_active, last_seen_at)
       values ($1, $2, $3, $4, $5)`,
-    [id, patientId || null, alias || null, active || true, lastSeenAt || null]
+    [id, patientId || null, alias || null, active ?? true, lastSeenAt || null]
     )
     res.status(201).json(result);
   } catch (error: any) {
