@@ -119,8 +119,15 @@ router.put('/update', authenticateToken, requireAdmin, async (req, res) => {
 })
 
 router.post('/ingest', async (req, res) => {
-  const { deviceId, eventUid, eventType, occurredAt, ocurredAt } = req.body
-  const eventOccurredAt = occurredAt ?? ocurredAt ?? null
+  const deviceId = req.body?.deviceId ?? req.body?.device_id
+  const eventUid = req.body?.eventUid ?? req.body?.event_uid
+  const eventType = req.body?.eventType ?? req.body?.event_type
+  const eventOccurredAt = req.body?.occurredAt ?? req.body?.ocurredAt ?? req.body?.occurred_at ?? null
+
+  if (!deviceId || !eventUid || !eventType) {
+    return res.status(400).json({ error: 'deviceId, eventUid y eventType son requeridos' })
+  }
+
   const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, occurred_at) 
     values($1, $2, $3, COALESCE($4::timestamptz, now()))`,
   [eventUid, deviceId, eventType, eventOccurredAt])
@@ -128,7 +135,7 @@ router.post('/ingest', async (req, res) => {
 })
 
 router.post('/samples', async (req, res) => {
-  const { eventUid } = req.body || {}
+  const eventUid = req.body?.eventUid ?? req.body?.event_uid
   const samples = Array.isArray(req.body?.samples)
     ? (req.body.samples as Sample[])
     : (Array.isArray(req.body) ? (req.body as Sample[]) : [])
@@ -167,11 +174,16 @@ router.post('/samples', async (req, res) => {
 
     try {
       for (const sam of samples) {
+        const seq = (sam as any)?.seq
+        const tMs = (sam as any)?.tMs ?? (sam as any)?.t_ms
+        const accX = (sam as any)?.accX ?? (sam as any)?.acc_x
+        const accY = (sam as any)?.accY ?? (sam as any)?.acc_y
+        const accZ = (sam as any)?.accZ ?? (sam as any)?.acc_z
         await db.query(
           `INSERT INTO public.event_samples (event_id, seq, t_ms, acc_x, acc_y, acc_z)
            VALUES ($1, $2, $3, $4, $5, $6)
            ON CONFLICT DO NOTHING`,
-          [eventId, sam.seq, sam.tMs, sam.accX, sam.accY, sam.accZ]
+          [eventId, seq, tMs, accX, accY, accZ]
         )
       }
     } catch (error: any) {
@@ -180,11 +192,16 @@ router.post('/samples', async (req, res) => {
       }
 
       for (const sam of samples) {
+        const seq = (sam as any)?.seq
+        const tMs = (sam as any)?.tMs ?? (sam as any)?.t_ms
+        const accX = (sam as any)?.accX ?? (sam as any)?.acc_x
+        const accY = (sam as any)?.accY ?? (sam as any)?.acc_y
+        const accZ = (sam as any)?.accZ ?? (sam as any)?.acc_z
         await db.query(
           `INSERT INTO public.event_samples (event_uid, seq, t_ms, acc_x, acc_y, acc_z)
            VALUES ($1, $2, $3, $4, $5, $6)
            ON CONFLICT DO NOTHING`,
-          [eventUid, sam.seq, sam.tMs, sam.accX, sam.accY, sam.accZ]
+          [eventUid, seq, tMs, accX, accY, accZ]
         )
       }
     }
@@ -198,10 +215,22 @@ router.post('/samples', async (req, res) => {
 
 // Create event
 router.post('/', async (req, res) => {
-  const { deviceId, eventType, status, eventUid, ocurredAt, reviewedBy, reviewedAt, review_comment } = req.body;
+  const deviceId = req.body?.deviceId ?? req.body?.device_id
+  const eventType = req.body?.eventType ?? req.body?.event_type
+  const status = req.body?.status ?? 'OPEN'
+  const eventUid = req.body?.eventUid ?? req.body?.event_uid
+  const eventOccurredAt = req.body?.occurredAt ?? req.body?.ocurredAt ?? req.body?.occurred_at ?? null
+  const reviewedBy = req.body?.reviewedBy ?? req.body?.reviewed_by ?? null
+  const reviewedAt = req.body?.reviewedAt ?? req.body?.reviewed_at ?? null
+  const reviewComment = req.body?.review_comment ?? req.body?.reviewComment ?? null
+
+  if (!deviceId || !eventType || !eventUid) {
+    return res.status(400).json({ error: 'deviceId, eventType y eventUid son requeridos' })
+  }
+
   const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, status, occurred_at, reviewed_by, reviewed_at, review_comment)
-    values ($1, $2, $3, $4, $5, $6, $7, $8)`,
-  [eventUid, deviceId, eventType, status, ocurredAt, reviewedBy, reviewedAt, review_comment])
+    values ($1, $2, $3, $4, COALESCE($5::timestamptz, now()), $6, $7, $8)`,
+  [eventUid, deviceId, eventType, status, eventOccurredAt, reviewedBy, reviewedAt, reviewComment])
   res.status(201).json(result)
 });
 

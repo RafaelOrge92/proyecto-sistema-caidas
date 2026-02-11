@@ -1,5 +1,6 @@
 import express, { Router } from 'express';
 import { db } from '../config/db';
+import { hashPassword } from '../utils/password';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
@@ -49,11 +50,11 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
 
   try {
     const database = db;
+    const passwordHash = await hashPassword(password || '1234');
 
-    // Insert new user (password_hash will store the plain password for simplicity)
     const result = await database.query(
       'INSERT INTO public.accounts (email, password_hash, role, full_name, phone) VALUES ($1, $2, $3, $4, $5) RETURNING account_id as id, email, role, full_name as "fullName", phone, created_at as "createdAt"',
-      [email, password || '1234', role || 'MEMBER', fullName, phone || null]
+      [email, passwordHash, role || 'MEMBER', fullName, phone || null]
     );
 
     res.status(201).json(result[0]);
@@ -69,6 +70,10 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
 
   try {
     const database = db;
+    const passwordHash =
+      typeof password === 'string' && password.length > 0
+        ? await hashPassword(password)
+        : null;
 
     // Check if user exists
     const existingUsers = await database.query(
@@ -83,7 +88,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
     // Update user
     const result = await database.query(
       'UPDATE public.accounts SET email = COALESCE($1, email), password_hash = COALESCE($2, password_hash) ,full_name = COALESCE($3, full_name), phone = COALESCE($4, phone), role = COALESCE($5, role), updated_at = now() WHERE account_id = $6 RETURNING account_id as id, email, role, full_name as "fullName", phone, updated_at as "updatedAt"',
-      [email, password, fullName, phone, role, id]
+      [email, passwordHash, fullName, phone, role, id]
     );
 
     res.json(result[0]);
