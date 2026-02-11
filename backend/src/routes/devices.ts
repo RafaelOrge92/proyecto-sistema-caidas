@@ -19,6 +19,11 @@ router.get('/', async (req, res) => {
   res.json(result)
 })
 
+router.get('/podium', async (req, res) => {
+  const result = await db.query('SELECT COUNT(event_id), device_id FROM public.events GROUP BY device_id ')
+  res.json(result)
+})
+
 // Get device by id
 router.get('/:id', async (req, res) => {
   const result = await db.query(`
@@ -45,6 +50,7 @@ router.get('/user/:userId', async (req, res) => {
 
 // Create device
 router.post('/', async (req, res) => {
+
   const { id, alias, patientId, active, lastSeenAt } = req.body;
 
   if (!id) {
@@ -72,10 +78,5 @@ const handleHeartbeat = async (req: any, res: any) => {
 
 router.put('/heartbeat', handleHeartbeat)
 router.post('/heartbeat', handleHeartbeat)
-
-router.get('/podium', async (req, res) => {
-  const result = db.query('SELECT COUNT(event_id), device_id FROM public.events GROUP BY device_id ')
-  res.json(result)
-})
 
 export const devicesRoutes = router;
