@@ -1,63 +1,45 @@
-<<<<<<< HEAD
-# Mobile (Android)
-
-Expo + TypeScript app that mirrors the web UI for devices and fall events.
-
-## Run
-
-1. Ensure the backend is running.
-2. In `mobile`, copy `.env.example` to `.env` and set `API_BASE_URL`.
-3. Install deps: `npm install`
-4. Start Android: `npm run android`
-5. Login with an existing backend user (email/password)
-
-Notes
-
-1. Android emulator uses `http://10.0.2.2:3000/api` to reach the host machine.
-2. Physical devices must use your host LAN IP, for example `http://192.168.1.10:3000/api`.
-3. iOS requires HTTPS in production. For local development, use Expo Go or provide a local HTTPS tunnel.
-=======
 # Mobile (Expo + React Native)
 
-Aplicacion movil del proyecto de deteccion de caidas.  
-Esta app replica las funcionalidades principales del frontend web para:
-
-- autenticacion de usuarios
-- listado y detalle de dispositivos
-- listado y detalle de eventos
-- alertas y gestion basica de usuarios (segun rol)
+Aplicacion movil del sistema de deteccion de caidas.
 
 ## Requisitos
 
 - Node.js 18+
 - npm
-- Backend corriendo y accesible por red
+- Backend accesible por red
 - Android Studio (emulador) o dispositivo fisico con Expo Go
 
 ## Configuracion
 
-1. Entra a la carpeta `mobile`.
-2. Copia el ejemplo de entorno:
+1. Entra a `mobile`.
+2. Crea `.env` (si no existe).
+3. Define la URL base del backend:
 
-```bash
-cp .env.example .env
+```env
+EXPO_PUBLIC_API_BASE_URL=http://<IP_O_HOST>:3000/api
+API_BASE_URL=http://<IP_O_HOST>:3000/api
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=<google-web-client-id>
+EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=<google-android-client-id>
+EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=<google-ios-client-id>
 ```
 
-En PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-3. Define `API_BASE_URL` en `.env`.
-
-Ejemplos:
+Ejemplos de `API_BASE_URL`:
 
 - Emulador Android: `http://10.0.2.2:3000/api`
-- Dispositivo fisico: `http://<IP_DE_TU_PC>:3000/api`
-- iOS Simulator: `http://localhost:3000/api`
+- Dispositivo fisico: `http://<IP_LAN_DE_TU_PC>:3000/api`
 
-La app toma la URL desde `API_BASE_URL` en `app.config.ts` y `src/config/env.ts`.
+### Variables de entorno
+
+- `EXPO_PUBLIC_API_BASE_URL`: base de API usada en runtime Expo.
+- `API_BASE_URL`: fallback interno para cliente API.
+- `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`: cliente OAuth para web.
+- `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`: cliente OAuth Android.
+- `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`: cliente OAuth iOS.
+
+Notas:
+
+- Si Google devuelve `Invalid request 400`, normalmente hay mismatch entre Client ID y plataforma.
+- Si la app no carga datos, casi siempre es URL de backend inaccesible desde movil/emulador.
 
 ## Instalacion y ejecucion
 
@@ -68,58 +50,93 @@ npm run start
 
 Comandos utiles:
 
-- `npm run android`: abre en Android
-- `npm run ios`: abre en iOS
-- `npm run web`: abre version web de Expo
+- `npm run android`
+- `npm run ios`
+- `npm run web`
 
-## Flujo de uso rapido
-
-1. Levanta backend en `http://localhost:3000`.
-2. Levanta la app mobile.
-3. Inicia sesion con un usuario existente del backend.
-4. Navega por tabs: usuarios (si eres admin), dispositivos y eventos.
-
-## Estructura principal
-
-- `src/api`: cliente HTTP, endpoints y mapeos
-- `src/auth`: contexto de autenticacion y persistencia de sesion
-- `src/navigation`: navegacion stack + tabs
-- `src/screens`: pantallas funcionales
-- `src/components`: componentes reutilizables de UI
-- `src/theme`: tokens de diseno y estilos base
-
-## Endpoints que consume la app
-
-- `POST /api/auth/login`
-- `POST /api/auth/google`
-- `POST /api/auth/logout`
-- `GET /api/devices`
-- `GET /api/devices/:id`
-- `GET /api/events`
-- `GET /api/events/:id`
-- `GET /api/events/device/:deviceId`
-- `GET /api/users`
-- `GET /api/users/:id`
-- `POST /api/users`
-- `PUT /api/users/:id`
-- `PATCH /api/users/:id/deactivate`
-- `GET /api/health`
-
-## Problemas comunes
-
-- No carga datos:
-  revisa que `API_BASE_URL` apunte a una URL accesible desde el movil/emulador.
-- En dispositivo fisico no conecta a `localhost`:
-  usa la IP LAN de tu PC.
-- Cambiaste `.env` y no se refleja:
-  reinicia Expo con cache limpia:
+Si cambias `.env`, reinicia Expo con cache limpia:
 
 ```bash
 npx expo start -c
 ```
 
-## Notas
+## Flujo funcional
 
-- La sesion se guarda con `expo-secure-store`.
-- El token se envia como `Authorization: Bearer <token>` en peticiones autenticadas.
->>>>>>> origin/develop
+- Login email/password: `POST /api/auth/login`.
+- Login Google: `POST /api/auth/google-login` con `id_token`.
+- Registro desde app: `POST /api/users` (role `MEMBER`) y login posterior.
+- Logout: `POST /api/auth/logout` y limpieza de sesion local.
+
+## Endpoints consumidos por la app
+
+Auth:
+
+- `POST /api/auth/login`
+- `POST /api/auth/google-login`
+- `POST /api/auth/logout`
+
+Devices:
+
+- `GET /api/devices`
+- `GET /api/devices/:id`
+
+Events:
+
+- `GET /api/events`
+- `GET /api/events/:id`
+- `GET /api/events/device/:deviceId`
+
+Users:
+
+- `GET /api/users`
+- `GET /api/users/:id`
+- `POST /api/users`
+- `PUT /api/users/:id`
+- `PATCH /api/users/:id/deactivate`
+
+Health:
+
+- `GET /api/health`
+
+## Roles y permisos esperados
+
+- `ADMIN`: gestion completa de usuarios, dispositivos y eventos.
+- `MEMBER`: acceso acotado a sus recursos asignados.
+
+Si un `MEMBER` ve datos globales, el problema suele estar en backend (filtro por rol/acceso), no en el cliente.
+
+## Notas funcionales
+
+- La sesion se guarda en `expo-secure-store`.
+- Las peticiones autenticadas envian `Authorization: Bearer <token>`.
+- Login con Google usa `id_token` y endpoint `/api/auth/google-login`.
+- El flujo "registro" de la app usa `POST /api/users`; su disponibilidad depende de la politica del backend (por ejemplo, si exige rol `ADMIN`).
+
+## Problemas comunes
+
+- No conecta desde movil fisico:
+  usar IP LAN del PC, no `localhost`.
+- Cambios de `.env` no aplican:
+  reiniciar con `npx expo start -c`.
+- API responde `401`:
+  token vencido/no guardado o backend sin `JWT_SECRET` valido.
+- Google login falla:
+  revisar Client IDs por plataforma y configuracion OAuth en Google Cloud.
+
+## Checklist rapido de pruebas
+
+1. Login normal y login Google.
+2. Persistencia de sesion tras reiniciar app.
+3. Listado y detalle de dispositivos.
+4. Listado y detalle de eventos.
+5. Restricciones de rol (`ADMIN` vs `MEMBER`).
+6. Logout y acceso bloqueado despues de cerrar sesion.
+
+## Estructura principal
+
+- `src/api`: cliente HTTP, endpoints y mapeos
+- `src/auth`: contexto y persistencia de sesion
+- `src/navigation`: stack y tabs
+- `src/screens`: pantallas
+- `src/components`: componentes reutilizables
+- `src/theme`: tokens visuales
