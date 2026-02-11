@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '../config/env';
+
+const JWT_SECRET = getJwtSecret();
 
 // Extender el tipo Request para incluir user
 declare global {
@@ -29,8 +32,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   }
 
   try {
-    const jwtSecret = process.env.JWT_SECRET || 'dev-secret-change-me';
-    const decoded = jwt.verify(token, jwtSecret);
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded as any;
     console.log('🔑 [AUTH] Token decodificado:', { sub: req.user?.sub, role: req.user?.role, email: req.user?.email });
     next();

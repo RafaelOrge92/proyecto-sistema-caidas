@@ -3,10 +3,12 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import { randomBytes } from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { db } from '../config/db';
+import { getJwtSecret } from '../config/env';
 import { hashPassword, isBcryptHash, verifyPassword } from '../utils/password';
 
 const router = Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '');
+const JWT_SECRET = getJwtSecret() as jwt.Secret;
 
 // Login
 router.post('/login', async (req, res) => {
@@ -48,7 +50,6 @@ router.post('/login', async (req, res) => {
       }
     }
 
-    const jwtSecret = (process.env.JWT_SECRET || 'dev-secret-change-me') as jwt.Secret;
     const jwtExpire: SignOptions['expiresIn'] = (process.env.JWT_EXPIRE || '7d') as SignOptions['expiresIn'];
 
     const token = jwt.sign(
@@ -58,7 +59,7 @@ router.post('/login', async (req, res) => {
         role: user.role,
         fullName: user.full_name
       },
-      jwtSecret,
+      JWT_SECRET,
       { expiresIn: jwtExpire }
     );
 
@@ -125,7 +126,6 @@ router.post('/google-login', async (req, res) => {
       user = users[0];
     }
 
-    const jwtSecret = (process.env.JWT_SECRET || 'dev-secret-change-me') as jwt.Secret;
     const jwtExpire: SignOptions['expiresIn'] = (process.env.JWT_EXPIRE || '7d') as SignOptions['expiresIn'];
 
     const jwtToken = jwt.sign(
@@ -135,7 +135,7 @@ router.post('/google-login', async (req, res) => {
         role: user.role,
         fullName: user.full_name
       },
-      jwtSecret,
+      JWT_SECRET,
       { expiresIn: jwtExpire }
     );
 

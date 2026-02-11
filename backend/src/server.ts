@@ -7,9 +7,11 @@ import { usersRoutes } from './routes/users';
 import { devicesRoutes } from './routes/devices';
 import { eventsRoutes } from './routes/events';
 import { db } from './config/db';
+import { getJwtSecret } from './config/env';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = getJwtSecret();
 
 // Middlewares
 app.use(express.json());
@@ -23,8 +25,7 @@ app.use((req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (token) {
     try {
-      const jwtSecret = process.env.JWT_SECRET || 'dev-secret-change-me';
-      const decoded = jwt.verify(token, jwtSecret);
+      const decoded = jwt.verify(token, JWT_SECRET);
       (req as any).user = decoded;
     } catch {
       (req as any).user = null;
