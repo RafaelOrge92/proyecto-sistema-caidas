@@ -16,6 +16,19 @@ interface Sample {
 const isMissingColumnError = (error: any, column: string) =>
   error?.code === '42703' && String(error?.message || '').includes(column);
 
+const EVENTS_SELECT = `
+  SELECT
+    e.*,
+    d.alias AS device_alias,
+    p.patient_id AS patient_id,
+    CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name,
+    a.full_name AS reviewed_by_name
+  FROM public.events e
+  LEFT JOIN public.devices d ON d.device_id = e.device_id
+  LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+  LEFT JOIN public.accounts a ON a.account_id = e.reviewed_by
+`
+
 /**
  * Verifica si un usuario tiene acceso a un dispositivo
  */
@@ -30,7 +43,8 @@ const userHasDeviceAccess = async (userId: string, deviceId: string): Promise<bo
 
 // Get all events
 router.get('/', authenticateToken, requireAdmin, async (req, res) => {
-  const result = await db.query('SELECT * FROM public.events')
+  const result = await db.query(`${EVENTS_SELECT}
+    ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST`)
   res.json(result)
 });
 
@@ -45,7 +59,12 @@ router.get('/device/:deviceId', authenticateToken, async (req, res) => {
     }
   }
 
-  const result = await db.query(`SELECT * FROM public.events WHERE device_id = $1`, [deviceId])
+  const result = await db.query(
+    `${EVENTS_SELECT}
+     WHERE e.device_id = $1
+     ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST`,
+    [deviceId]
+  )
   res.json(result);
 });
 
@@ -55,7 +74,8 @@ router.get('/:id', authenticateToken, async (req, res) => {
   const id = req.params.id as string;
   try {
     const result = await db.query(
-      'SELECT * FROM public.events WHERE event_id::text = $1 OR event_uid::text = $1',
+      `${EVENTS_SELECT}
+       WHERE e.event_id::text = $1 OR e.event_uid::text = $1`,
       [id]
     )
     
@@ -72,7 +92,8 @@ router.get('/:id', authenticateToken, async (req, res) => {
   } catch (error: any) {
     if (error?.code === '42703' && String(error?.message || '').includes('event_id')) {
       const fallback = await db.query(
-        'SELECT * FROM public.events WHERE id::text = $1 OR event_uid::text = $1',
+        `${EVENTS_SELECT}
+         WHERE e.id::text = $1 OR e.event_uid::text = $1`,
         [id]
       )
       
@@ -93,22 +114,46 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 router.put('/update', authenticateToken, requireAdmin, async (req, res) => {
-  const {id, status} = req.body
+  const id = req.body?.id as string | undefined
+  const status = req.body?.status as string | undefined
+  const reviewedBy = (req.body?.reviewedBy ?? req.body?.reviewed_by ?? req.user?.sub ?? null) as string | null
+  const reviewedAt = (req.body?.reviewedAt ?? req.body?.reviewed_at ?? new Date().toISOString()) as string | null
+  const rawReviewComment = req.body?.review_comment ?? req.body?.reviewComment ?? null
+  const reviewComment =
+    typeof rawReviewComment === 'string'
+      ? (rawReviewComment.trim().slice(0, 255) || null)
+      : rawReviewComment
+
   if (!id || !status) {
-    return res.status(400).json({error: 'id y status son requeridos'})
+    return res.status(400).json({ error: 'id y status son requeridos' })
   }
 
-  try{
+  try {
     const result = await db.query(
-      `UPDATE public.events SET status = $1 WHERE event_id::text = $2 OR event_uid::text = $2 RETURNING *`,
-      [status, id]
+      `UPDATE public.events
+       SET status = $1,
+           reviewed_by = COALESCE($2::uuid, reviewed_by),
+           reviewed_at = COALESCE($3::timestamptz, reviewed_at, now()),
+           review_comment = $4
+       WHERE event_id::text = $5 OR event_uid::text = $5
+       RETURNING *`,
+      [status, reviewedBy, reviewedAt, reviewComment, id]
     )
     res.json(result)
   } catch (error: any) {
+    if (error?.code === '22P02') {
+      return res.status(400).json({ error: 'status o reviewedBy inválido' })
+    }
     if (isMissingColumnError(error, 'event_id')) {
       const fallback = await db.query(
-        `UPDATE public.events SET status = $1 WHERE id::text = $2 OR event_uid::text = $2 RETURNING *`,
-        [status, id]
+        `UPDATE public.events
+         SET status = $1,
+             reviewed_by = COALESCE($2::uuid, reviewed_by),
+             reviewed_at = COALESCE($3::timestamptz, reviewed_at, now()),
+             review_comment = $4
+         WHERE id::text = $5 OR event_uid::text = $5
+         RETURNING *`,
+        [status, reviewedBy, reviewedAt, reviewComment, id]
       )
       return res.json(fallback)
     }

@@ -14,6 +14,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+const mapEvent = (e: any): FallEvent => ({
+  id: e.event_id || e.id || e.event_uid,
+  deviceId: e.device_id,
+  deviceAlias: e.device_alias || undefined,
+  patientName: e.patient_full_name || e.patient_name || undefined,
+  eventType: e.event_type,
+  status: e.status,
+  occurredAt: e.occurred_at,
+  reviewedBy: e.reviewed_by_name || e.reviewed_by,
+  reviewedAt: e.reviewed_at,
+  reviewComment: e.review_comment,
+  createdAt: e.created_at
+});
+
 export const AdminService = {
   // --- USUARIOS ---
   getUsers: async () => {
@@ -147,50 +161,20 @@ export const AdminService = {
   // --- EVENTOS ---
   getEvents: async () => {
     const response = await api.get<any[]>('/events');
-    const data = response.data.map((e: any) => ({
-      id: e.event_id,
-      deviceId: e.device_id,
-      eventType: e.event_type,
-      status: e.status,
-      occurredAt: e.occurred_at,
-      reviewedBy: e.reviewed_by,
-      reviewedAt: e.reviewed_at,
-      reviewComment: e.review_comment,
-      createdAt: e.created_at
-    })) as FallEvent[];
+    const data = response.data.map(mapEvent) as FallEvent[];
     return { data };
   },
   
   getEventById: async (id: string) => {
     const response = await api.get<any>(`/events/${id}`);
     const e = response.data[0]; // Backend retorna array
-    const data = {
-      id: e.event_id,
-      deviceId: e.device_id,
-      eventType: e.event_type,
-      status: e.status,
-      occurredAt: e.occurred_at,
-      reviewedBy: e.reviewed_by,
-      reviewedAt: e.reviewed_at,
-      reviewComment: e.review_comment,
-      createdAt: e.created_at
-    } as FallEvent;
+    const data = mapEvent(e) as FallEvent;
     return { data };
   },
 
   getEventsByDevice: async (deviceId: string) => {
     const response = await api.get<any[]>(`/events/device/${deviceId}`);
-    const data = response.data.map((e: any) => ({
-      id: e.event_id,
-      deviceId: e.device_id,
-      eventType: e.event_type,
-      status: e.status,
-      occurredAt: e.occurred_at,
-      reviewedBy: e.reviewed_by,
-      reviewedAt: e.reviewed_at,
-      reviewComment: e.review_comment,
-      createdAt: e.created_at
-    })) as FallEvent[];
+    const data = response.data.map(mapEvent) as FallEvent[];
     return { data };
   },
   
