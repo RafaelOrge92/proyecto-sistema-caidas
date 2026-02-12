@@ -7,6 +7,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { UsersPage } from './pages/UsersPage';
 import { DevicePage } from './pages/DevicePage';
 import { EventsPage } from './pages/EventsPage';
+import { PatientsPage } from './pages/PatientsPage';
 import { UserDashboard } from './pages/UserDashboard';
 import { Dashboard } from './pages/Dashboard';
 import Admin from './pages/Admin';
@@ -89,6 +90,12 @@ const AppContent = () => {
         <Route path="/admin/events" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <EventsPage />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/patients" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <PatientsPage />
           </ProtectedRoute>
         } />
 

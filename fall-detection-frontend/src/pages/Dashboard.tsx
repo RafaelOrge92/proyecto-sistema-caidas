@@ -79,7 +79,7 @@ export const Dashboard: React.FC = () => {
     try {
       await AdminService.updateEvent(eventId, {
         status: 'FALSE_ALARM',
-        reviewedBy: user?.email || 'admin'
+        reviewedBy: user?.id || localStorage.getItem('userId') || undefined
       });
       setIsAlertActive(false);
       await loadData();
@@ -93,7 +93,7 @@ export const Dashboard: React.FC = () => {
     try {
       await AdminService.updateEvent(eventId, {
         status: 'CONFIRMED_FALL',
-        reviewedBy: user?.email || 'admin',
+        reviewedBy: user?.id || localStorage.getItem('userId') || undefined,
         reviewComment: 'Caída confirmada por admin'
       });
       await loadData();

@@ -43,3 +43,13 @@ export interface FallEvent {
     z: number;
   };
 }
+
+export interface AssignedPatient {
+  patientId: string;
+  patientName: string;
+  accessTypes: string[];
+  devices: Array<{
+    id: string;
+    alias?: string;
+  }>;
+}

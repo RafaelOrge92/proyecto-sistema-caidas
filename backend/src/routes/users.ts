@@ -40,6 +40,39 @@ router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
+// Get patients assigned to a user via device_access -> devices -> patients
+router.get('/:id/patients', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id as string;
+    const database = db;
+
+    const rows = await database.query(
+      `SELECT
+         p.patient_id AS "patientId",
+         CONCAT(p.first_name, ' ', p.last_name) AS "patientName",
+         ARRAY_AGG(DISTINCT da.access_type::text) AS "accessTypes",
+         JSONB_AGG(
+           DISTINCT JSONB_BUILD_OBJECT(
+             'id', d.device_id,
+             'alias', d.alias
+           )
+         ) AS devices
+       FROM public.device_access da
+       JOIN public.devices d ON d.device_id = da.device_id
+       JOIN public.patients p ON p.patient_id = d.patient_id
+       WHERE da.account_id = $1
+       GROUP BY p.patient_id, p.first_name, p.last_name
+       ORDER BY "patientName" ASC`,
+      [id]
+    );
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching user patients:', error);
+    res.status(500).json({ error: 'Error al obtener pacientes asignados al usuario' });
+  }
+});
+
 // Create user
 router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   const { email, fullName, phone, role, password } = req.body;
