@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { AdminService } from '../services/adminService';
 import { User } from '../types';
-import { Search, UserPlus, MoreHorizontal, ShieldCheck, Edit2, Trash2, AlertCircle } from 'lucide-react';
+import { Search, UserPlus, MoreHorizontal, ShieldCheck, Edit2, Trash2, AlertCircle, Filter, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
 import { UserModal } from '../components/UserModal';
 
 export const UsersPage: React.FC = () => {
@@ -13,6 +13,13 @@ export const UsersPage: React.FC = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Estados para filtros, ordenamiento y paginación
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('ALL');
+  const [sortBy, setSortBy] = useState('name_asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   useEffect(() => { loadUsers(); }, []);
 
@@ -55,6 +62,34 @@ export const UsersPage: React.FC = () => {
     }
   };
 
+  // Lógica de filtrado y ordenamiento
+  const filteredAndSortedUsers = users
+    .filter(user => {
+      const matchesSearch = 
+        user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesRole = roleFilter === 'ALL' || user.role === roleFilter;
+      return matchesSearch && matchesRole;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name_asc') return a.fullName.localeCompare(b.fullName);
+      if (sortBy === 'name_desc') return b.fullName.localeCompare(a.fullName);
+      if (sortBy === 'email_asc') return a.email.localeCompare(b.email);
+      if (sortBy === 'email_desc') return b.email.localeCompare(a.email);
+      return 0;
+    });
+
+  const totalPages = Math.max(1, Math.ceil(filteredAndSortedUsers.length / itemsPerPage));
+  const paginatedUsers = filteredAndSortedUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, roleFilter]);
+
   return (
     <div className="p-8 max-w-7xl mx-auto reveal">
       {/* Header Estilo Apple */}
@@ -71,19 +106,54 @@ export const UsersPage: React.FC = () => {
         </button>
       </header>
 
-      {/* Barra de Búsqueda Minimalista */}
-      <div className="relative mb-8">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
-        <input 
-          type="text" 
-          placeholder="Buscar por nombre o email..." 
-          className="w-full bg-[var(--color-bg-secondary)] border-none rounded-2xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-[var(--color-primary)] transition-all outline-none text-lg"
-        />
+      {/* Barra de Controles */}
+      <div className="flex flex-col lg:flex-row gap-4 mb-8">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
+          <input 
+            type="text" 
+            placeholder="Buscar por nombre o email..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-[var(--color-bg-secondary)] border-none rounded-2xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-[var(--color-primary)] transition-all outline-none text-lg text-white"
+          />
+        </div>
+        
+        <div className="flex gap-4">
+          <div className="relative min-w-[200px]">
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
+            <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="w-full bg-[var(--color-bg-secondary)] appearance-none rounded-2xl py-4 pl-12 pr-10 outline-none text-white cursor-pointer focus:ring-2 focus:ring-[var(--color-primary)]"
+            >
+                <option value="ALL">Todos los Roles</option>
+                <option value="ADMIN">Administrador</option>
+                <option value="USER">Usuario</option>
+                <option value="DOCTOR">Doctor</option>
+                <option value="FAMILY">Familiar</option>
+            </select>
+          </div>
+
+          <div className="relative min-w-[200px]">
+            <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
+            <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full bg-[var(--color-bg-secondary)] appearance-none rounded-2xl py-4 pl-12 pr-10 outline-none text-white cursor-pointer focus:ring-2 focus:ring-[var(--color-primary)]"
+            >
+                <option value="name_asc">Nombre A-Z</option>
+                <option value="name_desc">Nombre Z-A</option>
+                <option value="email_asc">Email A-Z</option>
+                <option value="email_desc">Email Z-A</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Grid de Usuarios */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {users.map(user => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {paginatedUsers.map(user => (
           <div key={user.id} className="glass-panel p-6 hover:scale-[1.02] transition-transform cursor-pointer group relative">
             <div className="flex justify-between items-start mb-4">
               <div className="w-12 h-12 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-full flex items-center justify-center font-bold text-xl">
@@ -131,6 +201,30 @@ export const UsersPage: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Paginación */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-8 pb-8">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="p-2 rounded-full bg-[var(--color-bg-secondary)] text-white disabled:opacity-50 hover:bg-white/10 transition-colors"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <span className="text-[var(--color-text-secondary)]">
+            Página {currentPage} de {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="p-2 rounded-full bg-[var(--color-bg-secondary)] text-white disabled:opacity-50 hover:bg-white/10 transition-colors"
+          >
+            <ChevronRight size={24} />
+          </button>
+        </div>
+      )
+      }
 
       <UserModal
         isOpen={isModalOpen}
