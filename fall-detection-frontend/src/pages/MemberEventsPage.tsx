@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AdminService } from '../services/adminService';
 import { EventSample, FallEvent, PaginationMeta } from '../types';
-import { Calendar, HardDrive, UserCheck, Activity, Search, AlertTriangle, X } from 'lucide-react';
+import { Calendar, HardDrive, UserCheck, Activity, Search, AlertTriangle, X, MessageSquare } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
+
+type ReviewStatus = 'OPEN' | 'CONFIRMED_FALL' | 'FALSE_ALARM' | 'RESOLVED';
 
 export const MemberEventsPage: React.FC = () => {
   const [events, setEvents] = useState<FallEvent[]>([]);
@@ -19,6 +21,9 @@ export const MemberEventsPage: React.FC = () => {
   const [modalLoading, setModalLoading] = useState(false);
   const [samplesLoading, setSamplesLoading] = useState(false);
   const [samplesError, setSamplesError] = useState<string | null>(null);
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus>('OPEN');
+  const [reviewComment, setReviewComment] = useState('');
+  const [savingReview, setSavingReview] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [pagination, setPagination] = useState<PaginationMeta>({
@@ -30,25 +35,32 @@ export const MemberEventsPage: React.FC = () => {
     hasPrevPage: false
   });
 
-  useEffect(() => {
-    const loadEvents = async () => {
-      try {
-        const response = await AdminService.getEvents({ page, pageSize });
-        setEvents(response.data);
-        setPagination(response.pagination);
-        if (response.pagination.page !== page) {
-          setPage(response.pagination.page);
-        }
-        setError(null);
-      } catch (loadError) {
-        console.error('Error cargando eventos de miembro', loadError);
-        setError('No se pudieron cargar los eventos.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const normalizeReviewStatus = (status?: string | null): ReviewStatus => {
+    if (status === 'CONFIRMED_FALL' || status === 'FALSE_ALARM' || status === 'RESOLVED') {
+      return status;
+    }
+    return 'OPEN';
+  };
 
-    loadEvents();
+  const loadEvents = async () => {
+    try {
+      const response = await AdminService.getEvents({ page, pageSize });
+      setEvents(response.data);
+      setPagination(response.pagination);
+      if (response.pagination.page !== page) {
+        setPage(response.pagination.page);
+      }
+      setError(null);
+    } catch (loadError) {
+      console.error('Error cargando eventos de miembro', loadError);
+      setError('No se pudieron cargar los eventos.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadEvents();
   }, [page, pageSize]);
 
   const patientOptions = useMemo(
@@ -102,12 +114,16 @@ export const MemberEventsPage: React.FC = () => {
       ]);
       setSelectedEvent(detailRes.data);
       setSelectedEventSamples(samplesRes.data);
+      setReviewStatus(normalizeReviewStatus(detailRes.data.status));
+      setReviewComment(detailRes.data.reviewComment || '');
     } catch (loadError) {
       console.error('Error cargando detalle o muestras del evento', loadError);
       setSamplesError('No se pudieron cargar las muestras del evento.');
       try {
         const detailRes = await AdminService.getEventById(event.id);
         setSelectedEvent(detailRes.data);
+        setReviewStatus(normalizeReviewStatus(detailRes.data.status));
+        setReviewComment(detailRes.data.reviewComment || '');
       } catch {
         // no-op, dejamos el evento base ya seleccionado
       }
@@ -123,6 +139,29 @@ export const MemberEventsPage: React.FC = () => {
     setSamplesError(null);
     setSamplesLoading(false);
     setModalLoading(false);
+    setReviewStatus('OPEN');
+    setReviewComment('');
+    setSavingReview(false);
+  };
+
+  const handleSaveReview = async () => {
+    if (!selectedEvent) return;
+
+    setSavingReview(true);
+    try {
+      await AdminService.updateEvent(selectedEvent.id, {
+        status: reviewStatus,
+        reviewComment: reviewComment.trim() || null
+      });
+
+      await loadEvents();
+      await openEventDetails(selectedEvent);
+    } catch (saveError) {
+      console.error('Error guardando revision en eventos miembro:', saveError);
+      alert('No se pudo guardar la revision del evento.');
+    } finally {
+      setSavingReview(false);
+    }
   };
 
   const sampleChartData = useMemo(
@@ -445,6 +484,57 @@ export const MemberEventsPage: React.FC = () => {
                   ) : (
                     <p className="text-sm text-[#94A3B8]">Este evento no tiene muestras de aceleracion guardadas.</p>
                   )}
+                </div>
+
+                <div className="mt-6 border-t border-white/10 pt-6 space-y-4">
+                  <h4 className="text-xl font-bold text-white">Revision del evento</h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-[#94A3B8] mb-2 block">Estado</label>
+                      <select
+                        value={reviewStatus}
+                        onChange={(e) => setReviewStatus(e.target.value as ReviewStatus)}
+                        className="w-full bg-[#1A1F26] border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="OPEN">OPEN</option>
+                        <option value="CONFIRMED_FALL">CONFIRMED_FALL</option>
+                        <option value="FALSE_ALARM">FALSE_ALARM</option>
+                        <option value="RESOLVED">RESOLVED</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-sm text-[#94A3B8] mb-2 block">Estado actual guardado</label>
+                      <span className={`inline-block px-4 py-2 rounded-full text-xs font-bold border ${getStatusBadge(selectedEvent.status || '')}`}>
+                        {selectedEvent.status || '-'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-[#94A3B8] mb-2 block flex items-center gap-2">
+                      <MessageSquare size={14} />
+                      Comentario de revision
+                    </label>
+                    <textarea
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      maxLength={255}
+                      rows={4}
+                      placeholder="Anade observaciones de la revision..."
+                      className="w-full bg-[#1A1F26] border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                    />
+                    <p className="text-xs text-[#64748B] mt-1">{reviewComment.length}/255</p>
+                  </div>
+
+                  <button
+                    onClick={handleSaveReview}
+                    disabled={savingReview}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all"
+                  >
+                    {savingReview ? 'Guardando revision...' : 'Guardar revision'}
+                  </button>
                 </div>
 
                 <button

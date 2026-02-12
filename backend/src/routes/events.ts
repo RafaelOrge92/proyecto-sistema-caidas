@@ -257,6 +257,7 @@ router.get('/device/:deviceId', authenticateToken, async (req, res) => {
 
   const result = await db.query(
     `${EVENTS_SELECT_FIELDS}
+     ${EVENTS_BASE_FROM}
      WHERE e.device_id = $1
      ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST`,
     [deviceId]
@@ -299,6 +300,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const result = await db.query(
       `${EVENTS_SELECT_FIELDS}
+       ${EVENTS_BASE_FROM}
        WHERE e.event_id::text = $1 OR e.event_uid::text = $1`,
       [id]
     )
@@ -317,6 +319,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
     if (error?.code === '42703' && String(error?.message || '').includes('event_id')) {
       const fallback = await db.query(
         `${EVENTS_SELECT_FIELDS}
+         ${EVENTS_BASE_FROM}
          WHERE e.id::text = $1 OR e.event_uid::text = $1`,
         [id]
       )
