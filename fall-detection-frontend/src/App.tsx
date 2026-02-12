@@ -9,6 +9,7 @@ import { DevicePage } from './pages/DevicePage';
 import { EventsPage } from './pages/EventsPage';
 import { PatientsPage } from './pages/PatientsPage';
 import { UserDashboard } from './pages/UserDashboard';
+import { MemberEventsPage } from './pages/MemberEventsPage';
 import { Dashboard } from './pages/Dashboard';
 import Admin from './pages/Admin';
 import { Navbar } from './components/Navbar';
@@ -103,6 +104,12 @@ const AppContent = () => {
         <Route path="/my-protection" element={
           <ProtectedRoute allowedRoles={['MEMBER', 'USUARIO', 'CUIDADOR']}>
             <UserDashboard />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/member/events" element={
+          <ProtectedRoute allowedRoles={['MEMBER', 'USUARIO', 'CUIDADOR']}>
+            <MemberEventsPage />
           </ProtectedRoute>
         } />
 

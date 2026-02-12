@@ -23,6 +23,14 @@ export interface Device {
   assignedUserName?: string | null;
 }
 
+export interface EventSample {
+  seq: number;
+  tMs: number;
+  accX: number;
+  accY: number;
+  accZ: number;
+}
+
 export interface FallEvent {
   id: string;
   deviceId: string;
@@ -42,6 +50,7 @@ export interface FallEvent {
     y: number;
     z: number;
   };
+  samples?: EventSample[];
 }
 
 export interface AssignedPatient {

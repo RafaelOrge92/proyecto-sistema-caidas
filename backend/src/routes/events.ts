@@ -1,6 +1,6 @@
 import express, { Router, Request, Response } from 'express';
 import { db } from '../config/db';
-import { authenticateToken, requireAdmin } from '../middleware/auth';
+import { authenticateToken } from '../middleware/auth';
 import { authenticateDevice } from '../middleware/deviceAuth';
 import { sendDiscordEventNotification } from '../utils/discordWebhook';
 
@@ -118,12 +118,77 @@ const getEventSummaryByIdentifier = async (eventIdOrUid: string) => {
   }
 }
 
+const getEventSamplesByEvent = async (eventId: string, eventUid?: string | null) => {
+  try {
+    const rows = await db.query(
+      `SELECT seq, t_ms, acc_x, acc_y, acc_z
+       FROM public.event_samples
+       WHERE event_id::text = $1
+       ORDER BY seq ASC`,
+      [eventId]
+    )
+    return rows.map((row: any) => ({
+      seq: Number(row.seq),
+      t_ms: Number(row.t_ms),
+      acc_x: Number(row.acc_x),
+      acc_y: Number(row.acc_y),
+      acc_z: Number(row.acc_z)
+    }))
+  } catch (error: any) {
+    if (!isMissingColumnError(error, 'event_id')) {
+      throw error
+    }
+
+    if (!eventUid) {
+      return []
+    }
+
+    try {
+      const fallback = await db.query(
+        `SELECT seq, t_ms, acc_x, acc_y, acc_z
+         FROM public.event_samples
+         WHERE event_uid::text = $1
+         ORDER BY seq ASC`,
+        [eventUid]
+      )
+      return fallback.map((row: any) => ({
+        seq: Number(row.seq),
+        t_ms: Number(row.t_ms),
+        acc_x: Number(row.acc_x),
+        acc_y: Number(row.acc_y),
+        acc_z: Number(row.acc_z)
+      }))
+    } catch (fallbackError: any) {
+      if (isMissingColumnError(fallbackError, 'event_uid')) {
+        return []
+      }
+      throw fallbackError
+    }
+  }
+}
+
 
 // Get all events
-router.get('/', authenticateToken, requireAdmin, async (req, res) => {
-  const result = await db.query(`${EVENTS_SELECT}
-    ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST`)
-  res.json(result)
+router.get('/', authenticateToken, async (req, res) => {
+  if (!req.user?.sub) {
+    return res.status(401).json({ error: 'Token requerido' })
+  }
+
+  if (req.user.role === 'ADMIN') {
+    const result = await db.query(`${EVENTS_SELECT}
+      ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST`)
+    return res.json(result)
+  }
+
+  const result = await db.query(
+    `${EVENTS_SELECT}
+     INNER JOIN public.device_access da
+       ON da.device_id = e.device_id
+     WHERE da.account_id = $1
+     ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST`,
+    [req.user.sub]
+  )
+  return res.json(result)
 });
 
 // Get events by device
@@ -145,6 +210,34 @@ router.get('/device/:deviceId', authenticateToken, async (req, res) => {
   )
   res.json(result);
 });
+
+
+router.get('/:id/samples', authenticateToken, async (req, res) => {
+  if (!req.user?.sub) {
+    return res.status(401).json({ error: 'Token requerido' })
+  }
+
+  const id = req.params.id as string
+  try {
+    const targetEvent = await getEventSummaryByIdentifier(id)
+    if (!targetEvent) {
+      return res.status(404).json({ error: 'Evento no encontrado' })
+    }
+
+    if (req.user?.role !== 'ADMIN') {
+      const hasAccess = await userHasDeviceAccess(req.user.sub, targetEvent.device_id)
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No tienes permiso para ver las muestras de este evento' })
+      }
+    }
+
+    const samples = await getEventSamplesByEvent(targetEvent.event_id, targetEvent.event_uid)
+    return res.json(samples)
+  } catch (error) {
+    console.error('Error fetching event samples:', error)
+    return res.status(500).json({ error: 'Error al obtener muestras del evento' })
+  }
+})
 
 
 // Get event by id
