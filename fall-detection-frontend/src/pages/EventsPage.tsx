@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { AdminService } from '../services/adminService';
 import { FallEvent } from '../types';
 import { Calendar, HardDrive, UserCheck, Activity, Search, AlertTriangle, X } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export const EventsPage: React.FC = () => {
     const [events, setEvents] = useState<FallEvent[]>([]);
@@ -41,16 +43,6 @@ export const EventsPage: React.FC = () => {
         }
     };
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'OPEN': return 'bg-red-500/10 text-red-400 border-red-500/20';
-            case 'CONFIRMED_FALL': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
-            case 'FALSE_ALARM': return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
-            case 'RESOLVED': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-            default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
-        }
-    };
-
     // Filtrar eventos según el término de búsqueda
     const filteredEvents = events.filter(event => {
         if (!searchTerm) return true;
@@ -63,6 +55,44 @@ export const EventsPage: React.FC = () => {
         );
     });
 
+    const exportToPDF = () => {
+        const doc = new jsPDF();
+        
+        doc.text("Historial de Eventos de Caídas", 14, 15);
+        doc.setFontSize(10);
+        doc.text(`Generado el: ${new Date().toLocaleString()}`, 14, 22);
+
+        const tableColumn = ["Fecha", "Dispositivo", "Tipo", "Estado", "Revisado Por", "Comentario"];
+        const tableRows = filteredEvents.map(event => [
+            event.occurredAt ? new Date(event.occurredAt).toLocaleString() : '-',
+            event.deviceId,
+            event.eventType,
+            event.status,
+            event.reviewedBy || 'Pendiente',
+            event.reviewComment || '-'
+        ]);
+
+        autoTable(doc, {
+            startY: 28,
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'grid',
+            headStyles: { fillColor: [79, 70, 229] }, // Indigo-600
+        });
+
+        doc.save(`eventos-caidas-${new Date().toISOString().split('T')[0]}.pdf`);
+    };
+
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'OPEN': return 'bg-red-500/10 text-red-400 border-red-500/20';
+            case 'CONFIRMED_FALL': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+            case 'FALSE_ALARM': return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+            case 'RESOLVED': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+            default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+        }
+    };
+
     return (
         <div className="p-8 max-w-7xl mx-auto reveal">
             {/* Header Estilo Apple */}
@@ -72,8 +102,12 @@ export const EventsPage: React.FC = () => {
                     <p className="text-xl text-[#94A3B8]">Registro detallado de todos los incidentes detectados.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="glass-panel px-6 py-3 rounded-full font-semibold text-white hover:bg-[#252B35] transition-all flex items-center gap-2">
-                        <Activity size={18} /> Exportar Log
+                    <button 
+                        onClick={exportToPDF}
+                        title="Descargar reporte en PDF"
+                        className="glass-panel px-6 py-3 rounded-full font-semibold text-white hover:scale-105 hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 flex items-center gap-2 group"
+                    >
+                        <Activity size={18} className="group-hover:animate-bounce" /> Exportar a PDF
                     </button>
                 </div>
             </header>
