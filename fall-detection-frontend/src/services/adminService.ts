@@ -1,6 +1,6 @@
 // src/services/adminService.ts
 import axios from 'axios';
-import { User, Device, FallEvent, AssignedPatient, PatientAssignedUser, EventSample } from '../types';
+import { User, Device, FallEvent, AssignedPatient, PatientAssignedUser, EventSample, PaginationMeta } from '../types';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -34,6 +34,15 @@ const mapEventSample = (sample: any): EventSample => ({
   accX: Number(sample.acc_x ?? sample.accX ?? 0),
   accY: Number(sample.acc_y ?? sample.accY ?? 0),
   accZ: Number(sample.acc_z ?? sample.accZ ?? 0)
+});
+
+const getDefaultPagination = (total: number): PaginationMeta => ({
+  page: 1,
+  pageSize: total > 0 ? total : 20,
+  total,
+  totalPages: total > 0 ? 1 : 0,
+  hasNextPage: false,
+  hasPrevPage: false
 });
 
 export const AdminService = {
@@ -191,10 +200,28 @@ export const AdminService = {
   // },
 
   // --- EVENTOS ---
-  getEvents: async () => {
-    const response = await api.get<any[]>('/events');
-    const data = response.data.map(mapEvent) as FallEvent[];
-    return { data };
+  getEvents: async (params?: { page?: number; pageSize?: number }) => {
+    const response = await api.get<any>('/events', { params });
+
+    if (Array.isArray(response.data)) {
+      const data = response.data.map(mapEvent) as FallEvent[];
+      return { data, pagination: getDefaultPagination(data.length) };
+    }
+
+    const rows = Array.isArray(response.data?.data) ? response.data.data : [];
+    const data = rows.map(mapEvent) as FallEvent[];
+    const paginationRaw = response.data?.pagination || {};
+    const fallbackPageSize = params?.pageSize ?? (data.length > 0 ? data.length : 20);
+    const pagination: PaginationMeta = {
+      page: Number(paginationRaw.page ?? 1),
+      pageSize: Number(paginationRaw.pageSize ?? fallbackPageSize),
+      total: Number(paginationRaw.total ?? data.length),
+      totalPages: Number(paginationRaw.totalPages ?? (data.length > 0 ? 1 : 0)),
+      hasNextPage: Boolean(paginationRaw.hasNextPage),
+      hasPrevPage: Boolean(paginationRaw.hasPrevPage)
+    };
+
+    return { data, pagination };
   },
   
   getEventById: async (id: string) => {
