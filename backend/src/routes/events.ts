@@ -2,6 +2,7 @@ import express, { Router, Request, Response } from 'express';
 import { db } from '../config/db';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { authenticateDevice } from '../middleware/deviceAuth';
+import { sendDiscordEventNotification } from '../utils/discordWebhook';
 
 const router = Router();
 
@@ -39,6 +40,46 @@ const userHasDeviceAccess = async (userId: string, deviceId: string): Promise<bo
   );
   return result[0]?.count > 0;
 };
+
+const isDuplicateEventUidError = (error: any): boolean =>
+  error?.code === '23505' && String(error?.constraint || '').includes('events_event_uid_key')
+
+const getEventSummaryByUid = async (eventUid: string) => {
+  try {
+    const rows = await db.query(
+      `SELECT
+         event_id::text as event_id,
+         event_uid::text as event_uid,
+         device_id,
+         event_type,
+         status,
+         occurred_at
+       FROM public.events
+       WHERE event_uid::text = $1
+       LIMIT 1`,
+      [eventUid]
+    )
+    return rows[0] || null
+  } catch (error: any) {
+    if (isMissingColumnError(error, 'event_id')) {
+      const fallback = await db.query(
+        `SELECT
+           id::text as event_id,
+           event_uid::text as event_uid,
+           device_id,
+           event_type,
+           status,
+           occurred_at
+         FROM public.events
+         WHERE event_uid::text = $1
+         LIMIT 1`,
+        [eventUid]
+      )
+      return fallback[0] || null
+    }
+    throw error
+  }
+}
 
 
 // Get all events
@@ -180,10 +221,34 @@ router.post('/ingest', authenticateDevice, async (req, res) => {
     return res.status(400).json({ error: 'deviceId del body no coincide con dispositivo autenticado' })
   }
 
-  const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, occurred_at) 
-    values($1, $2, $3, COALESCE($4::timestamptz, now()))`,
-  [eventUid, deviceId, eventType, eventOccurredAt])
-  res.status(201).json(result)
+  try {
+    const result = await db.query(
+      `INSERT INTO public.events (event_uid, device_id, event_type, occurred_at) 
+       VALUES($1, $2, $3, COALESCE($4::timestamptz, now()))
+       RETURNING event_id::text as event_id, event_uid::text as event_uid, status, occurred_at`,
+      [eventUid, deviceId, eventType, eventOccurredAt]
+    )
+
+    const createdEvent = result[0]
+    void sendDiscordEventNotification({
+      eventId: createdEvent?.event_id ?? null,
+      eventUid: createdEvent?.event_uid ?? eventUid,
+      deviceId,
+      eventType,
+      status: createdEvent?.status ?? 'OPEN',
+      occurredAt: createdEvent?.occurred_at ? new Date(createdEvent.occurred_at).toISOString() : eventOccurredAt,
+      source: 'INGEST'
+    })
+
+    return res.status(201).json(result)
+  } catch (error: any) {
+    if (isDuplicateEventUidError(error)) {
+      const existingEvent = await getEventSummaryByUid(String(eventUid))
+      return res.status(200).json(existingEvent ? [existingEvent] : [])
+    }
+    console.error('Error ingesting event:', error)
+    return res.status(500).json({ error: 'Error al guardar el evento' })
+  }
 })
 
 router.post('/samples', authenticateDevice, async (req, res) => {
@@ -287,10 +352,34 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'deviceId, eventType y eventUid son requeridos' })
   }
 
-  const result = await db.query(`INSERT INTO public.events (event_uid, device_id, event_type, status, occurred_at, reviewed_by, reviewed_at, review_comment)
-    values ($1, $2, $3, $4, COALESCE($5::timestamptz, now()), $6, $7, $8)`,
-  [eventUid, deviceId, eventType, status, eventOccurredAt, reviewedBy, reviewedAt, reviewComment])
-  res.status(201).json(result)
+  try {
+    const result = await db.query(
+      `INSERT INTO public.events (event_uid, device_id, event_type, status, occurred_at, reviewed_by, reviewed_at, review_comment)
+       VALUES ($1, $2, $3, $4, COALESCE($5::timestamptz, now()), $6, $7, $8)
+       RETURNING event_id::text as event_id, event_uid::text as event_uid, status, occurred_at`,
+      [eventUid, deviceId, eventType, status, eventOccurredAt, reviewedBy, reviewedAt, reviewComment]
+    )
+
+    const createdEvent = result[0]
+    void sendDiscordEventNotification({
+      eventId: createdEvent?.event_id ?? null,
+      eventUid: createdEvent?.event_uid ?? eventUid,
+      deviceId,
+      eventType,
+      status: createdEvent?.status ?? status,
+      occurredAt: createdEvent?.occurred_at ? new Date(createdEvent.occurred_at).toISOString() : eventOccurredAt,
+      source: 'API'
+    })
+
+    return res.status(201).json(result)
+  } catch (error: any) {
+    if (isDuplicateEventUidError(error)) {
+      const existingEvent = await getEventSummaryByUid(String(eventUid))
+      return res.status(200).json(existingEvent ? [existingEvent] : [])
+    }
+    console.error('Error creating event:', error)
+    return res.status(500).json({ error: 'Error al crear el evento' })
+  }
 });
 
 export const eventsRoutes = router;
