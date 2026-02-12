@@ -1,6 +1,6 @@
 // src/services/adminService.ts
 import axios from 'axios';
-import { User, Device, FallEvent, AssignedPatient } from '../types';
+import { User, Device, FallEvent, AssignedPatient, PatientAssignedUser, EventSample } from '../types';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -26,6 +26,14 @@ const mapEvent = (e: any): FallEvent => ({
   reviewedAt: e.reviewed_at,
   reviewComment: e.review_comment,
   createdAt: e.created_at
+});
+
+const mapEventSample = (sample: any): EventSample => ({
+  seq: Number(sample.seq ?? 0),
+  tMs: Number(sample.t_ms ?? sample.tMs ?? 0),
+  accX: Number(sample.acc_x ?? sample.accX ?? 0),
+  accY: Number(sample.acc_y ?? sample.accY ?? 0),
+  accZ: Number(sample.acc_z ?? sample.accZ ?? 0)
 });
 
 export const AdminService = {
@@ -72,6 +80,30 @@ export const AdminService = {
         : []
     })) as AssignedPatient[];
     return { data };
+  },
+
+  getAssignedUsersByPatient: async (patientId: string) => {
+    const response = await api.get<any[]>(`/patients/${patientId}/users`);
+    const data = response.data.map((row: any) => ({
+      accountId: row.accountId,
+      fullName: row.fullName,
+      email: row.email,
+      role: row.role,
+      accessTypes: Array.isArray(row.accessTypes) ? row.accessTypes : [],
+      devicesAssigned: Number(row.devicesAssigned || 0)
+    })) as PatientAssignedUser[];
+    return { data };
+  },
+
+  assignUserToPatient: async (patientId: string, accountId: string, accessType: 'OWNER' | 'MEMBER' = 'MEMBER') => {
+    return api.post(`/patients/${patientId}/users`, {
+      accountId,
+      accessType
+    });
+  },
+
+  removeUserFromPatient: async (patientId: string, accountId: string) => {
+    return api.delete(`/patients/${patientId}/users/${accountId}`);
   },
 
   // --- DISPOSITIVOS ---
@@ -169,6 +201,12 @@ export const AdminService = {
     const response = await api.get<any>(`/events/${id}`);
     const e = response.data[0]; // Backend retorna array
     const data = mapEvent(e) as FallEvent;
+    return { data };
+  },
+
+  getEventSamples: async (id: string) => {
+    const response = await api.get<any[]>(`/events/${id}/samples`);
+    const data = response.data.map(mapEventSample) as EventSample[];
     return { data };
   },
 
