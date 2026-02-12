@@ -55,15 +55,22 @@ Variables usadas por el backend:
 - `DB_DATABASE`
 - `DB_USER`
 - `DB_PASSWORD`
+- `FRONTEND_URL` (opcional, default `http://localhost:5173`)
 - `JWT_SECRET` (obligatoria)
 - `JWT_EXPIRE`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
+- `DISCORD_WEBHOOK_URL` (opcional, para notificaciones de eventos)
+- `DISCORD_WEBHOOK_TIMEOUT_MS` (opcional, default `5000`)
+- `DISCORD_MENTION` (opcional, default `@Admin`)
+- `DISCORD_ROLE_ID` (opcional, si se define se usa `<@&ROLE_ID>` para ping real al rol)
 
 Notas:
 
 - Si `JWT_SECRET` falta, el backend falla al arrancar.
 - `JWT_SECRET` no puede ser `dev-secret-change-me`.
+- Si `DISCORD_WEBHOOK_URL` esta definido, se envia un mensaje a Discord cuando se crea un evento (`POST /api/events/ingest` y `POST /api/events`).
+- El link del evento en Discord se arma con `FRONTEND_URL`; en local usa `http://localhost:5173`.
 
 ## Base de datos
 
