@@ -1,6 +1,6 @@
 // src/services/adminService.ts
 import axios from 'axios';
-import { User, Device, FallEvent, AssignedPatient } from '../types';
+import { User, Device, FallEvent, AssignedPatient, PatientAssignedUser } from '../types';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -72,6 +72,30 @@ export const AdminService = {
         : []
     })) as AssignedPatient[];
     return { data };
+  },
+
+  getAssignedUsersByPatient: async (patientId: string) => {
+    const response = await api.get<any[]>(`/patients/${patientId}/users`);
+    const data = response.data.map((row: any) => ({
+      accountId: row.accountId,
+      fullName: row.fullName,
+      email: row.email,
+      role: row.role,
+      accessTypes: Array.isArray(row.accessTypes) ? row.accessTypes : [],
+      devicesAssigned: Number(row.devicesAssigned || 0)
+    })) as PatientAssignedUser[];
+    return { data };
+  },
+
+  assignUserToPatient: async (patientId: string, accountId: string, accessType: 'OWNER' | 'MEMBER' = 'MEMBER') => {
+    return api.post(`/patients/${patientId}/users`, {
+      accountId,
+      accessType
+    });
+  },
+
+  removeUserFromPatient: async (patientId: string, accountId: string) => {
+    return api.delete(`/patients/${patientId}/users/${accountId}`);
   },
 
   // --- DISPOSITIVOS ---

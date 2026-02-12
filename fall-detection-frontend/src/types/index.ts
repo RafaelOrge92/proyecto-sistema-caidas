@@ -53,3 +53,12 @@ export interface AssignedPatient {
     alias?: string;
   }>;
 }
+
+export interface PatientAssignedUser {
+  accountId: string;
+  fullName: string;
+  email: string;
+  role: string;
+  accessTypes: string[];
+  devicesAssigned: number;
+}

@@ -139,6 +139,12 @@ Base path: `/api`
 - `PATCH /api/users/:id/deactivate`
 - `POST /api/users/assign`
 
+### Patients (admin)
+
+- `GET /api/patients/:patientId/users`
+- `POST /api/patients/:patientId/users`
+- `DELETE /api/patients/:patientId/users/:accountId`
+
 ### Devices
 
 - `GET /api/devices` (admin)
