@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AdminService } from '../services/adminService';
-import { EventSample, FallEvent } from '../types';
+import { EventSample, FallEvent, PaginationMeta } from '../types';
 import { Calendar, HardDrive, UserCheck, Activity, Search, AlertTriangle, X } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js';
@@ -19,12 +19,26 @@ export const MemberEventsPage: React.FC = () => {
   const [modalLoading, setModalLoading] = useState(false);
   const [samplesLoading, setSamplesLoading] = useState(false);
   const [samplesError, setSamplesError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [pagination, setPagination] = useState<PaginationMeta>({
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPrevPage: false
+  });
 
   useEffect(() => {
     const loadEvents = async () => {
       try {
-        const response = await AdminService.getEvents();
+        const response = await AdminService.getEvents({ page, pageSize });
         setEvents(response.data);
+        setPagination(response.pagination);
+        if (response.pagination.page !== page) {
+          setPage(response.pagination.page);
+        }
         setError(null);
       } catch (loadError) {
         console.error('Error cargando eventos de miembro', loadError);
@@ -35,7 +49,7 @@ export const MemberEventsPage: React.FC = () => {
     };
 
     loadEvents();
-  }, []);
+  }, [page, pageSize]);
 
   const patientOptions = useMemo(
     () => Array.from(new Set(events.map((event) => event.patientName || 'Sin paciente'))).sort((a, b) => a.localeCompare(b)),
@@ -326,6 +340,47 @@ export const MemberEventsPage: React.FC = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            <div className="border-t border-white/5 px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <p className="text-sm text-[#94A3B8]">
+                Mostrando {events.length} de {pagination.total} eventos
+              </p>
+
+              <div className="flex items-center gap-3">
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="bg-[#1A1F26] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none"
+                >
+                  <option value={10}>10 / pag</option>
+                  <option value={20}>20 / pag</option>
+                  <option value={50}>50 / pag</option>
+                </select>
+
+                <button
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  disabled={!pagination.hasPrevPage || loading}
+                  className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                >
+                  Anterior
+                </button>
+
+                <span className="text-sm text-[#CBD5E1] min-w-[120px] text-center">
+                  Pag {pagination.page} / {Math.max(pagination.totalPages, 1)}
+                </span>
+
+                <button
+                  onClick={() => setPage((prev) => prev + 1)}
+                  disabled={!pagination.hasNextPage || loading}
+                  className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                >
+                  Siguiente
+                </button>
+              </div>
             </div>
           </div>
         </div>

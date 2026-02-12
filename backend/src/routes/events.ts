@@ -17,13 +17,16 @@ interface Sample {
 const isMissingColumnError = (error: any, column: string) =>
   error?.code === '42703' && String(error?.message || '').includes(column);
 
-const EVENTS_SELECT = `
+const EVENTS_SELECT_FIELDS = `
   SELECT
     e.*,
     d.alias AS device_alias,
     p.patient_id AS patient_id,
     CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name,
     a.full_name AS reviewed_by_name
+`
+
+const EVENTS_BASE_FROM = `
   FROM public.events e
   LEFT JOIN public.devices d ON d.device_id = e.device_id
   LEFT JOIN public.patients p ON p.patient_id = d.patient_id
@@ -174,21 +177,71 @@ router.get('/', authenticateToken, async (req, res) => {
     return res.status(401).json({ error: 'Token requerido' })
   }
 
-  if (req.user.role === 'ADMIN') {
-    const result = await db.query(`${EVENTS_SELECT}
-      ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST`)
+  const parsePositiveInt = (value: unknown, fallback: number) => {
+    const parsed = Number(value)
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
+  }
+
+  const hasPaginationParams = req.query.page !== undefined || req.query.pageSize !== undefined
+  const requestedPage = parsePositiveInt(req.query.page, 1)
+  const requestedPageSize = parsePositiveInt(req.query.pageSize, 20)
+  const pageSize = Math.min(requestedPageSize, 100)
+
+  const whereClauses: string[] = []
+  const joins: string[] = []
+  const params: any[] = []
+
+  if (req.user.role !== 'ADMIN') {
+    joins.push('INNER JOIN public.device_access da ON da.device_id = e.device_id')
+    params.push(req.user.sub)
+    whereClauses.push(`da.account_id = $${params.length}`)
+  }
+
+  const joinsSql = joins.length > 0 ? `\n${joins.join('\n')}` : ''
+  const whereSql = whereClauses.length > 0 ? `\nWHERE ${whereClauses.join(' AND ')}` : ''
+  const orderSql = 'ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST'
+
+  if (!hasPaginationParams) {
+    const result = await db.query(
+      `${EVENTS_SELECT_FIELDS}
+       ${EVENTS_BASE_FROM}${joinsSql}${whereSql}
+       ${orderSql}`,
+      params
+    )
     return res.json(result)
   }
 
-  const result = await db.query(
-    `${EVENTS_SELECT}
-     INNER JOIN public.device_access da
-       ON da.device_id = e.device_id
-     WHERE da.account_id = $1
-     ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST`,
-    [req.user.sub]
+  const countResult = await db.query(
+    `SELECT COUNT(*)::int AS total
+     ${EVENTS_BASE_FROM}${joinsSql}${whereSql}`,
+    params
   )
-  return res.json(result)
+  const total = Number(countResult[0]?.total ?? 0)
+  const totalPages = Math.max(Math.ceil(total / pageSize), 1)
+  const page = Math.min(requestedPage, totalPages)
+  const offset = (page - 1) * pageSize
+  const pagedParams = [...params, pageSize, offset]
+
+  const data = await db.query(
+    `${EVENTS_SELECT_FIELDS}
+     ${EVENTS_BASE_FROM}${joinsSql}${whereSql}
+     ${orderSql}
+     LIMIT $${pagedParams.length - 1}
+     OFFSET $${pagedParams.length}`,
+    pagedParams
+  )
+
+  return res.json({
+    data,
+    pagination: {
+      page,
+      pageSize,
+      total,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1
+    }
+  })
 });
 
 // Get events by device
@@ -203,7 +256,7 @@ router.get('/device/:deviceId', authenticateToken, async (req, res) => {
   }
 
   const result = await db.query(
-    `${EVENTS_SELECT}
+    `${EVENTS_SELECT_FIELDS}
      WHERE e.device_id = $1
      ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST`,
     [deviceId]
@@ -245,7 +298,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   const id = req.params.id as string;
   try {
     const result = await db.query(
-      `${EVENTS_SELECT}
+      `${EVENTS_SELECT_FIELDS}
        WHERE e.event_id::text = $1 OR e.event_uid::text = $1`,
       [id]
     )
@@ -263,7 +316,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   } catch (error: any) {
     if (error?.code === '42703' && String(error?.message || '').includes('event_id')) {
       const fallback = await db.query(
-        `${EVENTS_SELECT}
+        `${EVENTS_SELECT_FIELDS}
          WHERE e.id::text = $1 OR e.event_uid::text = $1`,
         [id]
       )

@@ -31,6 +31,15 @@ export interface EventSample {
   accZ: number;
 }
 
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
 export interface FallEvent {
   id: string;
   deviceId: string;
