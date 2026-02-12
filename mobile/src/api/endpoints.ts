@@ -46,6 +46,18 @@ export const getEventsByDevice = async (deviceId: string, signal?: AbortSignal):
   return rows.map(mapEventRow).sort((a, b) => sortByDateDesc(b.occurredAt) - sortByDateDesc(a.occurredAt));
 };
 
+export const updateEventStatus = async (
+  id: string,
+  status: NonNullable<FallEvent['status']>
+): Promise<FallEvent | null> => {
+  const data = await apiRequest<ApiEventRow[] | ApiEventRow>('/events/update', {
+    method: 'PUT',
+    body: { id, status }
+  });
+  const row = unwrap(data);
+  return row ? mapEventRow(row) : null;
+};
+
 export const login = async (email: string, password: string): Promise<LoginResponse> => {
   return apiRequest<LoginResponse>('/auth/login', {
     method: 'POST',
