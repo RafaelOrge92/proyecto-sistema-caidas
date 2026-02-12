@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ShieldAlert, LayoutDashboard, Users, HardDrive, LogOut } from 'lucide-react';
+import { ShieldAlert, LogOut } from 'lucide-react';
 
 export const Navbar = () => {
     const { user } = useAuth();
@@ -43,6 +43,7 @@ export const Navbar = () => {
                         {user.role === 'ADMIN' ? (
                             <div className="flex gap-4 border-l pl-4 border-blue-700">
                                 <Link to="/admin/users" className="hover:text-blue-300 text-sm">Usuarios</Link>
+                                <Link to="/admin/patients" className="hover:text-blue-300 text-sm">Pacientes</Link>
                                 <Link to="/admin/devices" className="hover:text-blue-300 text-sm">Dispositivos</Link>
                                 <Link to="/admin/events" className="hover:text-blue-300 text-sm">Eventos</Link>
                                 <Link to="/admin?tab=podium" className="hover:text-blue-300 text-sm">Podium</Link>

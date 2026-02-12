@@ -1,6 +1,6 @@
 // src/services/adminService.ts
 import axios from 'axios';
-import { User, Device, FallEvent } from '../types';
+import { User, Device, FallEvent, AssignedPatient } from '../types';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -42,6 +42,22 @@ export const AdminService = {
   getUserById: async (id: string) => {
     const response = await api.get<any>(`/users/${id}`);
     return { data: response.data };
+  },
+
+  getAssignedPatientsByUser: async (userId: string) => {
+    const response = await api.get<any[]>(`/users/${userId}/patients`);
+    const data = response.data.map((row: any) => ({
+      patientId: row.patientId,
+      patientName: row.patientName,
+      accessTypes: Array.isArray(row.accessTypes) ? row.accessTypes : [],
+      devices: Array.isArray(row.devices)
+        ? row.devices.map((device: any) => ({
+            id: device.id,
+            alias: device.alias || undefined
+          }))
+        : []
+    })) as AssignedPatient[];
+    return { data };
   },
 
   // --- DISPOSITIVOS ---
