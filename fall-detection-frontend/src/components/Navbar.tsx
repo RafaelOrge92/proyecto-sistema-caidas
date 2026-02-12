@@ -32,6 +32,13 @@ export const Navbar = () => {
                             </span>
                         </Link>
                         
+                        {/* Admin Panel Link */}
+                        {user.role === 'ADMIN' && (
+                            <Link to="/dashboard" className="ml-4 px-4 py-2 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:shadow-lg hover:shadow-[#6366F1]/50 text-white text-sm font-semibold rounded-lg transition-all">
+                                Panel de Administración
+                            </Link>
+                        )}
+                        
                         {/* Navegación según el rol */}
                         {user.role === 'ADMIN' ? (
                             <div className="flex gap-4 border-l pl-4 border-blue-700">

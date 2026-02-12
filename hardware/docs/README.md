@@ -1,171 +1,191 @@
-# Firmware ESP32 - Contrato HTTP REST
+# Firmware ESP32 - Contrato HTTP actual
 
-Este documento resume el contrato de comunicacion entre el firmware del ESP32 y el backend del sistema de deteccion de caidas.
+Este documento resume el contrato entre el firmware (`hardware/esp32/esp32_http.ino`)
+y el backend Node (`backend/src`).
 
-## Version de rutas actual
+## Base URL y prefijo
 
-Las rutas vigentes usan prefijo `/api` (sin `/v1`).
+- Prefijo actual: `/api` (sin `/v1`).
+- Ejemplo local: `http://<IP_PC>:3000`.
 
-Resumen rapido:
+## Endpoints usados por el firmware (backend Node)
 
-- Heartbeat:
-  - Backend Node (`backend/src`): `PUT /api/devices/heartbeat`
-  - Mock local (`hardware/server/server.py`): `POST /api/devices/heartbeat`
-- Ingest evento: `POST /api/events/ingest`
-- Samples evento: `POST /api/events/samples`
+- `POST /api/devices/heartbeat`
+- `PUT /api/devices/heartbeat`
+- `POST /api/events/ingest`
+- `POST /api/events/samples`
 
-## Configuracion (constantes en firmware)
+Nota:
+- El firmware actual usa `POST /api/devices/heartbeat`.
+- El backend acepta `POST` y `PUT` para heartbeat.
 
-- `BASE_URL`: URL del backend al que envia el firmware.
-- `DEVICE_ID_OVERRIDE`: si esta vacio, el firmware usa el HWID (eFuse) y lo guarda en NVS (formato `ESP32-<HWID>`).
-- `DEVICE_KEY`: opcional (si se usa, se envia en header `X-DEVICE-KEY`)
+## Autenticacion de dispositivo (obligatoria)
 
-## Headers HTTP
+Para `heartbeat`, `ingest` y `samples` se validan estos headers:
 
+- `X-Device-Id`
+- `X-Device-Key`
 - `Content-Type: application/json`
-- `X-DEVICE-KEY: <DEVICE_KEY>` (opcional, futuro)
 
-## Endpoint 1: Heartbeat
+Reglas importantes:
 
-`PUT {BASE_URL}/api/devices/heartbeat`
+- `X-Device-Key` se envia en texto plano desde el ESP32.
+- En base de datos se guarda `device_key_hash` (bcrypt u otro hash soportado).
+- Si `X-Device-Id` no existe o la key no coincide: `401`.
+- Si el dispositivo existe pero no tiene key configurada: `403`.
 
-Si usas el mock local de `hardware/server/server.py`, ese endpoint es:
+## Configuracion en firmware
 
-`POST {BASE_URL}/api/devices/heartbeat`
+Archivo: `hardware/esp32/esp32_http.ino`
 
-Notas de entorno:
-- En local sin TLS usa `http://localhost:8000` y el sketch `esp32/esp32_http.ino`.
+Constantes clave:
 
-### JSON minimo
+- `WIFI_SSID`
+- `WIFI_PASS`
+- `BASE_URL`
+- `DEVICE_ID_OVERRIDE`
+- `DEVICE_KEY`
+
+Notas:
+
+- Si `DEVICE_ID_OVERRIDE` esta vacio, se usa el ID derivado de eFuse y se guarda en NVS.
+- Para pruebas controladas, se recomienda fijar `DEVICE_ID_OVERRIDE` al `device_id` exacto de DB.
+- No pongas en `DEVICE_KEY` el hash bcrypt; va la clave plana.
+
+## Mapa de hardware (GPIO y buses)
+
+Configuracion actual tomada de `hardware/esp32/esp32_http.ino`:
+
+- Boton emergencia: `GPIO 25` (`BUTTON_PIN`)
+  - Modo: `INPUT_PULLUP`
+  - Interrupcion: `FALLING`
+  - Debounce de ISR: `ISR_DEBOUNCE_MS = 60`
+
+- Inclinometro KY-017: `GPIO 26` (`TILT_PIN`)
+  - Modo: `INPUT_PULLUP`
+  - Logica activa: `TILT_ACTIVE_LOW = true`
+  - Endpoint: `POST /api/events/ingest` con `eventType = "TILT"`
+
+- MPU6050 por I2C:
+  - `SDA = GPIO 21` (`IMU_SDA`)
+  - `SCL = GPIO 22` (`IMU_SCL`)
+  - Endpoint cabecera: `POST /api/events/ingest`
+  - Endpoint samples: `POST /api/events/samples`
+
+- LED de estado: `GPIO 2` (`LED_PIN`)
+  - Logica activa: `LED_ACTIVE_LOW = true`
+
+## Parametros operativos relevantes
+
+- Heartbeat: `HEARTBEAT_MS = 120000` (2 minutos)
+- Reintento WiFi: `WIFI_RETRY_MS = 10000` (10 segundos)
+- Reinicio por caida de WiFi: `WIFI_RESTART_MS = 120000` (2 minutos)
+- Watchdog: `WDT_TIMEOUT_S = 15`
+
+Tilt:
+
+- `TILT_DEBOUNCE_MS = 150`
+- `TILT_HOLD_MS = 2000`
+- `TILT_COOLDOWN_MS = 3000`
+- Solo se reporta el estado inclinado (`tilted:true`); el retorno a normal se ignora.
+
+Fall (IMU, valores clave):
+
+- Free-fall duro: `FALL_FREEFALL_G_MAX = 0.47`
+- Impacto duro: `FALL_IMPACT_G_MIN = 1.32`
+- Cooldown post-caida: `FALL_COOLDOWN_MS = 8000`
+
+## Payloads esperados
+
+### 1) Heartbeat
+
+`POST /api/devices/heartbeat`
+
 ```json
 {
-  "deviceId": "ESP32-001",
-  "timestamp": "2026-02-04T10:00:00Z"
-}
-```
-
-### JSON recomendado
-```json
-{
-  "deviceId": "ESP32-001",
-  "timestamp": "2026-02-04T10:00:00Z",
-  "battery": 0.82,
-  "rssi": -63,
+  "deviceId": "ESP32-FC3A57088304",
+  "timestamp": "2026-02-11T10:30:00Z",
+  "battery": null,
+  "rssi": -60,
   "fwVersion": "1.0.0"
 }
 ```
 
-Notas:
-- `timestamp` puede ser `null` o aproximado si no hay RTC confiable.
-- Frecuencia recomendada: cada 2-5 min (demo). Para ahorro, 10-15 min.
+`timestamp` puede ir en `null`.
 
-## Endpoint 2: Ingest de evento (cabecera)
+### 2) Ingest de evento
 
-`POST {BASE_URL}/api/events/ingest`
+`POST /api/events/ingest`
 
-### JSON base (FALL - cabecera)
 ```json
 {
-  "deviceId": "ESP32-001",
-  "eventUid": "550e8400-e29b-41d4-a716-446655440000",
-  "eventType": "FALL",
-  "occurredAt": "2026-02-04T10:15:30Z"
-}
-```
-
-Campos:
-- `eventUid`: UUID v4 generado una sola vez por evento (idempotencia).
-- `eventType`: `FALL | EMERGENCY_BUTTON | SIMULATED | TILT`.
-- `occurredAt`: ISO string (si no hay RTC, usar estimado).
-- `samples`: no va en la cabecera cuando se usa el endpoint de muestras (ver abajo).
-
-### JSON base (EMERGENCY_BUTTON sin samples)
-```json
-{
-  "deviceId": "ESP32-001",
+  "deviceId": "ESP32-FC3A57088304",
   "eventUid": "550e8400-e29b-41d4-a716-446655440000",
   "eventType": "EMERGENCY_BUTTON",
-  "occurredAt": "2026-02-04T10:15:30Z"
+  "occurredAt": "2026-02-11T10:30:00Z"
 }
 ```
 
-### JSON base (TILT sin samples)
-```json
-{
-  "deviceId": "ESP32-001",
-  "eventUid": "550e8400-e29b-41d4-a716-446655440000",
-  "eventType": "TILT",
-  "occurredAt": "2026-02-04T10:15:30Z"
-}
-```
+`occurredAt` puede ir en `null`.
 
-## Endpoint 3: Samples de acelerometro (opcional)
+Valores de `eventType` usados hoy:
 
-`POST {BASE_URL}/api/events/samples`
+- `FALL`
+- `EMERGENCY_BUTTON`
+- `TILT`
+- `SIMULATED`
 
-Se usa para enviar el bloque de muestras del acelerometro asociado a un evento `FALL`.
-Si el backend no expone este endpoint, el firmware envia solo la cabecera del evento.
+### 3) Samples de evento
 
-### JSON base (samples)
+`POST /api/events/samples`
+
 ```json
 {
   "eventUid": "550e8400-e29b-41d4-a716-446655440000",
-  "deviceId": "ESP32-001",
+  "deviceId": "ESP32-FC3A57088304",
   "samples": [
-    { "seq": 0, "tMs": -600, "accX": 0.12, "accY": 0.05, "accZ": 9.81 },
-    { "seq": 1, "tMs": -580, "accX": 0.12, "accY": 0.05, "accZ": 9.81 }
+    { "seq": 0, "tMs": -600, "accX": 0.12, "accY": 0.05, "accZ": 0.98 },
+    { "seq": 1, "tMs": -580, "accX": 0.13, "accY": 0.04, "accZ": 0.97 }
   ],
   "units": "g"
 }
 ```
 
-## Firmware actual (ESP32)
+## Comportamiento de logs relevante
 
-Archivo:
-- `hardware/esp32/esp32_http.ino`
+- `code=201` en ingest/samples indica insercion aceptada.
+- `[TILT] normal (ignorado)` es comportamiento esperado:
+  al volver de inclinado a normal, no se envia evento de retorno.
 
-Comportamiento:
-- Boton en `GPIO 25` con `INPUT_PULLUP`.
-- Captura por interrupcion (FALLING) con debounce ~60ms para no perder pulsaciones mientras hay requests en vuelo.
-- Envia `EMERGENCY_BUTTON` al pulsar el boton.
-- Inclinometro KY-017 en `GPIO 26` (configurable). Es un interruptor mecanico, no mide angulos.
-- Se envia evento `TILT` (solo `tilted:true`) por `/api/events/ingest`. No se reporta el retorno a normal.
-- Filtros inclinometro: debounce `150ms`, hold `2000ms`, cooldown `3000ms` (ajustables).
-- Acelerometro MPU6050 por I2C (`SDA=21`, `SCL=22`) con rango ±8g y muestreo a 50Hz.
-- Deteccion de caida por maquina de estados: free-fall -> impacto -> stillness (confirmacion).
-- Valores actuales (configurables): free-fall `<0.55g` por `>=120ms`, impacto `>=1.70g`, stillness `>=1200ms`.
-- Se envia cabecera `FALL` por `/api/events/ingest` y muestras por `/api/events/samples` cuando existe.
-- UUID v4 generado por evento y reutilizado en los reintentos.
-- NTP para UTC (si falla, `occurredAt: null`).
-- Heartbeat siempre activo cada 2 min para actualizar `last_seen_at`.
-- Cola persistente en NVS (max 10 eventos). Si esta llena, se descarta el mas antiguo.
-- Reintentos con backoff: 1s, 3s, 10s y luego cada 60s.
-- LED estado (`GPIO2`, active-low): sin WiFi parpadeo lento (500ms).
-- LED estado (`GPIO2`, active-low): con cola pendiente parpadeo rapido (200ms).
-- LED estado (`GPIO2`, active-low): OK (WiFi + sin cola) encendido fijo.
-- WiFi recovery: reintento cada 10s; reinicio si 2 min sin WiFi.
-- Watchdog: 15s para evitar bloqueo prolongado.
-- Device ID: se genera desde el HWID (eFuse) y se persiste en NVS si `DEVICE_ID_OVERRIDE` esta vacio.
+## SQL minimo para dejar un ESP32 operativo
 
-Reglas de `samples`:
-- `seq`: 0..N-1
-- `tMs`: tiempo relativo en ms (negativo antes del evento, positivo despues).
-- Ventana recomendada: ~4s total a 50Hz => 200 muestras.
+### Crear/actualizar hash de key de dispositivo
 
-## Idempotencia (critico)
+```sql
+UPDATE public.devices
+SET device_key_hash = crypt('fc3a5708-test-2026', gen_salt('bf', 10))
+WHERE device_id = 'ESP32-FC3A57088304';
+```
 
-- Generar `eventUid` solo una vez por evento.
-- Reintentar SIEMPRE con el mismo `eventUid`.
-- Backend responde `duplicated: true` si ya existe.
+### Verificar que la key coincide
 
-## Reintentos (recomendado)
+```sql
+SELECT crypt('fc3a5708-test-2026', device_key_hash) = device_key_hash AS key_ok
+FROM public.devices
+WHERE device_id = 'ESP32-FC3A57088304';
+```
 
-- 3 reintentos: 1s, 3s, 10s.
-- Si falla, encolar y reintentar en el siguiente heartbeat.
-- Si es posible, persistir cola en NVS.
+### Permitir dispositivos sin paciente al inicio
 
-## Respuestas esperadas
+```sql
+ALTER TABLE public.devices
+ALTER COLUMN patient_id DROP NOT NULL;
+```
 
-- Exito: `{ "ok": true, "eventId": "...", "duplicated": false }`
-- Duplicado: `{ "ok": true, "eventId": "...", "duplicated": true }`
-- Errores tipicos: `400`, `401`, `404`
+## Mock local de hardware
+
+Si usas `hardware/server/server.py`, revisa su README:
+
+- `hardware/server/README.md`
+
+Ese servidor es para pruebas locales y no replica toda la seguridad del backend real.

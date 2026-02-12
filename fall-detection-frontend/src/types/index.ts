@@ -20,6 +20,7 @@ export interface Device {
   isActive?: boolean;
   lastSeen?: string;
   assignedUserId?: string | null;
+  assignedUserName?: string | null;
 }
 
 export interface FallEvent {

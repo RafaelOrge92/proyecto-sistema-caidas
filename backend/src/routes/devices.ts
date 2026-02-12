@@ -1,26 +1,39 @@
-import express, { response, Router } from 'express';
+import express, { response, Router, Request, Response } from 'express';
 import { db } from '../config/db';
+import { authenticateToken, requireAdmin } from '../middleware/auth';
+import { authenticateDevice } from '../middleware/deviceAuth';
 
 const router = Router();
 
 
 //get all devices
 
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   const result = await db.query(`
     SELECT
       d.*,
       p.first_name AS patient_first_name,
       p.last_name AS patient_last_name,
-      CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name
+      CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name,
+      a.account_id AS assigned_user_id,
+      a.full_name AS assigned_user_name,
+      a.email AS assigned_user_email
     FROM public.devices d
     LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+    LEFT JOIN public.device_access da ON d.device_id = da.device_id AND da.access_type = 'MEMBER'
+    LEFT JOIN public.accounts a ON da.account_id = a.account_id
   `)
   res.json(result)
 })
 
+router.get('/podium', authenticateToken, requireAdmin, async (req, res) => {
+  const result = await db.query('SELECT COUNT(event_id), device_id FROM public.events GROUP BY device_id ')
+  res.json(result)
+})
+
 // Get device by id
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const id = req.params.id as string;
   const result = await db.query(`
     SELECT
       d.*,
@@ -31,38 +44,75 @@ router.get('/:id', async (req, res) => {
     LEFT JOIN public.patients p ON p.patient_id = d.patient_id
     WHERE d.device_id = $1
   `,
-    [req.params.id]
+    [id]
   )
   res.json(result)
 });
 
-router.get('/user/:userId', async (req, res) => {
+router.get('/user/:userId', authenticateToken, async (req, res) => {
+  // Permitir que ADMIN vea cualquier usuario, o que el usuario vea sus propios dispositivos
+  const userId = req.params.userId as string;
+  if (req.user?.role !== 'ADMIN' && req.user?.sub !== userId) {
+    return res.status(403).json({ error: 'No tienes permiso para ver los dispositivos de otro usuario' });
+  }
+
   const result = await db.query(`SELECT * FROM public.devices WHERE device_id IN (SELECT device_id FROM public.device_access WHERE account_id = $1)`,
-    [req.params.userId]
+    [userId]
    )
   res.json(result)
 })
 
 // Create device
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, requireAdmin, async (req, res) => {
+
   const { id, alias, patientId, active, lastSeenAt } = req.body;
 
   if (!id) {
     return res.status(400).json({ error: 'ID del dispositivo es requerido' });
   } 
  
-  const result = await db.query(`INSERT into public.devices (device_id, patient_id, alias, is_active, last_seen_at)
-    values ($1, $2, $3, $4, $5)`,
-  [id, patientId, alias, active, lastSeenAt]
-  )
-  res.status(201).json(result)
+  try {
+    const result = await db.query(`INSERT into public.devices (device_id, patient_id, alias, is_active, last_seen_at)
+      values ($1, $2, $3, $4, $5)`,
+    [id, patientId || null, alias || null, active ?? true, lastSeenAt || null]
+    )
+    res.status(201).json(result);
+  } catch (error: any) {
+    console.error('Error creating device:', error);
+    
+    // Error de duplicate key constraint (El dispositivo ya existe)
+    if (error?.code === '23505' && error?.constraint === 'devices_pkey') {
+      return res.status(409).json({ error: `El dispositivo con ID '${id}' ya existe.` });
+    }
+    
+    // Si el error es por patient_id NOT NULL
+    if (error?.message?.includes('patient_id')) {
+      return res.status(400).json({ error: 'patient_id debe ser nullable en la base de datos. Ejecuta: ALTER TABLE public.devices ALTER COLUMN patient_id DROP NOT NULL;' });
+    }
+    
+    res.status(500).json({ error: 'Error al crear dispositivo' });
+  }
 });
 
-const handleHeartbeat = async (req: any, res: any) => {
-  const {timestamp, deviceId} = req.body
-  console.log('Recibido')
+const handleHeartbeat = async (req: Request, res: Response) => {
+  const timestamp = req.body?.timestamp ?? req.body?.lastSeenAt ?? req.body?.last_seen_at ?? null
+  const authenticatedDeviceId = (req as any).deviceIdAuth as string | undefined
+  const payloadDeviceId = req.body?.deviceId ?? req.body?.id ?? req.body?.device_id
+  const deviceId = authenticatedDeviceId ?? payloadDeviceId
+
+  if (!deviceId) {
+    return res.status(400).json({ error: 'deviceId es requerido' })
+  }
+
+  if (payloadDeviceId && authenticatedDeviceId && payloadDeviceId !== authenticatedDeviceId) {
+    return res.status(400).json({ error: 'deviceId del body no coincide con dispositivo autenticado' })
+  }
+
   try{
-   const result = await db.query(`UPDATE public.devices SET last_seen_at = $1 WHERE device_id = $2`,[timestamp,deviceId])
+   const result = await db.query(
+    `UPDATE public.devices SET last_seen_at = COALESCE($1::timestamptz, now()) WHERE device_id = $2`,
+    [timestamp, deviceId]
+   )
    res.json(result)
   } catch (error){
     console.error('Cannot access device')
@@ -70,12 +120,7 @@ const handleHeartbeat = async (req: any, res: any) => {
   }
 }
 
-router.put('/heartbeat', handleHeartbeat)
-router.post('/heartbeat', handleHeartbeat)
-
-router.get('/podium', async (req, res) => {
-  const result = db.query('SELECT COUNT(event_id), device_id FROM public.events GROUP BY device_id ')
-  res.json(result)
-})
+router.put('/heartbeat', authenticateDevice, handleHeartbeat)
+router.post('/heartbeat', authenticateDevice, handleHeartbeat)
 
 export const devicesRoutes = router;

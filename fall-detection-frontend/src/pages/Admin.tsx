@@ -15,6 +15,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const isPodiumOnly = new URLSearchParams(location.search).get('tab') === 'podium';
 
   useEffect(() => {
     const loadData = async () => {
@@ -54,46 +55,82 @@ const Admin = () => {
   return (
     <div className="min-h-screen pt-24 px-8 reveal">
       <div className="max-w-7xl mx-auto">
-        <header className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
-          <div className="space-y-2">
-            <h1 className="text-6xl font-bold tracking-tighter text-white">Consola de Control</h1>
-            <p className="text-xl text-[var(--color-text-secondary)] font-medium">Gestión avanzada de infraestructura y seguridad.</p>
-          </div>
-          <div className="flex bg-white/5 p-1 rounded-full backdrop-blur-xl border border-white/10">
-            <button
-              onClick={() => {
-                setActiveTab('home');
-                navigate('/');
-              }}
-              className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'home' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
-            >
-              Home
-            </button>
-            <button 
-              onClick={() => setActiveTab('users')}
-              className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
-            >
-              Usuarios
-            </button>
-            <button 
-              onClick={() => setActiveTab('devices')}
-              className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'devices' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
-            >
-              Dispositivos
-            </button>
-            <button 
-              onClick={() => setActiveTab('podium')}
-              className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'podium' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
-            >
-              Podium
-            </button>
-          </div>
-        </header>
+        {!isPodiumOnly && (
+          <header className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+            <div className="space-y-2">
+              <h1 className="text-6xl font-bold tracking-tighter text-white">Consola de Control</h1>
+              <p className="text-xl text-[var(--color-text-secondary)] font-medium">Gestión avanzada de infraestructura y seguridad.</p>
+            </div>
+            <div className="flex bg-white/5 p-1 rounded-full backdrop-blur-xl border border-white/10">
+              <button
+                onClick={() => {
+                  setActiveTab('home');
+                  navigate('/Dashboard');
+                }}
+                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'home' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
+              >
+                Home
+              </button>
+              <button 
+                onClick={() => setActiveTab('users')}
+                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
+              >
+                Usuarios
+              </button>
+              <button 
+                onClick={() => setActiveTab('devices')}
+                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'devices' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
+              >
+                Dispositivos
+              </button>
+              <button 
+                onClick={() => setActiveTab('podium')}
+                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'podium' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
+              >
+                Podium
+              </button>
+            </div>
+          </header>
+        )}
 
         <Card noPadding className="border-none bg-transparent shadow-none">
           {loading ? (
             <div className="flex justify-center py-16">
               <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : isPodiumOnly ? (
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <Activity size={24} className="text-amber-400" />
+                <h2 className="text-2xl font-bold text-white">Dispositivos con mas eventos</h2>
+              </div>
+              {podium.length === 0 ? (
+                <Card className="text-center py-12 border-dashed border-white/10 bg-transparent">
+                  <p className="text-[var(--color-text-secondary)]">No hay datos de podium disponibles.</p>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {podium.slice(0, 6).map((item, index) => (
+                    <Card key={`${item.device_id}-${index}`} hover className="border-white/5">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className={`text-4xl font-bold ${
+                          index === 0 ? 'text-amber-400' :
+                          index === 1 ? 'text-gray-300' :
+                          index === 2 ? 'text-amber-700' :
+                          'text-indigo-400'
+                        }`}>
+                          #{index + 1}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-widest">Eventos</p>
+                          <p className="text-3xl font-bold text-white">{item.count}</p>
+                        </div>
+                      </div>
+                      <p className="text-white font-semibold truncate">Dispositivo {item.device_id}</p>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           ) : activeTab === 'users' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -68,7 +68,7 @@ create table if not exists public.patients (
 
 create table if not exists public.devices (
   device_id       varchar(64) primary key, -- ID/MAC estable del ESP32
-  patient_id      uuid not null references public.patients(patient_id) on delete restrict,
+  patient_id      uuid references public.patients(patient_id) on delete restrict, -- opcional: puede ser NULL
   alias           varchar(80),
   is_active       boolean not null default true,
   device_key_hash varchar(255),
@@ -76,6 +76,10 @@ create table if not exists public.devices (
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now()
 );
+
+-- migracion de compatibilidad: permitir dispositivos sin paciente en esquemas ya existentes
+alter table if exists public.devices
+  alter column patient_id drop not null;
 
 create table if not exists public.device_access (
   account_id   uuid not null references public.accounts(account_id) on delete cascade,
