@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { AdminService } from '../services/adminService';
-import { Device, EventSample, FallEvent } from '../types';
-import { HardDrive, Clock, Shield, MessageSquare, X, Download } from 'lucide-react';
+import { Device, EventSample, FallEvent, Patient } from '../types';
+import { HardDrive, Clock, Shield, MessageSquare, X, Download, Plus, Users } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import jsPDF from 'jspdf';
@@ -28,6 +28,13 @@ export const UserDashboard: React.FC = () => {
   const [savingReview, setSavingReview] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'OPEN' | 'CONFIRMED_FALL' | 'FALSE_ALARM' | 'RESOLVED'>('ALL');
   const [patientFilter, setPatientFilter] = useState('ALL');
+  const [availableDevices, setAvailableDevices] = useState<Device[]>([]);
+  const [availablePatients, setAvailablePatients] = useState<Patient[]>([]);
+  const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
+  const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
+  const [assigningDeviceId, setAssigningDeviceId] = useState<string | null>(null);
+  const [assigningPatientId, setAssigningPatientId] = useState<string | null>(null);
+  const [assignError, setAssignError] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -56,6 +63,70 @@ export const UserDashboard: React.FC = () => {
       console.error('Error al cargar datos del usuario', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAvailableDevices = async () => {
+    try {
+      const response = await AdminService.getAvailableDevices();
+      setAvailableDevices(response.data);
+    } catch (error) {
+      console.error('Error cargando dispositivos disponibles', error);
+      setAvailableDevices([]);
+    }
+  };
+
+  const loadAvailablePatients = async () => {
+    try {
+      const response = await AdminService.getAvailablePatients();
+      setAvailablePatients(response.data);
+    } catch (error) {
+      console.error('Error cargando pacientes disponibles', error);
+      setAvailablePatients([]);
+    }
+  };
+
+  const openDeviceModal = async () => {
+    setAssignError(null);
+    setIsDeviceModalOpen(true);
+    await loadAvailableDevices();
+  };
+
+  const openPatientModal = async () => {
+    setAssignError(null);
+    setIsPatientModalOpen(true);
+    await loadAvailablePatients();
+  };
+
+  const handleAssignDeviceToMe = async (deviceId: string) => {
+    setAssignError(null);
+    setAssigningDeviceId(deviceId);
+
+    try {
+      await AdminService.assignDeviceToMe(deviceId);
+      await loadData();
+      await loadAvailableDevices();
+    } catch (error: any) {
+      const message = error?.response?.data?.error || 'No se pudo asignar el dispositivo.';
+      setAssignError(message);
+    } finally {
+      setAssigningDeviceId(null);
+    }
+  };
+
+  const handleAssignPatientToMe = async (patientId: string) => {
+    setAssignError(null);
+    setAssigningPatientId(patientId);
+
+    try {
+      await AdminService.assignPatientToMe(patientId);
+      await loadData();
+      await loadAvailablePatients();
+    } catch (error: any) {
+      const message = error?.response?.data?.error || 'No se pudo asignar el paciente.';
+      setAssignError(message);
+    } finally {
+      setAssigningPatientId(null);
     }
   };
 
@@ -300,6 +371,23 @@ export const UserDashboard: React.FC = () => {
           </p>
         </header>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+          <button
+            onClick={openDeviceModal}
+            className="glass-panel px-6 py-4 rounded-2xl font-semibold text-white hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 flex items-center gap-3"
+          >
+            <Plus size={18} className="text-indigo-300" />
+            Agregar dispositivo
+          </button>
+          <button
+            onClick={openPatientModal}
+            className="glass-panel px-6 py-4 rounded-2xl font-semibold text-white hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 flex items-center gap-3"
+          >
+            <Users size={18} className="text-indigo-300" />
+            Agregar paciente
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className="lg:col-span-2 space-y-8">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -412,6 +500,111 @@ export const UserDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {isDeviceModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsDeviceModalOpen(false)} />
+          <div className="glass-panel w-full max-w-2xl relative z-10 bg-[var(--color-bg-secondary)]/90 p-8 border border-white/10 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setIsDeviceModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+              aria-label="Cerrar"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold text-white">Agregar dispositivo</h3>
+              <p className="text-text-secondary">Selecciona un dispositivo disponible para vincularlo a tu cuenta.</p>
+            </div>
+
+            {assignError && (
+              <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {assignError}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {availableDevices.length > 0 ? (
+                availableDevices.map((device) => (
+                  <button
+                    key={device.id}
+                    onClick={() => handleAssignDeviceToMe(device.id)}
+                    disabled={assigningDeviceId === device.id}
+                    className="w-full text-left p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-white font-semibold">{device.alias || 'Dispositivo'}</p>
+                        <p className="text-xs text-text-secondary font-mono">ID: {device.id}</p>
+                        <p className="text-xs text-text-secondary">Paciente: {device.patientName || 'Sin paciente'}</p>
+                      </div>
+                      {assigningDeviceId === device.id && (
+                        <div className="w-5 h-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+                      )}
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="p-8 text-center text-text-secondary">No hay dispositivos disponibles.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isPatientModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsPatientModalOpen(false)} />
+          <div className="glass-panel w-full max-w-2xl relative z-10 bg-[var(--color-bg-secondary)]/90 p-8 border border-white/10 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setIsPatientModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+              aria-label="Cerrar"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold text-white">Agregar paciente</h3>
+              <p className="text-text-secondary">Selecciona un paciente disponible para vincularlo a tu cuenta.</p>
+            </div>
+
+            {assignError && (
+              <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {assignError}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {availablePatients.length > 0 ? (
+                availablePatients.map((patient) => (
+                  <button
+                    key={patient.patientId}
+                    onClick={() => handleAssignPatientToMe(patient.patientId)}
+                    disabled={assigningPatientId === patient.patientId}
+                    className="w-full text-left p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-white font-semibold">{patient.patientName}</p>
+                        {patient.nif && <p className="text-xs text-text-secondary">NIF: {patient.nif}</p>}
+                        {patient.city && <p className="text-xs text-text-secondary">Ciudad: {patient.city}</p>}
+                        <p className="text-xs text-text-secondary">Dispositivos: {patient.deviceCount ?? 0}</p>
+                      </div>
+                      {assigningPatientId === patient.patientId && (
+                        <div className="w-5 h-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+                      )}
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="p-8 text-center text-text-secondary">No hay pacientes disponibles.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

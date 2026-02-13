@@ -26,6 +26,72 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   res.json(result)
 })
 
+// Get available devices (not assigned to any user)
+router.get('/available', authenticateToken, async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT
+        d.*,
+        p.first_name AS patient_first_name,
+        p.last_name AS patient_last_name,
+        CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name
+      FROM public.devices d
+      LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+      WHERE NOT EXISTS (
+        SELECT 1 FROM public.device_access da WHERE da.device_id = d.device_id
+      )
+      ORDER BY d.created_at DESC
+    `);
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching available devices:', error);
+    res.status(500).json({ error: 'Error al obtener dispositivos disponibles' });
+  }
+});
+
+// Assign device to the current user
+router.post('/:deviceId/assign-me', authenticateToken, async (req, res) => {
+  const deviceId = req.params.deviceId as string;
+  const accountId = (req as any).user?.sub as string | undefined;
+
+  if (!accountId) {
+    return res.status(401).json({ error: 'Usuario no autenticado' });
+  }
+  if (!deviceId) {
+    return res.status(400).json({ error: 'deviceId es requerido' });
+  }
+
+  try {
+    const deviceExists = await db.query(
+      'SELECT device_id FROM public.devices WHERE device_id = $1',
+      [deviceId]
+    );
+    if (deviceExists.length === 0) {
+      return res.status(404).json({ error: 'Dispositivo no encontrado' });
+    }
+
+    const alreadyAssigned = await db.query(
+      'SELECT 1 FROM public.device_access WHERE device_id = $1 LIMIT 1',
+      [deviceId]
+    );
+    if (alreadyAssigned.length > 0) {
+      return res.status(409).json({ error: 'El dispositivo ya esta asignado' });
+    }
+
+    const result = await db.query(
+      `INSERT INTO public.device_access (account_id, device_id, access_type)
+       VALUES ($1, $2, 'MEMBER')
+       RETURNING account_id, device_id, access_type`,
+      [accountId, deviceId]
+    );
+
+    return res.status(201).json(result[0]);
+  } catch (error) {
+    console.error('Error assigning device to user:', error);
+    return res.status(500).json({ error: 'Error al asignar dispositivo' });
+  }
+});
+
 router.get('/podium', authenticateToken, requireAdmin, async (req, res) => {
   const result = await db.query('SELECT COUNT(event_id), device_id FROM public.events GROUP BY device_id ')
   res.json(result)
@@ -119,6 +185,67 @@ const handleHeartbeat = async (req: Request, res: Response) => {
     res.status(500).json({error: 'No se puede acceder al dispositivo'})
   }
 }
+
+// Update device (alias, patientId, etc.)
+router.put('/:deviceId', authenticateToken, requireAdmin, async (req, res) => {
+  const deviceId = req.params.deviceId as string;
+  const { alias, patientId, isActive } = req.body;
+
+  if (!deviceId) {
+    return res.status(400).json({ error: 'deviceId es requerido' });
+  }
+
+  try {
+    // Verificar que el dispositivo existe
+    const existingDevice = await db.query(
+      `SELECT device_id FROM public.devices WHERE device_id = $1 LIMIT 1`,
+      [deviceId]
+    );
+    
+    if (existingDevice.length === 0) {
+      return res.status(404).json({ error: 'Dispositivo no encontrado' });
+    }
+
+    // Verificar que el paciente existe si se proporciona uno
+    if (patientId) {
+      const patientExists = await db.query(
+        `SELECT patient_id FROM public.patients WHERE patient_id = $1 LIMIT 1`,
+        [patientId]
+      );
+      if (patientExists.length === 0) {
+        return res.status(404).json({ error: 'Paciente no encontrado' });
+      }
+    }
+
+    // Actualizar el dispositivo
+    const result = await db.query(
+      `UPDATE public.devices 
+       SET alias = COALESCE($1, alias),
+           patient_id = CASE WHEN $2::uuid IS NOT NULL THEN $2::uuid ELSE patient_id END,
+           is_active = COALESCE($3, is_active),
+           updated_at = now()
+       WHERE device_id = $4
+       RETURNING 
+         device_id,
+         patient_id,
+         alias,
+         is_active,
+         last_seen_at,
+         created_at,
+         updated_at`,
+      [alias || null, patientId || null, isActive !== undefined ? isActive : null, deviceId]
+    );
+
+    if (result.length === 0) {
+      return res.status(500).json({ error: 'No se pudo actualizar el dispositivo' });
+    }
+
+    res.json(result[0]);
+  } catch (error: any) {
+    console.error('Error updating device:', error);
+    res.status(500).json({ error: 'Error al actualizar dispositivo' });
+  }
+});
 
 router.put('/heartbeat', authenticateDevice, handleHeartbeat)
 router.post('/heartbeat', authenticateDevice, handleHeartbeat)

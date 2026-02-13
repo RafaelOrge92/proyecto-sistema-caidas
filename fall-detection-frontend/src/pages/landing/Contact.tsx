@@ -1,7 +1,10 @@
 import React from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 const Contact: React.FC = () => {
+  const { theme } = useTheme();
+  
   return (
     <div className="pt-32 pb-20 px-6 bg-[var(--color-bg-primary)] min-h-screen reveal">
       <div className="max-w-4xl mx-auto">
@@ -18,7 +21,13 @@ const Contact: React.FC = () => {
               <input type="email" placeholder="Email" className="bg-[var(--color-bg-secondary)] rounded-2xl p-4 border-none focus:ring-2 focus:ring-[var(--color-primary)] outline-none" />
             </div>
             <textarea placeholder="¿Cómo podemos ayudarte?" rows={5} className="w-full bg-[var(--color-bg-secondary)] rounded-2xl p-4 border-none focus:ring-2 focus:ring-[var(--color-primary)] outline-none resize-none"></textarea>
-            <button className="w-full bg-white text-black font-bold py-4 rounded-2xl hover:bg-gray-200 transition-colors shadow-lg">
+            <button 
+              className={`w-full font-bold py-4 rounded-2xl transition-all shadow-lg ${
+                theme === 'dark' 
+                  ? 'bg-white text-black hover:bg-gray-200' 
+                  : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-indigo-500/30 hover:scale-105'
+              }`}
+            >
               Enviar Mensaje
             </button>
           </form>

@@ -24,9 +24,9 @@ const LandingFooter: React.FC = () => {
           <div>
             <h3 className="text-xs font-black text-white tracking-[0.2em] uppercase mb-8">Navegación</h3>
             <ul className="space-y-4 font-semibold">
-              <li><Link to="/" className="text-[var(--color-text-secondary)] hover:text-white transition-colors">Inicio</Link></li>
-              <li><Link to="/about" className="text-[var(--color-text-secondary)] hover:text-white transition-colors">Nosotros</Link></li>
-              <li><Link to="/contact" className="text-[var(--color-text-secondary)] hover:text-white transition-colors">Contacto</Link></li>
+              <li><Link to="/" className="text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors">Inicio</Link></li>
+              <li><Link to="/about" className="text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors">Nosotros</Link></li>
+              <li><Link to="/contact" className="text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors">Contacto</Link></li>
             </ul>
           </div>
 
@@ -49,8 +49,8 @@ const LandingFooter: React.FC = () => {
           <div>
             <h3 className="text-xs font-black text-white tracking-[0.2em] uppercase mb-8">Legal</h3>
             <ul className="space-y-4 font-semibold text-[var(--color-text-secondary)]">
-              <li className="hover:text-white cursor-pointer transition-colors">Privacidad</li>
-              <li className="hover:text-white cursor-pointer transition-colors">Términos</li>
+              <li className="hover:text-indigo-400 cursor-pointer transition-colors">Privacidad</li>
+              <li className="hover:text-indigo-400 cursor-pointer transition-colors">Términos</li>
             </ul>
           </div>
         </div>
@@ -59,7 +59,7 @@ const LandingFooter: React.FC = () => {
           <p className="text-[var(--color-text-secondary)] text-sm font-medium">
             &copy; {new Date().getFullYear()} Fall Detect S.L.
           </p>
-          <div className="flex gap-8 text-sm font-bold text-white/20">
+          <div className="flex gap-8 text-sm font-bold text-[var(--color-text-secondary)]">
             <span>Diseñado en Vigo</span>
             <span>v2.0.4</span>
           </div>
