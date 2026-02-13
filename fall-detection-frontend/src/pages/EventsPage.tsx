@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AdminService } from '../services/adminService';
 import { FallEvent, PaginationMeta } from '../types';
-import { Calendar, HardDrive, UserCheck, Activity, Search, AlertTriangle, X } from 'lucide-react';
+import { Calendar, HardDrive, UserCheck, Activity, Search, AlertTriangle, X, Grid3x3, List } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +19,7 @@ export const EventsPage: React.FC = () => {
     const [savingReview, setSavingReview] = useState(false);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(20);
+    const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards');
     const [pagination, setPagination] = useState<PaginationMeta>({
         page: 1,
         pageSize: 20,
@@ -166,6 +167,30 @@ export const EventsPage: React.FC = () => {
                     <p className="text-xl text-[#94A3B8]">Registro detallado de todos los incidentes detectados.</p>
                 </div>
                 <div className="flex gap-3">
+                    <div className="flex gap-2 glass-panel p-1 rounded-full">
+                        <button
+                            onClick={() => setViewMode('cards')}
+                            title="Vista de tarjetas"
+                            className={`p-3 rounded-full transition-all ${
+                                viewMode === 'cards'
+                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+                                    : 'text-gray-400 hover:text-white'
+                            }`}
+                        >
+                            <Grid3x3 size={18} />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('table')}
+                            title="Vista de tabla"
+                            className={`p-3 rounded-full transition-all ${
+                                viewMode === 'table'
+                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+                                    : 'text-gray-400 hover:text-white'
+                            }`}
+                        >
+                            <List size={18} />
+                        </button>
+                    </div>
                     <button
                         onClick={exportToPDF}
                         title="Descargar reporte en PDF"
@@ -204,150 +229,285 @@ export const EventsPage: React.FC = () => {
                         />
                     </div>
 
-                    <div className="glass-panel overflow-hidden border border-white/5">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="border-b border-white/5 bg-white/5">
-                                        <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Fecha y Hora</th>
-                                        <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Paciente</th>
-                                        <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Dispositivo</th>
-                                        <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Estado</th>
-                                        <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Revision</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/5">
+                    {viewMode === 'cards' ? (
+                        <>
+                            {filteredEvents.length === 0 ? (
+                                <div className="glass-panel p-12 text-center">
+                                    <Activity size={48} className="mx-auto mb-4 opacity-20" />
+                                    <p className="text-xl text-[#64748B]">
+                                        {searchTerm ? 'No se encontraron eventos con ese criterio.' : 'No hay eventos registrados en el sistema.'}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {filteredEvents.map((event) => (
-                                        <tr
+                                        <div
                                             key={event.id}
-                                            className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
                                             onClick={() => loadEventDetails(event.id)}
+                                            className="glass-panel p-6 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 group"
                                         >
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center gap-3">
-                                                    <Calendar size={18} className="text-indigo-400 opacity-70" />
-                                                    <span className="text-white font-medium">
-                                                        {event.occurredAt ? new Date(event.occurredAt).toLocaleString() : '-'}
-                                                    </span>
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="flex-1">
+                                                    <p className="text-sm text-[#94A3B8] mb-1">
+                                                        {event.occurredAt ? new Date(event.occurredAt).toLocaleDateString('es-ES', {
+                                                            year: 'numeric',
+                                                            month: 'short',
+                                                            day: 'numeric'
+                                                        }) : '-'}
+                                                    </p>
+                                                    <p className="text-xs text-[#64748B]">
+                                                        {event.occurredAt ? new Date(event.occurredAt).toLocaleTimeString('es-ES', {
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
+                                                        }) : '-'}
+                                                    </p>
                                                 </div>
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                <p className="text-white font-semibold">{event.patientName || 'Sin paciente'}</p>
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center gap-3">
-                                                    <HardDrive size={18} className="text-cyan-400 opacity-70" />
-                                                    <p className="text-cyan-100 font-medium">{event.deviceAlias || event.deviceId}</p>
-                                                </div>
-                                                {event.deviceAlias && (
-                                                    <p className="text-xs text-[#64748B] mt-1">{event.deviceId}</p>
-                                                )}
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ${getStatusBadge(event.status || '')}`}>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusBadge(event.status || '')}`}>
                                                     {event.status}
                                                 </span>
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                {event.reviewedBy ? (
-                                                    <div className="flex items-center gap-3">
-                                                        <UserCheck size={18} className="text-emerald-400" />
-                                                        <div>
-                                                            <p className="text-white font-bold text-sm">{getReviewerLabel(event.reviewedBy)}</p>
-                                                            {event.reviewComment && (
-                                                                <p className="text-xs text-[#94A3B8] italic truncate max-w-[150px]">
-                                                                    "{event.reviewComment}"
-                                                                </p>
-                                                            )}
-                                                        </div>
+                                            </div>
+
+                                            <div className="space-y-3 mb-4">
+                                                <div>
+                                                    <p className="text-xs text-[#64748B] mb-1">Paciente</p>
+                                                    <p className="text-white font-semibold text-sm truncate">
+                                                        {event.patientName || 'Sin paciente'}
+                                                    </p>
+                                                </div>
+
+                                                <div>
+                                                    <p className="text-xs text-[#64748B] mb-1">Dispositivo</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <HardDrive size={14} className="text-cyan-400" />
+                                                        <p className="text-white font-semibold text-sm truncate">
+                                                            {event.deviceAlias || event.deviceId}
+                                                        </p>
                                                     </div>
-                                                ) : (
-                                                    <span className="text-[#64748B] text-sm italic">Pendiente</span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {filteredEvents.length === 0 && (
-                                        <tr>
-                                            <td colSpan={5} className="py-20 text-center text-[#64748B]">
-                                                <Activity size={48} className="mx-auto mb-4 opacity-20" />
-                                                <p className="text-xl">
-                                                    {searchTerm ? 'No se encontraron eventos con ese criterio.' : 'No hay eventos registrados en el sistema.'}
+                                                </div>
+
+                                                <div>
+                                                    <p className="text-xs text-[#64748B] mb-1">Tipo de Evento</p>
+                                                    <p className="text-white font-semibold text-sm">{event.eventType}</p>
+                                                </div>
+                                            </div>
+
+                                            {event.reviewedBy && (
+                                                <div className="border-t border-white/10 pt-3 mt-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <UserCheck size={14} className="text-emerald-400" />
+                                                        <p className="text-xs text-emerald-300 font-semibold">
+                                                            Revisado por {getReviewerLabel(event.reviewedBy)}
+                                                        </p>
+                                                    </div>
+                                                    {event.reviewComment && (
+                                                        <p className="text-xs text-[#94A3B8] italic mt-2 truncate">
+                                                            "{event.reviewComment}"
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            <div className="mt-4 pt-4 border-t border-white/10">
+                                                <p className="text-xs text-[#64748B] group-hover:text-indigo-400 transition-colors">
+                                                    Haz clic para ver detalles →
                                                 </p>
-                                            </td>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div className="mt-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <p className="text-sm text-[#94A3B8]">
+                                    Mostrando {events.length} de {pagination.total} eventos
+                                </p>
+
+                                <div className="flex items-center gap-3">
+                                    <select
+                                        value={pageSize}
+                                        onChange={(e) => {
+                                            setPageSize(Number(e.target.value));
+                                            setPage(1);
+                                        }}
+                                        className="bg-[#1A1F26] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none"
+                                    >
+                                        <option value={10}>10 / pag</option>
+                                        <option value={20}>20 / pag</option>
+                                        <option value={50}>50 / pag</option>
+                                    </select>
+
+                                    <button
+                                        onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                                        disabled={!pagination.hasPrevPage || loading}
+                                        className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                                    >
+                                        Anterior
+                                    </button>
+
+                                    <span className="text-sm text-[#CBD5E1] min-w-[120px] text-center">
+                                        Pag {pagination.page} / {Math.max(pagination.totalPages, 1)}
+                                    </span>
+
+                                    <button
+                                        onClick={() => setPage((prev) => prev + 1)}
+                                        disabled={!pagination.hasNextPage || loading}
+                                        className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                                    >
+                                        Siguiente
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="glass-panel overflow-hidden border border-white/5">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-white/5 bg-white/5">
+                                            <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Fecha y Hora</th>
+                                            <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Paciente</th>
+                                            <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Dispositivo</th>
+                                            <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Estado</th>
+                                            <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Revision</th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {filteredEvents.map((event) => (
+                                            <tr
+                                                key={event.id}
+                                                className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
+                                                onClick={() => loadEventDetails(event.id)}
+                                            >
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <Calendar size={18} className="text-indigo-400 opacity-70" />
+                                                        <span className="text-white font-medium">
+                                                            {event.occurredAt ? new Date(event.occurredAt).toLocaleString() : '-'}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <p className="text-white font-semibold">{event.patientName || 'Sin paciente'}</p>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <HardDrive size={18} className="text-cyan-400 opacity-70" />
+                                                        <p className="text-cyan-100 font-medium">{event.deviceAlias || event.deviceId}</p>
+                                                    </div>
+                                                    {event.deviceAlias && (
+                                                        <p className="text-xs text-[#64748B] mt-1">{event.deviceId}</p>
+                                                    )}
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ${getStatusBadge(event.status || '')}`}>
+                                                        {event.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    {event.reviewedBy ? (
+                                                        <div className="flex items-center gap-3">
+                                                            <UserCheck size={18} className="text-emerald-400" />
+                                                            <div>
+                                                                <p className="text-white font-bold text-sm">{getReviewerLabel(event.reviewedBy)}</p>
+                                                                {event.reviewComment && (
+                                                                    <p className="text-xs text-[#94A3B8] italic truncate max-w-[150px]">
+                                                                        "{event.reviewComment}"
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-[#64748B] text-sm italic">Pendiente</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {filteredEvents.length === 0 && (
+                                            <tr>
+                                                <td colSpan={5} className="py-20 text-center text-[#64748B]">
+                                                    <Activity size={48} className="mx-auto mb-4 opacity-20" />
+                                                    <p className="text-xl">
+                                                        {searchTerm ? 'No se encontraron eventos con ese criterio.' : 'No hay eventos registrados en el sistema.'}
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
 
-                        <div className="border-t border-white/5 px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <p className="text-sm text-[#94A3B8]">
-                                Mostrando {events.length} de {pagination.total} eventos
-                            </p>
+                            <div className="border-t border-white/5 px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <p className="text-sm text-[#94A3B8]">
+                                    Mostrando {events.length} de {pagination.total} eventos
+                                </p>
 
-                            <div className="flex items-center gap-3">
-                                <select
-                                    value={pageSize}
-                                    onChange={(e) => {
-                                        setPageSize(Number(e.target.value));
-                                        setPage(1);
-                                    }}
-                                    className="bg-[#1A1F26] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none"
-                                >
-                                    <option value={10}>10 / pag</option>
-                                    <option value={20}>20 / pag</option>
-                                    <option value={50}>50 / pag</option>
-                                </select>
+                                <div className="flex items-center gap-3">
+                                    <select
+                                        value={pageSize}
+                                        onChange={(e) => {
+                                            setPageSize(Number(e.target.value));
+                                            setPage(1);
+                                        }}
+                                        className="bg-[#1A1F26] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none"
+                                    >
+                                        <option value={10}>10 / pag</option>
+                                        <option value={20}>20 / pag</option>
+                                        <option value={50}>50 / pag</option>
+                                    </select>
 
-                                <button
-                                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                                    disabled={!pagination.hasPrevPage || loading}
-                                    className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
-                                >
-                                    Anterior
-                                </button>
+                                    <button
+                                        onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                                        disabled={!pagination.hasPrevPage || loading}
+                                        className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                                    >
+                                        Anterior
+                                    </button>
 
-                                <span className="text-sm text-[#CBD5E1] min-w-[120px] text-center">
-                                    Pag {pagination.page} / {Math.max(pagination.totalPages, 1)}
-                                </span>
+                                    <span className="text-sm text-[#CBD5E1] min-w-[120px] text-center">
+                                        Pag {pagination.page} / {Math.max(pagination.totalPages, 1)}
+                                    </span>
 
-                                <button
-                                    onClick={() => setPage((prev) => prev + 1)}
-                                    disabled={!pagination.hasNextPage || loading}
-                                    className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
-                                >
-                                    Siguiente
-                                </button>
+                                    <button
+                                        onClick={() => setPage((prev) => prev + 1)}
+                                        disabled={!pagination.hasNextPage || loading}
+                                        className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                                    >
+                                        Siguiente
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             )}
 
             {selectedEvent && (
-                <div
-                    className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-                    onClick={closeModal}
-                >
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    {/* Overlay con desenfoque suave */}
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeModal} />
+                    
+                    {/* Contenedor del Modal */}
                     <div
-                        className="bg-[#1A1F26] rounded-2xl max-w-2xl w-full p-8 border border-white/10 relative"
+                        className="glass-panel w-full max-w-2xl relative z-10 overflow-hidden reveal bg-[var(--color-bg-secondary)]/90 max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <button
-                            onClick={closeModal}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-                        >
-                            <X size={24} />
-                        </button>
-
                         {modalLoading ? (
                             <div className="flex justify-center py-12">
                                 <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                             </div>
                         ) : (
-                            <>
-                                <h2 className="text-3xl font-bold text-white mb-6">Detalles del Evento</h2>
+                            <div className="p-8">
+                                <div className="flex justify-between items-center mb-8">
+                                    <h2 className="text-3xl font-bold tracking-tight text-white">
+                                        Detalles del <span className="text-[var(--color-text-secondary)]">Evento</span>
+                                    </h2>
+                                    <button
+                                        onClick={closeModal}
+                                        className="p-2 hover:bg-white/5 rounded-full text-gray-400 transition-colors"
+                                    >
+                                        <X size={20} />
+                                    </button>
+                                </div>
 
                                 <div className="space-y-6">
                                     <div className="grid grid-cols-2 gap-6">
@@ -468,7 +628,7 @@ export const EventsPage: React.FC = () => {
                                 >
                                     Cerrar
                                 </button>
-                            </>
+                            </div>
                         )}
                     </div>
                 </div>
