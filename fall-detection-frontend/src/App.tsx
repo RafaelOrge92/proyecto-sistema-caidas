@@ -13,6 +13,7 @@ import { MemberEventsPage } from './pages/MemberEventsPage';
 import { Dashboard } from './pages/Dashboard';
 import Admin from './pages/Admin';
 import { Navbar } from './components/Navbar';
+import { ChatbotWidget } from './components/ChatbotWidget';
 
 // Landing Imports
 import LandingNavbar from './components/landing/LandingNavbar';
@@ -51,6 +52,7 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       {user && <Navbar />} 
+      {user && <ChatbotWidget />}
       
       <Routes>
         <Route path="/login" element={<LoginPage />} />
