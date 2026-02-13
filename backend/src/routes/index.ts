@@ -4,3 +4,4 @@ export { usersRoutes } from './users';
 export { devicesRoutes } from './devices';
 export { eventsRoutes } from './events';
 export { patientsRoutes } from './patients';
+export { chatRoutes } from './chat';

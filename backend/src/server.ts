@@ -7,6 +7,7 @@ import { usersRoutes } from './routes/users';
 import { devicesRoutes } from './routes/devices';
 import { eventsRoutes } from './routes/events';
 import { patientsRoutes } from './routes/patients';
+import { chatRoutes } from './routes/chat';
 import { db } from './config/db';
 import { getJwtSecret } from './config/env';
 
@@ -41,6 +42,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/devices', devicesRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/patients', patientsRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {
