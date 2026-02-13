@@ -11,6 +11,7 @@ API del sistema de deteccion de caidas.
 - JWT (`jsonwebtoken`)
 - Hash de contrasenas (`bcryptjs`)
 - Google OAuth (`google-auth-library`)
+- Redis (`ioredis`) para historial del chatbot
 
 ## Estructura
 
@@ -64,6 +65,12 @@ Variables usadas por el backend:
 - `DISCORD_WEBHOOK_TIMEOUT_MS` (opcional, default `5000`)
 - `DISCORD_MENTION` (opcional, default `@Admin`)
 - `DISCORD_ROLE_ID` (opcional, si se define se usa `<@&ROLE_ID>` para ping real al rol)
+- `REDIS_URL` (obligatoria para habilitar chatbot)
+- `CHAT_PROVIDER` (opcional: `groq` o `huggingface`, default `groq`)
+- `GROQ_API_KEY` (si `CHAT_PROVIDER=groq`)
+- `GROQ_MODEL` (opcional, default `llama-3.1-8b-instant`)
+- `HF_API_KEY` (si `CHAT_PROVIDER=huggingface`)
+- `HF_MODEL` (opcional)
 
 Notas:
 
@@ -71,6 +78,7 @@ Notas:
 - `JWT_SECRET` no puede ser `dev-secret-change-me`.
 - Si `DISCORD_WEBHOOK_URL` esta definido, se envia un mensaje a Discord cuando se crea un evento (`POST /api/events/ingest` y `POST /api/events`).
 - El link del evento en Discord se arma con `FRONTEND_URL`; en local usa `http://localhost:5173`.
+- Si `REDIS_URL` no esta definido, las rutas `/api/chat/*` responden `503`.
 
 ## Base de datos
 
@@ -157,13 +165,28 @@ Base path: `/api`
 
 ### Events
 
-- `GET /api/events` (admin)
+- `GET /api/events` (admin o usuario autenticado con alcance por asignacion)
 - `GET /api/events/:id` (admin o con acceso al dispositivo)
 - `GET /api/events/device/:deviceId` (admin o con acceso)
-- `PUT /api/events/update` (admin)
+- `PUT /api/events/update` (admin o con acceso)
 - `POST /api/events` (sin auth de usuario/dispositivo en esta version)
 - `POST /api/events/ingest` (auth dispositivo)
 - `POST /api/events/samples` (auth dispositivo)
+
+### Chatbot (Redis + LLM)
+
+- `GET /api/chat/sessions`
+- `POST /api/chat/sessions`
+- `GET /api/chat/sessions/:sessionId/messages`
+- `POST /api/chat/message`
+
+Notas:
+
+- El historial del chat se guarda en Redis (persistente segun configuracion AOF/RDB del servidor Redis).
+- Se aplica limite de 30 mensajes/min por usuario.
+- El contexto del bot se ajusta al rol (`ADMIN` global, `MEMBER` solo datos asignados).
+- En el contexto se incluyen resumenes de eventos con fecha/hora en formato `es-ES` y tipo/estado humanizados.
+- Los eventos del resumen se listan como "mas recientes primero" (y se incluyen explicitamente el evento mas antiguo y el mas reciente para evitar ambiguedades).
 
 ## Integracion con ESP32
 
