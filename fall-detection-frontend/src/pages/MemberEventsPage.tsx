@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AdminService } from '../services/adminService';
 import { EventSample, FallEvent, PaginationMeta } from '../types';
-import { Calendar, HardDrive, UserCheck, Activity, Search, AlertTriangle, X, MessageSquare } from 'lucide-react';
+import { Calendar, HardDrive, UserCheck, Activity, Search, AlertTriangle, X, MessageSquare, Download } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
@@ -252,11 +254,53 @@ export const MemberEventsPage: React.FC = () => {
     []
   );
 
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const now = new Date();
+    const search = searchTerm.trim();
+
+    doc.text('Eventos (pacientes asignados)', 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Generado el: ${now.toLocaleString('es-ES')}`, 14, 22);
+    doc.text(`Filtros: estado=${statusFilter}, paciente=${patientFilter}, busqueda=${search || '-'}`, 14, 28);
+
+    const tableColumn = ['Fecha', 'Paciente', 'Dispositivo', 'Tipo', 'Estado', 'Revision', 'Comentario'];
+    const tableRows = filteredEvents.map((event) => [
+      event.occurredAt ? new Date(event.occurredAt).toLocaleString('es-ES') : '-',
+      event.patientName || 'Sin paciente',
+      event.deviceAlias || event.deviceId || '-',
+      event.eventType || '-',
+      event.status || '-',
+      event.reviewedBy || 'Pendiente',
+      event.reviewComment || '-'
+    ]);
+
+    autoTable(doc, {
+      startY: 34,
+      head: [tableColumn],
+      body: tableRows,
+      theme: 'grid',
+      headStyles: { fillColor: [79, 70, 229] }
+    });
+
+    doc.save(`eventos-${now.toISOString().split('T')[0]}.pdf`);
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto reveal">
-      <header className="mb-10">
-        <h1 className="text-5xl font-bold tracking-tight mb-2 text-white">Eventos</h1>
-        <p className="text-xl text-[#94A3B8]">Eventos de tus pacientes asignados.</p>
+      <header className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+        <div>
+          <h1 className="text-5xl font-bold tracking-tight mb-2 text-white">Eventos</h1>
+          <p className="text-xl text-[#94A3B8]">Eventos de tus pacientes asignados.</p>
+        </div>
+        <button
+          onClick={exportToPDF}
+          disabled={loading || filteredEvents.length === 0}
+          title="Descargar eventos filtrados en PDF"
+          className="glass-panel px-6 py-3 rounded-full font-semibold text-white hover:scale-105 hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Download size={18} /> Exportar PDF
+        </button>
       </header>
 
       {loading ? (

@@ -1,16 +1,59 @@
-# React + Vite
+# Frontend Web (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Panel web del sistema de deteccion de caidas.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React + TypeScript
+- Vite
+- TailwindCSS
+- Axios
+- `jspdf` + `jspdf-autotable` para exportar reportes
 
-## React Compiler
+## Requisitos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 18+
+- npm
+- Backend levantado (por defecto se usa `http://localhost:3000`)
 
-## Expanding the ESLint configuration
+## Instalacion y ejecucion
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Desde `fall-detection-frontend/`:
+
+```bash
+npm install
+npm run dev
+```
+
+Build:
+
+```bash
+npm run build
+npm run preview
+```
+
+## Variables de entorno
+
+- `VITE_GOOGLE_CLIENT_ID` (opcional, para Google OAuth en login; si no se define se usa un placeholder)
+
+Nota:
+
+- La URL del backend esta actualmente hardcodeada a `http://localhost:3000/api` en varios puntos (servicios y pantallas de auth).
+
+## Pantallas principales
+
+- Admin
+  - Usuarios: `/admin/users`
+  - Pacientes: `/admin/patients`
+  - Dispositivos: `/admin/devices`
+  - Eventos: `/admin/events` (incluye exportacion a PDF del listado filtrado)
+- Usuario (MEMBER/USUARIO/CUIDADOR)
+  - Mi proteccion: `/my-protection` (incluye exportacion a PDF de actividad)
+  - Eventos: `/member/events` (incluye exportacion a PDF respetando filtros de busqueda/estado/paciente)
+
+## Chatbot
+
+El widget del chatbot vive en `src/components/ChatbotWidget.tsx`.
+
+- Requiere backend con Redis configurado (`/api/chat/*`).
+- Gestiona sesiones y permite recargar/crear nuevas sesiones.

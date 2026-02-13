@@ -92,3 +92,30 @@ export interface PatientAssignedUser {
   accessTypes: string[];
   devicesAssigned: number;
 }
+
+export interface ChatSession {
+  sessionId: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  lastMessagePreview?: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  createdAt: string;
+  provider?: string;
+  model?: string;
+}
+
+export interface ChatUiRoute {
+  label: string;
+  path: string;
+}
+
+export interface ChatUiContext {
+  currentPath: string;
+  availableRoutes: ChatUiRoute[];
+}
