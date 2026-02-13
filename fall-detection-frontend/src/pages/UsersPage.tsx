@@ -158,7 +158,7 @@ export const UsersPage: React.FC = () => {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-6 py-3 rounded-full font-semibold transition-all shadow-lg flex items-center gap-2"
+          className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.02] flex items-center gap-2"
         >
           <UserPlus size={20} /> Nuevo Usuario
         </button>
@@ -224,7 +224,7 @@ export const UsersPage: React.FC = () => {
                 <div
                   key={user.id}
                   onClick={() => handleOpenPatientsModal(user)}
-                  className="glass-panel p-6 hover:scale-[1.02] transition-transform cursor-pointer group relative"
+                  className="glass-panel p-6 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 group relative"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div className="w-12 h-12 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-full flex items-center justify-center font-bold text-xl">

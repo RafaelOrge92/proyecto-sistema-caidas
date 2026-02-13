@@ -87,6 +87,23 @@ export const PatientsPage: React.FC = () => {
   const [assigning, setAssigning] = useState(false);
   const [removingAccountId, setRemovingAccountId] = useState<string | null>(null);
 
+  // Estado para crear nuevo paciente
+  const [isCreatePatientModalOpen, setIsCreatePatientModalOpen] = useState(false);
+  const [creatingPatient, setCreatingPatient] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    nif: '',
+    dateOfBirth: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    province: '',
+    postalCode: '',
+    country: 'España'
+  });
+
   const loadDevices = async () => {
     try {
       const response = await AdminService.getDevices();
@@ -229,6 +246,71 @@ export const PatientsPage: React.FC = () => {
     [modalUsers]
   );
 
+  const handleCreatePatient = async () => {
+    setCreateError(null);
+
+    // Validación
+    if (!formData.firstName.trim()) {
+      setCreateError('El nombre es requerido');
+      return;
+    }
+    if (!formData.lastName.trim()) {
+      setCreateError('El apellido es requerido');
+      return;
+    }
+    if (!formData.nif.trim()) {
+      setCreateError('El NIF es requerido');
+      return;
+    }
+    if (!formData.addressLine1.trim()) {
+      setCreateError('La dirección es requerida');
+      return;
+    }
+    if (!formData.city.trim()) {
+      setCreateError('La ciudad es requerida');
+      return;
+    }
+
+    setCreatingPatient(true);
+
+    try {
+      await AdminService.createPatient({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        nif: formData.nif,
+        dateOfBirth: formData.dateOfBirth || undefined,
+        addressLine1: formData.addressLine1,
+        addressLine2: formData.addressLine2 || undefined,
+        city: formData.city,
+        province: formData.province || undefined,
+        postalCode: formData.postalCode || undefined,
+        country: formData.country
+      });
+
+      // Limpiar formulario
+      setFormData({
+        firstName: '',
+        lastName: '',
+        nif: '',
+        dateOfBirth: '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        province: '',
+        postalCode: '',
+        country: 'España'
+      });
+
+      setIsCreatePatientModalOpen(false);
+      await loadDevices();
+    } catch (error: any) {
+      const message = error?.response?.data?.error || 'No se pudo crear el paciente';
+      setCreateError(message);
+    } finally {
+      setCreatingPatient(false);
+    }
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto reveal">
       <header className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
@@ -238,6 +320,12 @@ export const PatientsPage: React.FC = () => {
             Vista consolidada de pacientes segun dispositivos y asignaciones activas.
           </p>
         </div>
+        <button
+          onClick={() => setIsCreatePatientModalOpen(true)}
+          className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.02] flex items-center gap-2"
+        >
+          <UserPlus size={20} /> Nuevo Paciente
+        </button>
       </header>
 
       <div className="relative mb-8">
@@ -269,7 +357,7 @@ export const PatientsPage: React.FC = () => {
             const assignedUserNames = managedUsers ? managedUsers.map((user) => user.fullName) : patient.assignedUsers;
 
             return (
-              <div key={patient.key} className="glass-panel p-6 border border-white/10">
+              <div key={patient.key} className="glass-panel p-6 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 group">
                 <div className="flex items-start justify-between mb-4 gap-3">
                   <div className="w-12 h-12 bg-indigo-500/15 rounded-2xl flex items-center justify-center">
                     <UsersIcon size={22} className="text-indigo-300" />
@@ -449,6 +537,186 @@ export const PatientsPage: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal para crear nuevo paciente */}
+      {isCreatePatientModalOpen && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setIsCreatePatientModalOpen(false)}
+        >
+          <div 
+            className="bg-[#1A1F26] rounded-2xl max-w-2xl w-full p-8 border border-white/10 relative max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              onClick={() => setIsCreatePatientModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-white mb-2">Crear Paciente</h2>
+              <p className="text-[#94A3B8]">Registra un nuevo paciente en el sistema</p>
+            </div>
+
+            {createError && (
+              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <p className="text-red-400 text-sm">{createError}</p>
+              </div>
+            )}
+
+            <div className="space-y-4 mb-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Nombre *</label>
+                  <input
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    disabled={creatingPatient}
+                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                    placeholder="Juan"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Apellido *</label>
+                  <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    disabled={creatingPatient}
+                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                    placeholder="Pérez"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">NIF *</label>
+                  <input
+                    type="text"
+                    value={formData.nif}
+                    onChange={(e) => setFormData({ ...formData, nif: e.target.value })}
+                    disabled={creatingPatient}
+                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                    placeholder="12345678X"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Fecha de Nacimiento</label>
+                  <input
+                    type="date"
+                    value={formData.dateOfBirth}
+                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                    disabled={creatingPatient}
+                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Dirección *</label>
+                <input
+                  type="text"
+                  value={formData.addressLine1}
+                  onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
+                  disabled={creatingPatient}
+                  className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                  placeholder="Calle Principal 123"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Dirección 2 (Opcional)</label>
+                <input
+                  type="text"
+                  value={formData.addressLine2}
+                  onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })}
+                  disabled={creatingPatient}
+                  className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                  placeholder="Apartamento 4B"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Ciudad *</label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    disabled={creatingPatient}
+                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                    placeholder="Madrid"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Provincia(Opcional)</label>
+                  <input
+                    type="text"
+                    value={formData.province}
+                    onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                    disabled={creatingPatient}
+                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                    placeholder="Madrid"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Código Postal (Opcional)</label>
+                  <input
+                    type="text"
+                    value={formData.postalCode}
+                    onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                    disabled={creatingPatient}
+                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                    placeholder="28001"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">País</label>
+                  <input
+                    type="text"
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    disabled={creatingPatient}
+                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                    placeholder="España"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsCreatePatientModalOpen(false)}
+                disabled={creatingPatient}
+                className="flex-1 px-4 py-3 rounded-lg border border-white/10 text-white hover:bg-white/5 transition-all disabled:opacity-50 font-semibold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreatePatient}
+                disabled={creatingPatient}
+                className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-all disabled:opacity-50 font-semibold flex items-center justify-center gap-2"
+              >
+                {creatingPatient ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Creando...
+                  </>
+                ) : (
+                  'Crear Paciente'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 // src/services/adminService.ts
 import axios from 'axios';
-import { User, Device, FallEvent, AssignedPatient, PatientAssignedUser, EventSample, PaginationMeta } from '../types';
+import { User, Device, Patient, FallEvent, AssignedPatient, PatientAssignedUser, EventSample, PaginationMeta } from '../types';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -131,6 +131,23 @@ export const AdminService = {
     })) as Device[];
     return { data };
   },
+  getAvailableDevices: async () => {
+    const response = await api.get<any[]>('/devices/available');
+    const data = response.data.map((d: any) => ({
+      id: d.device_id,
+      alias: d.alias,
+      patientId: d.patient_id,
+      isActive: d.is_active,
+      lastSeen: d.last_seen_at?.toString(),
+      assignedUserId: null,
+      assignedUserName: null,
+      patientName: d.patient_full_name || undefined
+    })) as Device[];
+    return { data };
+  },
+  assignDeviceToMe: async (deviceId: string) => {
+    return api.post(`/devices/${deviceId}/assign-me`);
+  },
   createDevice: async (device: Partial<Device>) => {
     // Map frontend camelCase to backend expected snake_case/body params
     // Backend expects: id, alias, patientId, active, lastSeenAt
@@ -150,6 +167,66 @@ export const AdminService = {
       deviceId,
       accessType
     });
+  },
+
+  // --- PACIENTES ---
+  getPatients: async () => {
+    const response = await api.get<any[]>('/patients');
+    const data = response.data.map((p: any) => ({
+      patientId: p.patientId,
+      patientName: p.patientName,
+      firstName: p.firstName,
+      lastName: p.lastName,
+      nif: p.nif,
+      dateOfBirth: p.dateOfBirth,
+      city: p.city,
+      addressLine1: p.addressLine1
+    })) as Patient[];
+    return { data };
+  },
+  getAvailablePatients: async () => {
+    const response = await api.get<any[]>('/patients/available');
+    const data = response.data.map((p: any) => ({
+      patientId: p.patientId,
+      patientName: p.patientName,
+      firstName: p.firstName,
+      lastName: p.lastName,
+      nif: p.nif,
+      dateOfBirth: p.dateOfBirth,
+      city: p.city,
+      addressLine1: p.addressLine1,
+      deviceCount: Number(p.deviceCount || 0)
+    })) as Patient[];
+    return { data };
+  },
+  assignPatientToMe: async (patientId: string) => {
+    return api.post(`/patients/${patientId}/assign-me`);
+  },
+
+  createPatient: async (patient: Omit<Patient, 'patientId' | 'patientName'> & { dateOfBirth?: string; addressLine2?: string; province?: string; postalCode?: string; country?: string; notes?: string }) => {
+    const payload = {
+      firstName: patient.firstName,
+      lastName: patient.lastName,
+      nif: patient.nif,
+      dateOfBirth: patient.dateOfBirth || null,
+      addressLine1: patient.addressLine1,
+      addressLine2: patient.addressLine2 || null,
+      city: patient.city,
+      province: patient.province || null,
+      postalCode: patient.postalCode || null,
+      country: patient.country || 'España',
+      notes: patient.notes || null
+    };
+    return api.post('/patients', payload);
+  },
+
+  updateDevice: async (deviceId: string, device: Partial<any>) => {
+    const payload = {
+      alias: device.alias,
+      patientId: device.patientId,
+      isActive: device.isActive
+    };
+    return api.put(`/devices/${deviceId}`, payload);
   },
   
   getDeviceById: async (id: string) => {

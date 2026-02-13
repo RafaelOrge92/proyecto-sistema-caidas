@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { AdminService } from '../services/adminService';
-import { Device, User, FallEvent } from '../types';
-import { Laptop, Plus, Settings2, Link as LinkIcon, X, Activity, Calendar } from 'lucide-react';
+import { Device, User, Patient, FallEvent } from '../types';
+import { Laptop, Plus, Settings2, Link as LinkIcon, X, Activity, Calendar, Users, ChevronDown } from 'lucide-react';
 import { DeviceModal } from '../components/DeviceModal';
 
 export const DevicePage: React.FC = () => {
   const [devices, setDevices] = useState<Device[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [assigningDeviceId, setAssigningDeviceId] = useState<string | null>(null);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [deviceEvents, setDeviceEvents] = useState<FallEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
+  
+  // Estado para la modal de asignar paciente
+  const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
+  const [selectedDeviceForPatient, setSelectedDeviceForPatient] = useState<Device | null>(null);
+  const [assigningPatientToDeviceId, setAssigningPatientToDeviceId] = useState<string | null>(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -33,12 +39,14 @@ export const DevicePage: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [devRes, userRes] = await Promise.all([
+      const [devRes, userRes, patientRes] = await Promise.all([
         AdminService.getDevices(), 
-        AdminService.getUsers()
+        AdminService.getUsers(),
+        AdminService.getPatients()
       ]);
       setDevices(devRes.data);
       setUsers(userRes.data);
+      setPatients(patientRes.data);
     } catch (e) {
       console.error(e);
     } finally {
@@ -64,25 +72,47 @@ export const DevicePage: React.FC = () => {
     }
   };
 
+  const handleAssignPatient = async (patientId: string | null) => {
+    if (!selectedDeviceForPatient) return;
+
+    setAssigningPatientToDeviceId(selectedDeviceForPatient.id);
+    
+    try {
+      await AdminService.updateDevice(selectedDeviceForPatient.id, {
+        patientId: patientId || undefined
+      });
+      
+      // Recargar datos para reflejar cambios
+      await loadData();
+      setIsPatientModalOpen(false);
+      setSelectedDeviceForPatient(null);
+    } catch (error) {
+      console.error('Error asignando paciente:', error);
+      alert('Error al asignar el paciente');
+    } finally {
+      setAssigningPatientToDeviceId(null);
+    }
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto reveal">
-      <header className="flex justify-between items-end mb-12">
+      <header className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
         <div>
           <h1 className="text-5xl font-bold tracking-tight text-white">Dispositivos</h1>
           <p className="text-xl text-[#94A3B8] mt-2">Hardware vinculado a tu red de protección.</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 transition-transform shadow-xl"
+          className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.02] flex items-center gap-2"
         >
-          <Plus size={24} />
+          <Plus size={20} /> Nuevo Dispositivo
         </button>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {devices.map((device) => (
           /* TODO lo de abajo debe estar dentro de este único DIV con clase glass-panel */
-          <div key={device.id} className="glass-panel p-8 group relative overflow-hidden">
+          <div key={device.id} className="glass-panel p-8 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 group relative overflow-hidden">
             <div className="flex justify-between items-start mb-10">
               <div className="w-14 h-14 bg-[#252B35] rounded-2xl flex items-center justify-center text-[#6366F1]">
                 <Laptop size={28} />
@@ -99,26 +129,44 @@ export const DevicePage: React.FC = () => {
             <p className="text-xs font-mono text-[#94A3B8] mb-8 tracking-widest uppercase">ID: {device.id}</p>
 
             <div className="space-y-4">
-              <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-tighter block">Asignación de Usuario</label>
-              <div className="relative">
-                <select
-                  value={device.assignedUserId || ""}
-                  className="w-full bg-[#0F1419] border-none text-white rounded-xl py-3 px-4 appearance-none focus:ring-2 focus:ring-[#6366F1] transition-all cursor-pointer disabled:opacity-50"
-                  onChange={(e) => handleAssignDevice(device.id, e.target.value)}
-                  disabled={assigningDeviceId === device.id}
+              {/* Sección de Paciente */}
+              <div>
+                <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-tighter block mb-2">Paciente Asignado</label>
+                <button
+                  onClick={() => {
+                    setSelectedDeviceForPatient(device);
+                    setIsPatientModalOpen(true);
+                  }}
+                  className="w-full bg-[#0F1419] hover:bg-[#1A1F2E] border border-[#2D3748] text-white rounded-xl py-3 px-4 transition-all text-left flex justify-between items-center"
                 >
-                  <option value="">
-                    {assigningDeviceId === device.id ? 'Asignando...' : 'Disponible'}
-                  </option>
-                  {users.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
-                </select>
-                <LinkIcon size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                  <span>{device.patientName || 'Sin paciente'}</span>
+                  <ChevronDown size={16} className="text-gray-500" />
+                </button>
               </div>
-              {device.assignedUserName && (
-                <p className="text-xs text-green-400">
-                  ✓ Asignado a: {device.assignedUserName}
-                </p>
-              )}
+
+              {/* Sección de Usuario */}
+              <div>
+                <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-tighter block">Asignación de Usuario</label>
+                <div className="relative">
+                  <select
+                    value={device.assignedUserId || ""}
+                    className="w-full bg-[#0F1419] border-none text-white rounded-xl py-3 px-4 appearance-none focus:ring-2 focus:ring-[#6366F1] transition-all cursor-pointer disabled:opacity-50"
+                    onChange={(e) => handleAssignDevice(device.id, e.target.value)}
+                    disabled={assigningDeviceId === device.id}
+                  >
+                    <option value="">
+                      {assigningDeviceId === device.id ? 'Asignando...' : 'Disponible'}
+                    </option>
+                    {users.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
+                  </select>
+                  <LinkIcon size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                </div>
+                {device.assignedUserName && (
+                  <p className="text-xs text-green-400 mt-2">
+                    ✓ Asignado a: {device.assignedUserName}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Indicador de Estado - Asegúrate que esté DENTRO del div superior */}
@@ -221,6 +269,81 @@ export const DevicePage: React.FC = () => {
                   </div>
                 </div>
               )}
+
+      {/* Modal de Asignar Paciente */}
+      {isPatientModalOpen && selectedDeviceForPatient && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setIsPatientModalOpen(false)}
+        >
+          <div 
+            className="bg-[#1A1F26] rounded-2xl max-w-md w-full p-8 border border-white/10 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              onClick={() => setIsPatientModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">Asignar Paciente</h2>
+              <p className="text-[#94A3B8]">Dispositivo: {selectedDeviceForPatient.alias || selectedDeviceForPatient.id}</p>
+            </div>
+
+            <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+              {/* Opción de sin paciente */}
+              <button
+                onClick={() => handleAssignPatient(null)}
+                disabled={assigningPatientToDeviceId === selectedDeviceForPatient.id}
+                className="w-full p-4 text-left bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all disabled:opacity-50"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-gray-500"></div>
+                  <span className="text-white">Sin paciente</span>
+                </div>
+              </button>
+
+              {/* Opciones de pacientes */}
+              {patients.length > 0 ? (
+                patients.map((patient) => (
+                  <button
+                    key={patient.patientId}
+                    onClick={() => handleAssignPatient(patient.patientId)}
+                    disabled={assigningPatientToDeviceId === selectedDeviceForPatient.id}
+                    className={`w-full p-4 text-left rounded-lg transition-all disabled:opacity-50 ${
+                      selectedDeviceForPatient.patientId === patient.patientId
+                        ? 'bg-indigo-600/20 border border-indigo-500/50'
+                        : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-3 h-3 rounded-full bg-indigo-400 mt-1"></div>
+                      <div>
+                        <p className="text-white font-semibold">{patient.patientName}</p>
+                        {patient.nif && <p className="text-xs text-[#94A3B8]">NIF: {patient.nif}</p>}
+                        {patient.city && <p className="text-xs text-[#94A3B8]">{patient.city}</p>}
+                      </div>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="text-center py-8 text-[#64748B]">
+                  <Users size={32} className="mx-auto mb-2 opacity-20" />
+                  <p>No hay pacientes disponibles</p>
+                </div>
+              )}
+            </div>
+
+            {assigningPatientToDeviceId === selectedDeviceForPatient.id && (
+              <div className="mt-4 flex justify-center">
+                <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -11,6 +11,18 @@ export interface User {
   phone?: string;
 }
 
+export interface Patient {
+  patientId: string;
+  patientName: string;
+  firstName?: string;
+  lastName?: string;
+  nif?: string;
+  dateOfBirth?: string;
+  city?: string;
+  addressLine1?: string;
+  deviceCount?: number;
+}
+
 export interface Device {
   id: string;
   deviceId?: string;
