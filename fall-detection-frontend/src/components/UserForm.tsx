@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AdminService } from '../services/adminService';
 import { User, UserRole } from '../types';
 import Button from './ui/Button';
+import { FormInput, FormSelect } from './FormInput';
 
 interface UserFormProps {
   initialData?: User;
@@ -54,61 +55,47 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
           {error}
         </div>
       )}
-      <div className="space-y-2">
-        <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase px-1">Nombre Completo</label>
-        <input
-          type="text"
-          className="w-full border rounded-2xl p-4 focus:ring-2 focus:ring-[var(--color-primary)] outline-none transition-all"
-          style={{ backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
-          value={formData.fullName}
-          onChange={e => setFormData({ ...formData, fullName: e.target.value })}
-          required
-        />
-      </div>
+      
+      <FormInput
+        label="Nombre Completo"
+        type="text"
+        value={formData.fullName}
+        onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+        required
+      />
 
-      <div className="space-y-2">
-        <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase px-1">Email</label>
-        <input
-          type="email"
-          className="w-full border rounded-2xl p-4 focus:ring-2 focus:ring-[var(--color-primary)] outline-none transition-all disabled:opacity-50"
-          style={{ backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
-          value={formData.email}
-          disabled={!!initialData}
-          onChange={e => setFormData({ ...formData, email: e.target.value })}
-          required
-        />
-      </div>
+      <FormInput
+        label="Email"
+        type="email"
+        value={formData.email}
+        onChange={e => setFormData({ ...formData, email: e.target.value })}
+        disabled={!!initialData}
+        required
+      />
 
       {!initialData && (
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase px-1">Contrasena</label>
-          <input
-            type="password"
-            className="w-full border rounded-2xl p-4 focus:ring-2 focus:ring-[var(--color-primary)] outline-none transition-all"
-            style={{ backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
-            value={formData.password}
-            onChange={e => setFormData({ ...formData, password: e.target.value })}
-            required
-          />
-        </div>
+        <FormInput
+          label="Contraseña"
+          type="password"
+          value={formData.password}
+          onChange={e => setFormData({ ...formData, password: e.target.value })}
+          required
+        />
       )}
 
-      <div className="space-y-2">
-        <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase px-1">Rol de Acceso</label>
-        <select
-          className="w-full border rounded-2xl p-4 outline-none appearance-none cursor-pointer"
-          style={{ backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
-          value={formData.role}
-          onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })}
-        >
-          <option value="MEMBER">Miembro</option>
-          <option value="ADMIN">Administrador</option>
-        </select>
-      </div>
+      <FormSelect
+        label="Rol de Acceso"
+        options={[
+          { value: 'MEMBER', label: 'Miembro' },
+          { value: 'ADMIN', label: 'Administrador' }
+        ]}
+        value={formData.role}
+        onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })}
+      />
 
       <div className="flex gap-4 pt-4">
         <Button variant="ghost" fullWidth onClick={onCancel}>Cancelar</Button>
-        <Button variant="primary" fullWidth disabled={submitting}>
+        <Button variant="primary" fullWidth disabled={submitting} type="submit">
           {submitting ? 'Guardando...' : (initialData ? 'Guardar' : 'Crear')}
         </Button>
       </div>

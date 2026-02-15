@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Activity,
   HardDrive,
-  Search,
   UserCheck,
   Users as UsersIcon,
   UserPlus,
@@ -12,6 +11,8 @@ import {
 } from 'lucide-react';
 import { AdminService } from '../services/adminService';
 import { Device, PatientAssignedUser, User } from '../types';
+import { PageHeader } from '../components/PageHeader';
+import { SearchFilterBar } from '../components/SearchFilterBar';
 
 type PatientSummary = {
   key: string;
@@ -313,35 +314,21 @@ export const PatientsPage: React.FC = () => {
 
   return (
     <div className="p-8 max-w-7xl mx-auto reveal">
-      <header className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-        <div>
-          <h1 className="text-5xl font-bold tracking-tight mb-2 text-white">Pacientes</h1>
-          <p className="text-xl text-[var(--color-text-secondary)]">
-            Vista consolidada de pacientes segun dispositivos y asignaciones activas.
-          </p>
-        </div>
-        <button
-          onClick={() => setIsCreatePatientModalOpen(true)}
-          className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.02] flex items-center gap-2"
-        >
-          <UserPlus size={20} /> Nuevo Paciente
-        </button>
-      </header>
+      <PageHeader
+        title="Pacientes"
+        subtitle="Vista consolidada de pacientes segun dispositivos y asignaciones activas."
+        actionButton={{
+          label: 'Nuevo Paciente',
+          icon: UserPlus,
+          onClick: () => setIsCreatePatientModalOpen(true)
+        }}
+      />
 
-      <div className="relative mb-8">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2" size={20} style={{ color: 'var(--color-text-secondary)' }} />
-        <input
-          type="text"
-          placeholder="Buscar por nombre, paciente, usuario o dispositivo..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full border-none rounded-2xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-lg"
-          style={{
-            backgroundColor: 'var(--color-bg-secondary)',
-            color: 'var(--color-text-primary)'
-          }}
-        />
-      </div>
+      <SearchFilterBar
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar por nombre, paciente, usuario o dispositivo..."
+      />
 
       {loading ? (
         <div className="flex justify-center py-16">
