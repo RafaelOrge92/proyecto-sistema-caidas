@@ -14,12 +14,31 @@
 </p>
 
 <p align="center">
-  <a href="#stack">Stack</a> ·
-  <a href="#modulos">Modulos</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#stack-tecnológico">Stack</a> ·
   <a href="#arquitectura">Arquitectura</a> ·
   <a href="#quick-start">Quick Start</a> ·
-  <a href="#base-de-datos">Base de datos</a>
+  <a href="#autenticación">Auth</a> ·
+  <a href="#faq">FAQ</a>
 </p>
+
+---
+
+## 📋 Tabla de Contenidos
+
+- [Features](#features)
+- [Stack Tecnológico](#stack-tecnológico)
+- [Módulos](#módulos)
+- [Arquitectura](#arquitectura)
+- [Prerrequisitos](#prerrequisitos)
+- [Quick Start](#quick-start)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Base de Datos](#base-de-datos)
+- [Autenticación](#autenticación)
+- [Screenshots](#screenshots)
+- [FAQ](#faq)
+- [Contribuir](#contribuir)
+- [Contacto](#contacto)
 
 <p align="center">
   <img src="https://img.shields.io/badge/Node.js-18%2B-0F172A?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
@@ -38,24 +57,28 @@
 
 ---
 
-## Vision
+## Features
 
-Sistema orientado a deteccion temprana de caidas y eventos criticos con:
+<img src="assets/readme-features.svg" alt="Features carousel" width="100%" />
 
-- Ingesta IoT (ESP32 + sensores) y correlacion de eventos.
-- Dashboard web con estilo glassmorphism y analitica.
-- App movil para usuarios finales y cuidadores.
-- Chatbot con historial en Redis y contexto por rol.
+<img src="assets/readme-dots.svg" alt="Indicator" width="80px" />
 
-## Stack
+✨ **Detección de Caídas en Tiempo Real**
+- Sensores MPU6050 (acelerómetro + giroscopio) integrados en ESP32.
+- Algoritmos de análisis de movimiento para identificar movimientos anómalos.
+- Botón de emergencia para alertas manuales.
 
-- Backend: Node.js, Express, TypeScript, PostgreSQL, JWT, Redis, Google OAuth.
-- Frontend: React, Vite, TailwindCSS, Chart.js, jsPDF.
-- Mobile: Expo + React Native, React Navigation, React Query.
-- Hardware: ESP32 (firmware en Arduino), MPU6050 + sensores.
-- Mock de hardware: FastAPI + Uvicorn.
+📊 **Dashboard Web Avanzado**
+- Panel de administración con diseño glassmorphism (indigo/cyan).
+- Gráficos en tiempo real (Chart.js).
+- Exportación de reportes a PDF (jsPDF + jsPDF-autotable).
+- Gestión de usuarios, dispositivos y pacientes.
 
-## Modulos
+📱 **App Móvil Multiplataforma**
+- Soporte iOS y Android (Expo + React Native).
+- Notificaciones push y alertas en tiempo real.
+- Historial de eventos y detalles de dispositivos.
+- Autenticación con JWT y Google OAuth.
 
 💬 **Chatbot Inteligente**
 - Integración con Groq o Hugging Face LLM.
