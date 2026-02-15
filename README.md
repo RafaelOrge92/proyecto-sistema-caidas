@@ -14,12 +14,11 @@
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> ·
-  <a href="#stack-tecnológico">Stack</a> ·
+  <a href="#stack">Stack</a> ·
+  <a href="#modulos">Modulos</a> ·
   <a href="#arquitectura">Arquitectura</a> ·
   <a href="#quick-start">Quick Start</a> ·
-  <a href="#autenticación">Auth</a> ·
-  <a href="#faq">FAQ</a>
+  <a href="#base-de-datos">Base de datos</a>
 </p>
 
 <p align="center">
@@ -39,477 +38,111 @@
 
 ---
 
-## 📋 Tabla de Contenidos
+## Vision
 
-- [Features](#features)
-- [Stack Tecnológico](#stack-tecnológico)
-- [Módulos](#módulos)
-- [Arquitectura](#arquitectura)
-- [Prerrequisitos](#prerrequisitos)
-- [Quick Start](#quick-start)
-- [Estructura del Proyecto](#estructura-del-proyecto)
-- [Base de Datos](#base-de-datos)
-- [Autenticación](#autenticación)
-- [Screenshots](#screenshots)
-- [FAQ](#faq)
-- [Contribuir](#contribuir)
-- [Contacto](#contacto)
+Sistema orientado a deteccion temprana de caidas y eventos criticos con:
 
----
+- Ingesta IoT (ESP32 + sensores) y correlacion de eventos.
+- Dashboard web con estilo glassmorphism y analitica.
+- App movil para usuarios finales y cuidadores.
+- Chatbot con historial en Redis y contexto por rol.
 
-## Features
+## Stack
 
-<img src="assets/readme-features.svg" alt="Features carousel" width="100%" />
+- Backend: Node.js, Express, TypeScript, PostgreSQL, JWT, Redis, Google OAuth.
+- Frontend: React, Vite, TailwindCSS, Chart.js, jsPDF.
+- Mobile: Expo + React Native, React Navigation, React Query.
+- Hardware: ESP32 (firmware en Arduino), MPU6050 + sensores.
+- Mock de hardware: FastAPI + Uvicorn.
 
-<img src="assets/readme-dots.svg" alt="Indicator" width="80px" />
+## Modulos
 
-✨ **Detección de Caídas en Tiempo Real**
-- Sensores MPU6050 (acelerómetro + giroscopio) integrados en ESP32.
-- Algoritmos de análisis de movimiento para identificar movimientos anómalos.
-- Botón de emergencia para alertas manuales.
+- [backend/](backend/) API principal (auth, usuarios, dispositivos, eventos, chatbot).
+- [fall-detection-frontend/](fall-detection-frontend/) panel web para administracion y visualizacion.
+- [mobile/](mobile/) app movil (ADMIN y MEMBER).
+- [hardware/](hardware/) firmware ESP32 y mock local.
+- [backend/Base%20de%20Datos/](backend/Base%20de%20Datos/) scripts SQL y modelo relacional.
 
-📊 **Dashboard Web Avanzado**
-- Panel de administración con diseño glassmorphism (indigo/cyan).
-- Gráficos en tiempo real (Chart.js).
-- Exportación de reportes a PDF (jsPDF + jsPDF-autotable).
-- Gestión de usuarios, dispositivos y pacientes.
+## Arquitectura
 
-📱 **App Móvil Multiplataforma**
-- Soporte iOS y Android (Expo + React Native).
-- Notificaciones push y alertas en tiempo real.
-- Historial de eventos y detalles de dispositivos.
-- Autenticación con JWT y Google OAuth.
-
-💬 **Chatbot Inteligente**
-- Integración con Groq o Hugging Face LLM.
-- Historial persistente en Redis.
-- Contexto personalizado por rol (ADMIN vs MEMBER).
-- Rate limiting (30 msgs/min por usuario).
-
-🔐 **Autenticación Robusta**
-- JWT para usuarios finales.
-- Google OAuth 2.0 integrado.
-- Device authentication con X-Device-Id y X-Device-Key (bcrypt).
-- Control de roles (ADMIN, MEMBER, CUIDADOR).
-
-🌐 **Hardware IoT**
-- Firmware ESP32 en C++ (Arduino IDE).
-- Comunicación HTTP + autenticación de dispositivo.
-- Sensores: MPU6050, inclinómetro KY-017, botón de emergencia.
-
----
-
-## Stack Tecnológico
-
-<img src="assets/readme-stack.svg" alt="Tech stack badges" width="100%" />
-
-| Capa | Tecnología | Versión |
-|------|-----------|---------|
-| **Backend** | Node.js, Express, TypeScript | 18+, 5.x, 5.x |
-| **Frontend Web** | React, Vite, TailwindCSS | 19, 7.x, 4.x |
-| **Mobile** | Expo, React Native | 54, 0.81 |
-| **Base de Datos** | PostgreSQL | 15+ |
-| **Cache** | Redis | 7.x |
-| **Hardware** | ESP32, Arduino SDK | - |
-| **LLM** | Groq, Hugging Face | - |
-| **Auth** | JWT, Google OAuth | - |
-
----
-
-## Módulos
-
+```mermaid
+flowchart LR
+  ESP32[ESP32 + Sensores] -->|HTTP + device auth| API[Backend Node/Express]
+  API --> DB[(PostgreSQL)]
+  API --> Cache[(Redis)]
+  API --> WEB[Frontend React/Vite]
+  API --> MOB[Mobile Expo/React Native]
+  Mock[FastAPI Mock] -. pruebas .-> API
 ```
-proyecto-sistema-caidas/
-├── backend/                          API principal Node.js + Express
-│   ├── src/
-│   │   ├── routes/                   Endpoints (auth, users, devices, events, chat)
-│   │   ├── middleware/               JWT + device auth
-│   │   ├── config/                   DB, Redis, env
-│   │   └── utils/                    Webhooks Discord, LLM, password hashing
-│   └── Base de Datos/                Scripts SQL y modelo relacional
-│
-├── fall-detection-frontend/          Panel web React + Vite
-│   ├── src/
-│   │   ├── pages/                    Admin, Dashboard, Events, Patients, Users
-│   │   ├── components/               Modales, gráficos, widgets
-│   │   ├── services/                 Clientes HTTP (adminService, chatService)
-│   │   ├── context/                  AuthContext, ThemeContext
-│   │   └── assets/                   Imágenes, íconos
-│   └── vite.config.js, tailwind.config.js
-│
-├── mobile/                           App móvil Expo + React Native
-│   ├── src/
-│   │   ├── screens/                  Home, Login, Events, Devices, Profile
-│   │   ├── components/               Botones, inputs, layouts reutilizables
-│   │   ├── api/                      Cliente HTTP, endpoints, mappers
-│   │   ├── auth/                     AuthContext, manejo de sesión
-│   │   ├── navigation/               Stack y Tab navigators
-│   │   └── theme/                    Tokens de color y tipografía
-│   ├── app.config.ts, tsconfig.json
-│   └── .env.example
-│
-├── hardware/                         Firmware y mock local
-│   ├── esp32/
-│   │   └── esp32_http.ino            Código del microcontrolador
-│   ├── server/                       Mock API en FastAPI (pruebas locales)
-│   │   ├── server.py
-│   │   └── requirements.txt
-│   └── docs/                         Documentación hardware
-│
-├── assets/                           SVG animados para README
-│   ├── readme-hero.svg
-│   └── readme-pulse.svg
-│
-└── package.json, .gitignore          Configuración raíz
-```
-
----
-
-<img src="assets/readme-architecture.svg" alt="System architecture diagram" width="100%" />
-
-**Flujo de datos:**
-```
-ESP32 (IoT) --[device-auth]--> Backend API (Node/Express)
-                                    ↓
-                        ┌───────────┼───────────┐
-                        ↓           ↓           ↓
-                    PostgreSQL  Redis      Clientes
-                     (datos)   (chat)    (Web/Mobile)
-  WEB -->|JWT Token| API
-  MOBILE -->|JWT Token| API
-```
-
----
-
-## Prerrequisitos
-
-### Backend
-- **Node.js**: 18 o superior (`node --version`)
-- **npm**: 9 o superior (`npm --version`)
-- **PostgreSQL**: 15+ con creación de base de datos
-- **Redis**: 7+ (opcional, requerido para chatbot)
-
-### Frontend Web
-- **Node.js**: 18+
-- **npm**: 9+
-- Navegador moderno (Chrome, Firefox, Safari, Edge)
-
-### Mobile
-- **Node.js**: 18+
-- **npm**: 9+
-- **Expo CLI**: `npm install -g expo-cli`
-- **Android Studio** o **Xcode** (emuladores)
-- O dispositivo físico con **Expo Go**
-
-### Hardware
-- **ESP32-DevKit** con WiFi integrado
-- **Sensores**:
-  - MPU6050 (I2C: GPIO 21/22)
-  - KY-017 inclinómetro (GPIO 26)
-  - Botón emergencia (GPIO 25)
-  - LED de estado (GPIO 2)
-- **Arduino IDE** + ESP32 board support
-
----
 
 ## Quick Start
 
-### 1️⃣ Backend
+1) Backend
 
 ```bash
 cd backend
 npm install
-cp .env.example .env          # Copiar plantilla
-# Editar .env con credenciales locales
-npm run dev                   # Escucha en :3000
+npm run dev
 ```
 
-### 2️⃣ Frontend Web
+2) Frontend
 
 ```bash
 cd fall-detection-frontend
 npm install
-npm run dev                   # Escucha en :5173
+npm run dev
 ```
 
-### 3️⃣ Mobile
+3) Mobile
 
 ```bash
 cd mobile
 npm install
-# Editar .env con URLs del backend
 npm run start
-# Presiona 'a' para Android o 'i' para iOS
 ```
 
-### 4️⃣ Hardware (Opcional)
+4) Hardware (opcional)
 
-```bash
-# En Arduino IDE:
-# 1. Abre: hardware/esp32/esp32_http.ino
-# 2. Configura WiFi SSID/PASS y BASE_URL
-# 3. Carga en ESP32
-```
+- Ver [hardware/docs/README.md](hardware/docs/README.md)
+- Firmware: [hardware/esp32/esp32_http.ino](hardware/esp32/esp32_http.ino)
 
----
+## Variables de entorno (resumen)
 
-## Estructura del Proyecto
+Backend:
 
-### Backend
+- `PORT`, `NODE_ENV`, `JWT_SECRET`
+- `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USER`, `DB_PASSWORD`
+- `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+- `REDIS_URL` (chatbot)
 
-**Rutas principales** (`src/routes/`):
-- `auth.ts`: Login, Google OAuth, logout
-- `users.ts`: CRUD de usuarios (admin)
-- `devices.ts`: CRUD de dispositivos, heartbeat
-- `events.ts`: CRUD de eventos, ingest, samples
-- `chat.ts`: Sesiones y mensajes del chatbot
-- `patients.ts`: Asociación usuarios-pacientes
+Frontend:
 
-**Middleware** (`src/middleware/`):
-- `auth.ts`: Validación JWT, control de roles
-- `deviceAuth.ts`: Validación de headers (X-Device-Id, X-Device-Key)
+- `VITE_GOOGLE_CLIENT_ID` (opcional)
 
-**Configuración** (`src/config/`):
-- `db.ts`: Pool PostgreSQL
-- `env.ts`: Variables de entorno críticas
-- `redis.ts`: Conexión Redis para chatbot
+Mobile:
 
-### Frontend Web
+- `EXPO_PUBLIC_API_BASE_URL`
+- `API_BASE_URL`
+- `EXPO_PUBLIC_GOOGLE_*_CLIENT_ID`
 
-**Páginas** (`src/pages/`):
-- `Admin.tsx`: Paneles de gestión
-- `Dashboard.tsx`: Vista principal
-- `EventsPage.tsx`: Listado y gráficos de eventos
-- `PatientsPage.tsx`: Gestión de pacientes
-- `UsersPage.tsx`: Gestión de usuarios
+## Base de datos
 
-**Componentes** (`src/components/`):
-- Modales: `DeviceModal.tsx`, `UserModal.tsx`, `GenericModal.tsx`
-- Widgets: `ChatbotWidget.tsx`, `LiveCharts.tsx`
-- UI: `Navbar.tsx`, `Layout.tsx`, `ProtectedRoute.tsx`
+Script principal:
 
-### Mobile
+- [backend/Base%20de%20Datos/Scripts/create_db.sql](backend/Base%20de%20Datos/Scripts/create_db.sql)
 
-**Screens** (`src/screens/`):
-- Home, Login, Register, Dashboard
-- EventsScreen, DevicesScreen, ProfileScreen
+Incluye tablas de usuarios, pacientes, dispositivos y eventos, mas vistas y triggers.
 
-**Contexto** (`src/auth/`):
-- `AuthContext.tsx`: Gestión de sesión JWT
-- Integración con `expo-secure-store`
+## Estilo visual
 
----
-
-## Base de Datos
-
-### Setup Inicial
-
-```bash
-# 1. Conectarse a PostgreSQL
-psql -U postgres
-
-# 2. Ejecutar script principal
-\i backend/Base\ de\ Datos/Scripts/create_db.sql
-
-# 3. Verificar tablas creadas
-\dt public.*
-```
-
-### Tablas Principales
-
-| Tabla | Descripción |
-|-------|-------------|
-| `accounts` | Usuarios (ADMIN, MEMBER, CUIDADOR) |
-| `patients` | Pacientes a monitorear |
-| `devices` | Dispositivos ESP32 registrados |
-| `device_access` | Relación dispositivos-usuarios |
-| `events` | Eventos de caída detectados |
-| `event_samples` | Muestras acelerómetro por evento |
-
-### Scripts Útiles
-
-**Crear/actualizar hash de device key:**
-```sql
-UPDATE public.devices
-SET device_key_hash = crypt('tu-clave-plana', gen_salt('bf', 10))
-WHERE device_id = 'ESP32-XXXXX';
-```
-
-**Verificar coincidencia de key:**
-```sql
-SELECT crypt('tu-clave-plana', device_key_hash) = device_key_hash AS key_ok
-FROM public.devices
-WHERE device_id = 'ESP32-XXXXX';
-```
-
----
-
-## Autenticación
-
-### JWT (Usuarios)
-
-**Login email/contraseña:**
-```bash
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-**Respuesta:**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": { "id": 1, "email": "user@example.com", "role": "ADMIN" }
-}
-```
-
-**Headers autenticados:**
-```bash
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-### Google OAuth
-
-```bash
-POST /api/auth/google-login
-Content-Type: application/json
-
-{
-  "googleToken": "google-id-token-from-frontend"
-}
-```
-
-### Device Authentication
-
-**Headers requeridos en `/api/events/ingest`, `/api/devices/heartbeat`:**
-```bash
-X-Device-Id: ESP32-FC3A57088304
-X-Device-Key: tu-clave-plana
-Content-Type: application/json
-```
-
-La clave se valida contra `device_key_hash` con bcrypt.
-
----
-
-## Screenshots
-
-### Web Dashboard
-
-> 📸 *Placeholder: Agregar captura del panel admin con gráficos*
-
-### Mobile App
-
-> 📸 *Placeholder: Agregar capturas de login, dashboard y eventos*
-
-### Hardware Setup
-
-> 📸 *Placeholder: Agregar foto del ESP32 con sensores*
-
----
-
-## FAQ
-
-### ❓ Backend no conecta con PostgreSQL
-
-**Solución:**
-1. Verifica las env vars: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USER`, `DB_PASSWORD`
-2. Asegúrate que PostgreSQL está corriendo: `psql -U postgres -c "SELECT 1"`
-3. Verifica firewall/port: `netstat -an | grep 5432`
-
-### ❓ Mobile no se conecta al backend
-
-**Solución:**
-1. Backend debe estar en red local accesible desde el móvil
-2. En emulador Android: usa `http://10.0.2.2:3000` en vez de `localhost`
-3. En dispositivo físico: usa IP LAN del PC: `http://192.168.x.x:3000`
-4. Verifica `.env`: `EXPO_PUBLIC_API_BASE_URL`
-
-### ❓ JWT token expirado
-
-**Solución:**
-- Re-login o implementar token refresh
-- Verifica `JWT_SECRET` en backend (no puede ser `dev-secret-change-me`)
-- Check `JWT_EXPIRE` en `.env` backend
-
-### ❓ ESP32 devuelve 401 en heartbeat
-
-**Solución:**
-1. Verifica `X-Device-Id` en headers
-2. Verifica que `device_id` existe en DB: `SELECT device_id FROM public.devices`
-3. Verifica `device_key_hash` está configurado
-4. `X-Device-Key` debe ser clave plana (no hash)
-
-### ❓ Chatbot no responde (503)
-
-**Solución:**
-- Redis no está disponible
-- Verifica `REDIS_URL` en `.env` backend
-- Verifica `CHAT_PROVIDER` (groq o huggingface)
-- Agrega `GROQ_API_KEY` o `HF_API_KEY`
-
-### ❓ Discord webhook no envia notificaciones
-
-**Solución:**
-1. Verifica `DISCORD_WEBHOOK_URL` en `.env`
-2. Verifica que la URL es válida (sin typos)
-3. Opcional: usa `DISCORD_ROLE_ID` para menciones a rol
-
----
+La UI sigue un look dark glassmorphism con gradientes indigo/cyan, sombras suaves y transiciones.
+Esto replica el estilo de la app web y se refleja en este README con banners animados.
 
 ## Contribuir
 
-### Flujo de Trabajo
+- Issues y PRs bienvenidos.
+- Mantener consistencia con TypeScript y estilo tailwind.
 
-1. **Crear rama feature**
-   ```bash
-   git checkout develop
-   git pull origin develop
-   git checkout -b feature/nombre-descriptivo
-   ```
+## Licencia
 
-2. **Commits claros**
-   ```bash
-   git commit -m "feat: agregar nueva pantalla"
-   git commit -m "fix: resolver conflicto en auth"
-   git commit -m "docs: actualizar README"
-   ```
-
-3. **Push y PR**
-   ```bash
-   git push origin feature/nombre-descriptivo
-   # Crear Pull Request en GitHub contra `develop`
-   ```
-
-### Estándares
-
-- **TypeScript**: tipos explícitos, sin `any` cuando sea posible
-- **React**: componentes funcionales + hooks, naming en PascalCase
-- **Estilos**: TailwindCSS, respetar tema dark/light
-- **Base de datos**: migraciones en `backend/Base de Datos/Scripts/`
-- **Commits**: messages en inglés o español consistentes
-
----
-
-## Contacto
-
-**Equipo de Desarrollo:**
-- **Lead Backend**: [@RafaelOrge92](https://github.com/RafaelOrge92)
-- **Issues & Bugs**: [GitHub Issues](https://github.com/RafaelOrge92/proyecto-sistema-caidas/issues)
-
-**Recursos**
-- 📖 [Database Schema](backend/Base%20de%20Datos/modelo_relacional/modelo_sistema_caidas.drawio)
-- 📖 [Hardware Docs](hardware/docs/README.md)
-- 📖 [Backend API](backend/README.md)
-- 📖 [Frontend](fall-detection-frontend/README.md)
-- 📖 [Mobile](mobile/README.md)
-
----
-
-<p align="center">
-  <sub>Sistema de Detección de Caídas © 2026 | Full Stack Open Source</sub>
-</p>
+Pendiente.
