@@ -2,23 +2,22 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AdminService } from '../services/adminService';
 import { AssignedPatient, User } from '../types';
 import {
-  Search,
   UserPlus,
   MoreHorizontal,
   ShieldCheck,
   Edit2,
   Trash2,
   AlertCircle,
-  Filter,
-  ChevronLeft,
-  ChevronRight,
-  ArrowUpDown,
   HeartPulse,
   HardDrive,
   X,
   Activity
 } from 'lucide-react';
 import { UserModal } from '../components/UserModal';
+import { PageHeader } from '../components/PageHeader';
+import { SearchFilterBar } from '../components/SearchFilterBar';
+import { Pagination } from '../components/Pagination';
+import { ActionMenu, ActionMenuItem } from '../components/ActionMenu';
 
 export const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -150,65 +149,36 @@ export const UsersPage: React.FC = () => {
 
   return (
     <div className="p-8 max-w-7xl mx-auto reveal">
-      {/* Header Estilo Apple */}
-      <header className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-        <div>
-          <h1 className="text-5xl font-bold tracking-tight mb-2">Usuarios</h1>
-          <p className="text-xl text-[var(--color-text-secondary)]">Gestiona el acceso y roles de tu equipo.</p>
-        </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.02] flex items-center gap-2"
-        >
-          <UserPlus size={20} /> Nuevo Usuario
-        </button>
-      </header>
+      <PageHeader
+        title="Usuarios"
+        subtitle="Gestiona el acceso y roles de tu equipo."
+        actionButton={{
+          label: 'Nuevo Usuario',
+          icon: UserPlus,
+          onClick: () => setIsModalOpen(true)
+        }}
+      />
 
-      {/* Barra de Controles */}
-      <div className="flex flex-col lg:flex-row gap-4 mb-8">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
-          <input
-            type="text"
-            placeholder="Buscar por nombre o email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[var(--color-bg-secondary)] border-none rounded-2xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-[var(--color-primary)] transition-all outline-none text-lg"
-            style={{ color: 'var(--color-text-primary)' }}
-          />
-        </div>
-
-        <div className="flex gap-4">
-          <div className="relative min-w-[200px]">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full bg-[var(--color-bg-secondary)] appearance-none rounded-2xl py-4 pl-12 pr-10 outline-none cursor-pointer focus:ring-2 focus:ring-[var(--color-primary)]"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              <option value="ALL">Todos los Roles</option>
-              <option value="ADMIN">Administrador</option>
-              <option value="MEMBER">Miembro</option>
-            </select>
-          </div>
-
-          <div className="relative min-w-[200px]">
-            <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full bg-[var(--color-bg-secondary)] appearance-none rounded-2xl py-4 pl-12 pr-10 outline-none cursor-pointer focus:ring-2 focus:ring-[var(--color-primary)]"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              <option value="name_asc">Nombre A-Z</option>
-              <option value="name_desc">Nombre Z-A</option>
-              <option value="email_asc">Email A-Z</option>
-              <option value="email_desc">Email Z-A</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      <SearchFilterBar
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar por nombre o email..."
+        filterValue={roleFilter}
+        onFilterChange={setRoleFilter}
+        filterOptions={[
+          { value: 'ALL', label: 'Todos los Roles' },
+          { value: 'ADMIN', label: 'Administrador' },
+          { value: 'MEMBER', label: 'Miembro' }
+        ]}
+        sortValue={sortBy}
+        onSortChange={setSortBy}
+        sortOptions={[
+          { value: 'name_asc', label: 'Nombre A-Z' },
+          { value: 'name_desc', label: 'Nombre Z-A' },
+          { value: 'email_asc', label: 'Email A-Z' },
+          { value: 'email_desc', label: 'Email Z-A' }
+        ]}
+      />
 
       {loading ? (
         <div className="flex justify-center py-12">
@@ -242,30 +212,24 @@ export const UsersPage: React.FC = () => {
                         <MoreHorizontal size={20} />
                       </button>
 
-                      {/* Menú Contextual */}
-                      {openMenuId === user.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-[var(--color-bg-secondary)] border border-white/10 rounded-lg shadow-lg z-50 py-2">
-                          <button
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleEditUser(user);
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-white/10 flex items-center gap-2 transition-colors"
-                            style={{ color: 'var(--color-text-primary)' }}
-                          >
-                            <Edit2 size={16} /> Editar Usuario
-                          </button>
-                          <button
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setDeleteConfirm(user);
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-white/10 text-red-400 flex items-center gap-2 transition-colors border-t border-white/10"
-                          >
-                            <Trash2 size={16} /> Eliminar
-                          </button>
-                        </div>
-                      )}
+                      <ActionMenu
+                        isOpen={openMenuId === user.id}
+                        items={[
+                          {
+                            label: 'Editar Usuario',
+                            icon: Edit2,
+                            onClick: () => handleEditUser(user)
+                          },
+                          {
+                            label: 'Eliminar',
+                            icon: Trash2,
+                            variant: 'danger',
+                            onClick: () => setDeleteConfirm(user)
+                          }
+                        ] as ActionMenuItem[]}
+                        onClose={() => setOpenMenuId(null)}
+                        menuRef={menuRef}
+                      />
                     </div>
                   </div>
 
@@ -300,52 +264,12 @@ export const UsersPage: React.FC = () => {
 
           {/* Paginación */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-8 pb-8">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2"
-                style={{ 
-                  borderColor: 'var(--color-primary)',
-                  color: 'var(--color-primary)',
-                  backgroundColor: 'var(--color-primary)',
-                  opacity: currentPage === 1 ? 0.5 : 1
-                }}
-                onMouseEnter={(e) => {
-                  if (currentPage > 1) {
-                    e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-                }}
-              >
-                <ChevronLeft size={24} className="text-white" />
-              </button>
-              <span className="text-[var(--color-text-secondary)] font-semibold">
-                Página {currentPage} de {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2"
-                style={{ 
-                  borderColor: 'var(--color-primary)',
-                  color: 'var(--color-primary)',
-                  backgroundColor: 'var(--color-primary)',
-                  opacity: currentPage === totalPages ? 0.5 : 1
-                }}
-                onMouseEnter={(e) => {
-                  if (currentPage < totalPages) {
-                    e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-                }}
-              >
-                <ChevronRight size={24} className="text-white" />
-              </button>
+            <div className="mt-8 pb-8">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
             </div>
           )}
         </>

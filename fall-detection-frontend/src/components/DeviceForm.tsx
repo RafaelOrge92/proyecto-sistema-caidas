@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { AdminService } from '../services/adminService';
 import { Device, User } from '../types';
+import { FormInput, FormSelect } from './FormInput';
+import Button from './ui/Button';
 
 interface DeviceFormProps {
     initialData?: Device;
@@ -65,89 +67,53 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, 
         }
     };
 
+    const userOptions = [
+        { value: '', label: '-- Sin asignar --' },
+        ...users
+            .filter(u => u.role === 'MEMBER')
+            .map(user => ({ value: user.id, label: user.fullName }))
+    ];
+
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-                <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>ID del Dispositivo (ESP32)</label>
-                <input
-                    type="text"
-                    className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                    style={{
-                        backgroundColor: 'var(--color-bg-primary)',
-                        color: 'var(--color-text-primary)',
-                        borderColor: 'var(--color-border)'
-                    }}
-                    value={formData.id}
-                    onChange={e => setFormData({ ...formData, id: e.target.value })}
-                    disabled={!!initialData}
-                />
-                {errors.id && <p className="text-red-500 text-xs mt-1">{errors.id}</p>}
-            </div>
+            <FormInput
+                label="ID del Dispositivo (ESP32)"
+                type="text"
+                value={formData.id}
+                onChange={e => setFormData({ ...formData, id: e.target.value })}
+                error={errors.id}
+                disabled={!!initialData}
+            />
 
-            <div>
-                <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Alias (Nombre amigable)</label>
-                <input
-                    type="text"
-                    className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                    style={{
-                        backgroundColor: 'var(--color-bg-primary)',
-                        color: 'var(--color-text-primary)',
-                        borderColor: 'var(--color-border)'
-                    }}
-                    value={formData.alias}
-                    onChange={e => setFormData({ ...formData, alias: e.target.value })}
-                />
-                {errors.alias && <p className="text-red-500 text-xs mt-1">{errors.alias}</p>}
-            </div>
+            <FormInput
+                label="Alias (Nombre amigable)"
+                type="text"
+                value={formData.alias}
+                onChange={e => setFormData({ ...formData, alias: e.target.value })}
+                error={errors.alias}
+            />
 
-            <div>
-                <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Asignar a Usuario (Opcional)</label>
-                <select
-                    className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 appearance-none cursor-pointer"
-                    style={{
-                        backgroundColor: 'var(--color-bg-primary)',
-                        color: 'var(--color-text-primary)',
-                        borderColor: 'var(--color-border)'
-                    }}
-                    value={formData.assignedUserId || ""}
-                    onChange={e => setFormData({ ...formData, assignedUserId: e.target.value })}
-                >
-                    <option value="">-- Sin asignar --</option>
-                    {users
-                        .filter(u => u.role === 'MEMBER')
-                        .map(user => (
-                            <option key={user.id} value={user.id} className="bg-[#0F1419]">
-                                {user.fullName}
-                            </option>
-                        ))}
-                </select>
-            </div>
+            <FormSelect
+                label="Asignar a Usuario (Opcional)"
+                options={userOptions}
+                value={formData.assignedUserId || ""}
+                onChange={e => setFormData({ ...formData, assignedUserId: e.target.value })}
+            />
 
             {errors.submit && <p className="text-red-500 text-xs">{errors.submit}</p>}
 
             <div className="flex gap-4 pt-6">
-                <button 
-                    type="button" 
-                    onClick={onCancel} 
-                    className="flex-1 px-4 py-2.5 rounded-lg border font-semibold transition-all"
-                    style={{
-                        borderColor: 'var(--color-border)',
-                        color: 'var(--color-text-primary)',
-                        backgroundColor: 'transparent'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-primary)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
+                <Button variant="ghost" fullWidth onClick={onCancel}>
                     Cancelar
-                </button>
-                <button
-                    type="submit"
-                    className="flex-1 px-4 py-2.5 rounded-lg bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#818CF8] hover:to-[#A78BFA] font-semibold transition-all disabled:opacity-50"
-                    style={{ color: 'white' }}
+                </Button>
+                <Button 
+                    variant="primary" 
+                    fullWidth 
                     disabled={isSubmitting}
+                    type="submit"
                 >
                     {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar' : 'Registrar')}
-                </button>
+                </Button>
             </div>
         </form>
     );

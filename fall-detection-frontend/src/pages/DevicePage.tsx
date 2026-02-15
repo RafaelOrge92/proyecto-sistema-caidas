@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { AdminService } from '../services/adminService';
 import { Device, User, Patient, FallEvent } from '../types';
-import { Laptop, Plus, Settings2, Link as LinkIcon, X, Activity, Calendar, Users, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Laptop, Plus, Settings2, Link as LinkIcon, X, Activity, Calendar, Users, ChevronDown } from 'lucide-react';
 import { DeviceModal } from '../components/DeviceModal';
+import { PageHeader } from '../components/PageHeader';
+import { Pagination } from '../components/Pagination';
 
 export const DevicePage: React.FC = () => {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -101,18 +103,15 @@ export const DevicePage: React.FC = () => {
 
   return (
     <div className="p-8 max-w-7xl mx-auto reveal">
-      <header className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-        <div>
-          <h1 className="text-5xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>Dispositivos</h1>
-          <p className="text-xl mt-2" style={{ color: 'var(--color-text-secondary)' }}>Hardware vinculado a tu red de protección.</p>
-        </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.02] flex items-center gap-2"
-        >
-          <Plus size={20} /> Nuevo Dispositivo
-        </button>
-      </header>
+      <PageHeader
+        title="Dispositivos"
+        subtitle="Hardware vinculado a tu red de protección."
+        actionButton={{
+          label: 'Nuevo Dispositivo',
+          icon: Plus,
+          onClick: () => setIsModalOpen(true)
+        }}
+      />
 
       {loading ? (
         <div className="flex justify-center py-12">
@@ -195,52 +194,12 @@ export const DevicePage: React.FC = () => {
 
           {/* Paginación */}
           {Math.ceil(devices.length / itemsPerPage) > 1 && (
-            <div className="flex justify-center items-center gap-4 pb-8">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2"
-                style={{ 
-                  borderColor: 'var(--color-primary)',
-                  color: 'var(--color-primary)',
-                  backgroundColor: 'var(--color-primary)',
-                  opacity: currentPage === 1 ? 0.5 : 1
-                }}
-                onMouseEnter={(e) => {
-                  if (currentPage > 1) {
-                    e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-                }}
-              >
-                <ChevronLeft size={24} className="text-white" />
-              </button>
-              <span className="text-[var(--color-text-secondary)] font-semibold">
-                Página {currentPage} de {Math.ceil(devices.length / itemsPerPage)}
-              </span>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(Math.ceil(devices.length / itemsPerPage), p + 1))}
-                disabled={currentPage === Math.ceil(devices.length / itemsPerPage)}
-                className="p-2 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2"
-                style={{ 
-                  borderColor: 'var(--color-primary)',
-                  color: 'var(--color-primary)',
-                  backgroundColor: 'var(--color-primary)',
-                  opacity: currentPage === Math.ceil(devices.length / itemsPerPage) ? 0.5 : 1
-                }}
-                onMouseEnter={(e) => {
-                  if (currentPage < Math.ceil(devices.length / itemsPerPage)) {
-                    e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-                }}
-              >
-                <ChevronRight size={24} className="text-white" />
-              </button>
+            <div className="pb-8">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(devices.length / itemsPerPage)}
+                onPageChange={setCurrentPage}
+              />
             </div>
           )}
         </>
