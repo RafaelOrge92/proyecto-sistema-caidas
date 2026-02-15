@@ -1,0 +1,253 @@
+import express, { response, Router, Request, Response } from 'express';
+import { db } from '../config/db';
+import { authenticateToken, requireAdmin } from '../middleware/auth';
+import { authenticateDevice } from '../middleware/deviceAuth';
+
+const router = Router();
+
+
+//get all devices
+
+router.get('/', authenticateToken, requireAdmin, async (req, res) => {
+  const result = await db.query(`
+    SELECT
+      d.*,
+      p.first_name AS patient_first_name,
+      p.last_name AS patient_last_name,
+      CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name,
+      a.account_id AS assigned_user_id,
+      a.full_name AS assigned_user_name,
+      a.email AS assigned_user_email
+    FROM public.devices d
+    LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+    LEFT JOIN public.device_access da ON d.device_id = da.device_id AND da.access_type = 'MEMBER'
+    LEFT JOIN public.accounts a ON da.account_id = a.account_id
+  `)
+  res.json(result)
+})
+
+// Get available devices (not assigned to any user)
+router.get('/available', authenticateToken, async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT
+        d.*,
+        p.first_name AS patient_first_name,
+        p.last_name AS patient_last_name,
+        CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name
+      FROM public.devices d
+      LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+      WHERE NOT EXISTS (
+        SELECT 1 FROM public.device_access da WHERE da.device_id = d.device_id
+      )
+      ORDER BY d.created_at DESC
+    `);
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching available devices:', error);
+    res.status(500).json({ error: 'Error al obtener dispositivos disponibles' });
+  }
+});
+
+// Assign device to the current user
+router.post('/:deviceId/assign-me', authenticateToken, async (req, res) => {
+  const deviceId = req.params.deviceId as string;
+  const accountId = (req as any).user?.sub as string | undefined;
+
+  if (!accountId) {
+    return res.status(401).json({ error: 'Usuario no autenticado' });
+  }
+  if (!deviceId) {
+    return res.status(400).json({ error: 'deviceId es requerido' });
+  }
+
+  try {
+    const deviceExists = await db.query(
+      'SELECT device_id FROM public.devices WHERE device_id = $1',
+      [deviceId]
+    );
+    if (deviceExists.length === 0) {
+      return res.status(404).json({ error: 'Dispositivo no encontrado' });
+    }
+
+    const alreadyAssigned = await db.query(
+      'SELECT 1 FROM public.device_access WHERE device_id = $1 LIMIT 1',
+      [deviceId]
+    );
+    if (alreadyAssigned.length > 0) {
+      return res.status(409).json({ error: 'El dispositivo ya esta asignado' });
+    }
+
+    const result = await db.query(
+      `INSERT INTO public.device_access (account_id, device_id, access_type)
+       VALUES ($1, $2, 'MEMBER')
+       RETURNING account_id, device_id, access_type`,
+      [accountId, deviceId]
+    );
+
+    return res.status(201).json(result[0]);
+  } catch (error) {
+    console.error('Error assigning device to user:', error);
+    return res.status(500).json({ error: 'Error al asignar dispositivo' });
+  }
+});
+
+router.get('/podium', authenticateToken, requireAdmin, async (req, res) => {
+  const result = await db.query('SELECT COUNT(event_id), device_id FROM public.events GROUP BY device_id ')
+  res.json(result)
+})
+
+// Get device by id
+router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const id = req.params.id as string;
+  const result = await db.query(`
+    SELECT
+      d.*,
+      p.first_name AS patient_first_name,
+      p.last_name AS patient_last_name,
+      CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name
+    FROM public.devices d
+    LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+    WHERE d.device_id = $1
+  `,
+    [id]
+  )
+  res.json(result)
+});
+
+router.get('/user/:userId', authenticateToken, async (req, res) => {
+  // Permitir que ADMIN vea cualquier usuario, o que el usuario vea sus propios dispositivos
+  const userId = req.params.userId as string;
+  if (req.user?.role !== 'ADMIN' && req.user?.sub !== userId) {
+    return res.status(403).json({ error: 'No tienes permiso para ver los dispositivos de otro usuario' });
+  }
+
+  const result = await db.query(`SELECT * FROM public.devices WHERE device_id IN (SELECT device_id FROM public.device_access WHERE account_id = $1)`,
+    [userId]
+   )
+  res.json(result)
+})
+
+// Create device
+router.post('/', authenticateToken, requireAdmin, async (req, res) => {
+
+  const { id, alias, patientId, active, lastSeenAt } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ error: 'ID del dispositivo es requerido' });
+  } 
+ 
+  try {
+    const result = await db.query(`INSERT into public.devices (device_id, patient_id, alias, is_active, last_seen_at)
+      values ($1, $2, $3, $4, $5)`,
+    [id, patientId || null, alias || null, active ?? true, lastSeenAt || null]
+    )
+    res.status(201).json(result);
+  } catch (error: any) {
+    console.error('Error creating device:', error);
+    
+    // Error de duplicate key constraint (El dispositivo ya existe)
+    if (error?.code === '23505' && error?.constraint === 'devices_pkey') {
+      return res.status(409).json({ error: `El dispositivo con ID '${id}' ya existe.` });
+    }
+    
+    // Si el error es por patient_id NOT NULL
+    if (error?.message?.includes('patient_id')) {
+      return res.status(400).json({ error: 'patient_id debe ser nullable en la base de datos. Ejecuta: ALTER TABLE public.devices ALTER COLUMN patient_id DROP NOT NULL;' });
+    }
+    
+    res.status(500).json({ error: 'Error al crear dispositivo' });
+  }
+});
+
+const handleHeartbeat = async (req: Request, res: Response) => {
+  const timestamp = req.body?.timestamp ?? req.body?.lastSeenAt ?? req.body?.last_seen_at ?? null
+  const authenticatedDeviceId = (req as any).deviceIdAuth as string | undefined
+  const payloadDeviceId = req.body?.deviceId ?? req.body?.id ?? req.body?.device_id
+  const deviceId = authenticatedDeviceId ?? payloadDeviceId
+
+  if (!deviceId) {
+    return res.status(400).json({ error: 'deviceId es requerido' })
+  }
+
+  if (payloadDeviceId && authenticatedDeviceId && payloadDeviceId !== authenticatedDeviceId) {
+    return res.status(400).json({ error: 'deviceId del body no coincide con dispositivo autenticado' })
+  }
+
+  try{
+   const result = await db.query(
+    `UPDATE public.devices SET last_seen_at = COALESCE($1::timestamptz, now()) WHERE device_id = $2`,
+    [timestamp, deviceId]
+   )
+   res.json(result)
+  } catch (error){
+    console.error('Cannot access device')
+    res.status(500).json({error: 'No se puede acceder al dispositivo'})
+  }
+}
+
+// Update device (alias, patientId, etc.)
+router.put('/:deviceId', authenticateToken, requireAdmin, async (req, res) => {
+  const deviceId = req.params.deviceId as string;
+  const { alias, patientId, isActive } = req.body;
+
+  if (!deviceId) {
+    return res.status(400).json({ error: 'deviceId es requerido' });
+  }
+
+  try {
+    // Verificar que el dispositivo existe
+    const existingDevice = await db.query(
+      `SELECT device_id FROM public.devices WHERE device_id = $1 LIMIT 1`,
+      [deviceId]
+    );
+    
+    if (existingDevice.length === 0) {
+      return res.status(404).json({ error: 'Dispositivo no encontrado' });
+    }
+
+    // Verificar que el paciente existe si se proporciona uno
+    if (patientId) {
+      const patientExists = await db.query(
+        `SELECT patient_id FROM public.patients WHERE patient_id = $1 LIMIT 1`,
+        [patientId]
+      );
+      if (patientExists.length === 0) {
+        return res.status(404).json({ error: 'Paciente no encontrado' });
+      }
+    }
+
+    // Actualizar el dispositivo
+    const result = await db.query(
+      `UPDATE public.devices 
+       SET alias = COALESCE($1, alias),
+           patient_id = CASE WHEN $2::uuid IS NOT NULL THEN $2::uuid ELSE patient_id END,
+           is_active = COALESCE($3, is_active),
+           updated_at = now()
+       WHERE device_id = $4
+       RETURNING 
+         device_id,
+         patient_id,
+         alias,
+         is_active,
+         last_seen_at,
+         created_at,
+         updated_at`,
+      [alias || null, patientId || null, isActive !== undefined ? isActive : null, deviceId]
+    );
+
+    if (result.length === 0) {
+      return res.status(500).json({ error: 'No se pudo actualizar el dispositivo' });
+    }
+
+    res.json(result[0]);
+  } catch (error: any) {
+    console.error('Error updating device:', error);
+    res.status(500).json({ error: 'Error al actualizar dispositivo' });
+  }
+});
+
+router.put('/heartbeat', authenticateDevice, handleHeartbeat)
+router.post('/heartbeat', authenticateDevice, handleHeartbeat)
+
+export const devicesRoutes = router;

@@ -1,1 +1,145 @@
 @import "tailwindcss";
+
+/* Variables por defecto (Dark Theme) */
+:root, .dark-theme {
+  --color-bg-primary: #0F1419;
+  --color-bg-secondary: #1A1F26;
+  --color-bg-elevated: #252B35;
+  
+  --color-primary: #6366F1;
+  --color-primary-hover: #818CF8;
+  
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #94A3B8;
+  
+  --color-border: rgba(255, 255, 255, 0.08);
+  
+  --color-alert-bg: rgba(127, 29, 29, 0.2);
+  
+  --radius-apple: 22px; /* Bordes estilo iOS/macOS */
+  
+  --shadow-apple: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Light Theme Variables */
+.light-theme {
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F8FAFC;
+  --color-bg-elevated: #F1F5F9;
+  
+  --color-primary: #6366F1;
+  --color-primary-hover: #4F46E5;
+  
+  --color-text-primary: #1E293B;
+  --color-text-secondary: #64748B;
+  
+  --color-border: rgba(0, 0, 0, 0.08);
+  
+  --color-alert-bg: rgba(254, 226, 226, 0.6);
+  
+  --radius-apple: 22px;
+  
+  --shadow-apple: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+@theme {
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-secondary: var(--color-bg-secondary);
+  --color-bg-elevated: var(--color-bg-elevated);
+  
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  
+  --color-border: var(--color-border);
+  
+  --radius-apple: var(--radius-apple);
+  
+  --shadow-apple: var(--shadow-apple);
+}
+
+/* Base Style - Apple Smoothness */
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.glass-panel {
+  background: rgba(26, 31, 38, 0.3) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-apple) !important;
+}
+
+/* Light theme: more transparent with lighter background */
+:root .glass-panel,
+.dark-theme .glass-panel {
+  background: rgba(26, 31, 38, 0.3) !important;
+}
+
+.light-theme .glass-panel {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+}
+
+/* Animación de entrada suave */
+.reveal {
+  animation: reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.light-theme ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.5);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.8);
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-color: rgba(99, 102, 241, 0.5) rgba(255, 255, 255, 0.05);
+  scrollbar-width: thin;
+}
+
+.light-theme {
+  scrollbar-color: rgba(99, 102, 241, 0.5) rgba(0, 0, 0, 0.03);
+}
+
+/* Button reset - remove default outline */
+button {
+  outline: none !important;
+  border: none !important;
+}
+
+button:focus {
+  outline: none !important;
+}
+
+button:focus-visible {
+  outline: none !important;
+}

@@ -2,12 +2,12 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node src/main.ts",
+    "dev": "ts-node src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
@@ -15,12 +15,19 @@
   "type": "module",
   "dependencies": {
     "@types/pg": "^8.16.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.4",
     "express": "^5.2.1",
-    "pg": "^8.18.0",
-    "zod": "^4.3.6"
+    "google-auth-library": "^10.5.0",
+    "ioredis": "^5.9.3",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.18.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^25.2.0",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",

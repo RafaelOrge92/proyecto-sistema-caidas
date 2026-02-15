@@ -1,0 +1,425 @@
+/* Gradientes Elegantes */
+.gradient-primary {
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, #06B6D4 0%, #14B8A6 100%);
+}
+
+.gradient-dark {
+  background: linear-gradient(180deg, var(--color-bg-secondary) 0%, var(--color-bg-primary) 100%);
+}
+
+/* Light theme text color fixes using CSS variables */
+.light-theme {
+  color-scheme: light;
+}
+
+.light-theme .text-white,
+.light-theme .text-\[#F1F5F9\],
+.light-theme .text-\[#E0E7FF\] {
+  color: rgb(17, 24, 39) !important;
+}
+
+.light-theme .text-\[\#94A3B8\],
+.light-theme .text-\[\#64748B\],
+.light-theme .text-gray-400,
+.light-theme .text-gray-500 {
+  color: rgb(75, 85, 99) !important;
+}
+
+/* Device Card Dark Mode Styles */
+.dark-theme .device-card {
+  background: rgba(26, 31, 38, 0.7) !important;
+}
+
+.dark-theme .device-card-icon {
+  background-color: #252B35 !important;
+}
+
+.dark-theme .device-card h3,
+.dark-theme .device-card-title {
+  color: white !important;
+}
+
+.dark-theme .device-card-label,
+.dark-theme .device-card-text {
+  color: #94A3B8 !important;
+}
+
+.dark-theme .device-card-input,
+.dark-theme .device-card-input:hover,
+.dark-theme .device-card select,
+.dark-theme .device-card select:hover {
+  background-color: #0F1419 !important;
+  border-color: #2D3748 !important;
+  color: white !important;
+}
+
+.light-theme .text-gray-300  {
+  color: rgb(107, 114, 128) !important;
+}
+
+.light-theme .hover\:text-white:hover,
+.light-theme .hover\:text-\[#F1F5F9\]:hover {
+  color: rgb(17, 24, 39) !important;
+}
+
+.light-theme .hover\:text-\[\#94A3B8\]:hover,
+.light-theme .hover\:text-blue-300:hover {
+  color: rgb(75, 85, 99) !important;
+}
+
+.light-theme .bg-white\/5,
+.light-theme .bg-white\/10 {
+  background-color: rgba(31, 41, 55, 0.03) !important;
+}
+
+.light-theme .bg-white\/20 {
+  background-color: rgba(31, 41, 55, 0.08) !important;
+}
+
+.light-theme .border-white\/10,
+.light-theme .border-white\/5 {
+  border-color: rgba(31, 41, 55, 0.15) !important;
+}
+
+.light-theme .divide-white\/5 {
+  border-color: rgba(31, 41, 55, 0.1) !important;
+}
+
+.light-theme .hover\:bg-white\/5:hover,
+.light-theme .hover\:bg-white\/10:hover {
+  background-color: rgba(31, 41, 55, 0.08) !important;
+}
+
+.light-theme input::placeholder,
+.light-theme [class*="placeholder:text"]:placeholder {
+  color: rgb(107, 114, 128) !important;
+}
+
+.light-theme input[type="text"]::placeholder,
+.light-theme input[type="email"]::placeholder,
+.light-theme input[type="password"]::placeholder,
+.light-theme input[type="date"]::placeholder,
+.light-theme textarea::placeholder {
+  color: rgb(100, 116, 139) !important;
+}
+
+.light-theme input[type="text"],
+.light-theme input[type="email"],
+.light-theme input[type="password"],
+.light-theme input[type="date"],
+.light-theme select {
+  color: rgb(17, 24, 39) !important;
+  background-color: var(--color-bg-elevated) !important;
+}
+
+.light-theme .glass-panel input[type="text"],
+.light-theme .glass-panel input[type="email"],
+.light-theme .glass-panel input[type="password"],
+.light-theme .glass-panel input[type="date"],
+.light-theme .glass-panel select {
+  color: rgb(30, 41, 59) !important;
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Button primary styles for light theme */
+.light-theme .btn-primary-light-mode {
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%) !important;
+  color: white !important;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3) !important;
+}
+
+.light-theme .btn-primary-light-mode:hover {
+  background: linear-gradient(135deg, #818CF8 0%, #A78BFA 100%) !important;
+  color: white !important;
+}
+
+/* Light theme glass-panel text colors */
+.light-theme .glass-panel h2,
+.light-theme .glass-panel h3,
+.light-theme .glass-panel h4,
+.light-theme .glass-panel p,
+.light-theme .glass-panel label {
+  color: rgb(30, 41, 59) !important;
+}
+
+/* Light theme glass-panel button styling */
+.light-theme .glass-panel button {
+  color: rgb(30, 41, 59) !important;
+}
+
+/* Gradient card adjustments for light theme */
+.light-theme .gradient-card-text {
+  color: rgb(17, 24, 39) !important;
+  text-shadow: none !important;
+  font-weight: 700 !important;
+}
+
+.light-theme .gradient-card-icon {
+  color: rgb(17, 24, 39) !important;
+  filter: none;
+}
+
+/* Efectos de Hover Suaves */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-apple);
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(26, 31, 38, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.light-theme .glass {
+  background: rgba(248, 250, 252, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Efectos de Brillo */
+.glow-primary {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+.glow-error {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+/* Animación de Carga */
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.light-theme .loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.03) 0%,
+    rgba(0, 0, 0, 0.06) 50%,
+    rgba(0, 0, 0, 0.03) 100%
+  );
+}
+
+/* Efecto de Partículas de Fondo (Sutil) */
+.particle-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.particle-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(6, 182, 212, 0.02) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.light-theme .particle-bg::before {
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(6, 182, 212, 0.06) 0%, transparent 50%);
+}
+/* MemberEventsPage and similar pages light theme fixes */
+.light-theme table {
+  background-color: #ffffff !important;
+}
+
+.light-theme table thead {
+  background-color: rgba(31, 41, 55, 0.05) !important;
+}
+
+.light-theme table thead th {
+  color: rgb(75, 85, 99) !important;
+  border-color: rgba(31, 41, 55, 0.1) !important;
+}
+
+.light-theme table tbody tr {
+  border-color: rgba(31, 41, 55, 0.1) !important;
+}
+
+.light-theme table tbody td {
+  color: rgb(30, 41, 59) !important;
+}
+
+.light-theme table tbody tr:hover {
+  background-color: rgba(99, 102, 241, 0.03) !important;
+}
+
+.light-theme [class*="bg-\[#1A1F26\]"] {
+  background-color: #ffffff !important;
+  border-color: rgba(31, 41, 55, 0.15) !important;
+}
+
+.light-theme input[type="text"].bg-\[\#1A1F26\],
+.light-theme select.bg-\[\#1A1F26\] {
+  background-color: #f8f9fa !important;
+  color: rgb(30, 41, 59) !important;
+  border-color: rgba(31, 41, 55, 0.2) !important;
+}
+
+.light-theme input[type="text"].bg-\[\#1A1F26\]::placeholder {
+  color: rgb(107, 114, 128) !important;
+}
+
+.light-theme select.bg-\[\#1A1F26\] option {
+  background-color: white !important;
+  color: rgb(30, 41, 59) !important;
+}
+
+.light-theme .text-cyan-100 {
+  color: rgb(30, 41, 59) !important;
+}
+
+.light-theme .text-cyan-400 {
+  color: #06b6d4 !important;
+}
+
+.light-theme .text-emerald-400 {
+  color: #10b981 !important;
+}
+
+.light-theme .text-indigo-400 {
+  color: #6366f1 !important;
+}
+
+.light-theme .text-indigo-300 {
+  color: #a5b4fc !important;
+}
+
+.light-theme .border-white\/5,
+.light-theme .border-white\/10 {
+  border-color: rgba(31, 41, 55, 0.15) !important;
+}
+
+.light-theme .divide-white\/5 {
+  border-color: rgba(31, 41, 55, 0.1) !important;
+}
+
+.light-theme .bg-white\/5 {
+  background-color: rgba(31, 41, 55, 0.04) !important;
+}
+
+.light-theme .bg-white\/\[0\.02\] {
+  background-color: rgba(31, 41, 55, 0.02) !important;
+}
+
+.light-theme h1.text-white,
+.light-theme h2.text-white,
+.light-theme h3.text-white,
+.light-theme h4.text-white {
+  color: rgb(17, 24, 39) !important;
+}
+
+.light-theme .hover\:bg-indigo-600:hover,
+.light-theme .hover\:bg-emerald-700:hover,
+.light-theme .hover\:bg-indigo-700:hover {
+  color: white !important;
+}
+
+.light-theme .focus\:ring-indigo-500:focus {
+  --tw-ring-color: #6366f1;
+}
+
+.light-theme textarea.bg-\[\#1A1F26\] {
+  background-color: #f8f9fa !important;
+  color: rgb(30, 41, 59) !important;
+  border-color: rgba(31, 41, 55, 0.2) !important;
+}
+
+.light-theme textarea.bg-\[\#1A1F26\]::placeholder {
+  color: rgb(107, 114, 128) !important;
+}
+
+/* Modal backgrounds in light theme */
+.light-theme .bg-\[#1A1F26\] {
+  background-color: #ffffff !important;
+}
+
+/* Select options in light theme */
+.light-theme select option {
+  background-color: #ffffff !important;
+  color: rgb(30, 41, 59) !important;
+}
+
+.light-theme select option:checked {
+  background: linear-gradient(#6366f1, #6366f1) !important;
+  background-color: #6366f1 !important;
+  color: white !important;
+}
+
+/* Export PDF button styling - overrides glass-panel */
+.btn-export-pdf {
+  background-color: #6366f1 !important;
+  color: white !important;
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.btn-export-pdf:hover:not(:disabled) {
+  background-color: #4f46e5 !important;
+  outline: none !important;
+  box-shadow: 0 25px 15px -3px rgba(99, 102, 241, 0.3) !important;
+}
+
+.btn-export-pdf:focus {
+  outline: none !important;
+  box-shadow: 0 25px 15px -3px rgba(99, 102, 241, 0.3) !important;
+}
+
+.btn-export-pdf:focus-visible {
+  outline: none !important;
+  box-shadow: 0 25px 15px -3px rgba(99, 102, 241, 0.3) !important;
+}
+
+.light-theme .btn-export-pdf {
+  background-color: #6366f1 !important;
+  color: white !important;
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.light-theme .btn-export-pdf:hover:not(:disabled) {
+  background-color: #4f46e5 !important;
+  outline: none !important;
+  box-shadow: 0 25px 15px -3px rgba(99, 102, 241, 0.3) !important;
+}
+
+.light-theme .btn-export-pdf:focus {
+  outline: none !important;
+  box-shadow: 0 25px 15px -3px rgba(99, 102, 241, 0.3) !important;
+}
+
+.light-theme .btn-export-pdf:focus-visible {
+  outline: none !important;
+  box-shadow: 0 25px 15px -3px rgba(99, 102, 241, 0.3) !important;
+}
+

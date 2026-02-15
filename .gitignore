@@ -1,0 +1,54 @@
+# Dependencias
+node_modules/
+*/node_modules/
+
+# Archivos compilados
+dist/
+*/dist/
+build/
+*/build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# IDEs y editores
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+*.suo
+*.njsproj
+*.sln
+*.sw?
+
+# Archivos de entorno
+.env
+.env.local
+.env.*.local
+
+# Caché
+.cache/
+.parcel-cache
+.eslintcache
+
+# Archivos temporales
+.temp/
+tmp/
+
+# IDE
+.idea
+*.iml
+
+# OS
+.DS_Store
+desktop.ini

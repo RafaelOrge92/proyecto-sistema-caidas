@@ -1,53 +1,81 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Definimos qué datos tiene un usuario
-interface User {
-  username: string;
-  role: 'ADMIN' | 'CUIDADOR' | 'USUARIO';
+interface AuthUser {
+    token: string;
+    role: string;
+    id: string;
+    fullName: string;
+    email: string;
 }
 
 interface AuthContextType {
-  user: User | null;
-  login: (token: string, userData: User) => void;
-  logout: () => void;
-  isAuthenticated: boolean;
+    user: AuthUser | null;
+    loading: boolean;
+    login: (token: string, role: string, id: string, fullName: string, email: string) => void;
+    logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [user, setUser] = useState<AuthUser | null>(null);
+    const [loading, setLoading] = useState(true);
 
-  // Al cargar la app, comprobamos si ya estaba logueado
-  useEffect(() => {
-    const savedUser = localStorage.getItem('userData');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+        const id = localStorage.getItem('userId');
+        const fullName = localStorage.getItem('userFullName');
+        const email = localStorage.getItem('userEmail');
 
-  const login = (token: string, userData: User) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('userData', JSON.stringify(userData));
-    setUser(userData);
-  };
+        if (token && role && id && fullName && email) {
+            setUser({ token, role, id, fullName, email });
+        }
+        
+        setLoading(false);
+    }, []);
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
-    setUser(null);
-  };
+    const login = (token: string, role: string, id: string, fullName: string, email: string) => {
+        localStorage.setItem('token', token);
+        localStorage.setItem('role', role);
+        localStorage.setItem('userId', id);
+        localStorage.setItem('userFullName', fullName);
+        localStorage.setItem('userEmail', email);
+        setUser({ token, role, id, fullName, email });
+    };
 
-  return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
-      {children}
-    </AuthContext.Provider>
-  );
+    const logout = async () => {
+        try {
+            // Llamar al endpoint de logout en el servidor
+            await fetch('http://localhost:3000/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        } catch (error) {
+            console.error('Error al cerrar sesión en el servidor:', error);
+        } finally {
+            // Limpiar localStorage siempre
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userFullName');
+            localStorage.removeItem('userEmail');
+            setUser(null);
+        }
+    };
+
+    return (
+        <AuthContext.Provider value={{ user, loading, login, logout }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
-// Hook para usar la auth fácilmente
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth debe usarse dentro de AuthProvider');
-  return context;
+    const context = useContext(AuthContext);
+    if (!context) throw new Error("useAuth debe usarse dentro de un AuthProvider");
+    return context;
 };

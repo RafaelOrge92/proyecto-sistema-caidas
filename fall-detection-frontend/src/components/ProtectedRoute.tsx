@@ -1,13 +1,14 @@
 import { Navigate, Outlet } from 'react-router-dom';
+import { UserRole } from '../types';
 
 interface ProtectedRouteProps {
-  allowedRoles?: Array<'ADMIN' | 'CUIDADOR' | 'USUARIO'>;
+  allowedRoles?: UserRole[];
 }
 
 const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
   const token = localStorage.getItem('token');
   // Aquí podrías decodificar el JWT para sacar el rol real
-  const userRole = localStorage.getItem('userRole') as 'ADMIN' | 'CUIDADOR' | 'USUARIO'; 
+  const userRole = localStorage.getItem('userRole') as UserRole; 
 
   if (!token) {
     return <Navigate to="/login" replace />;
