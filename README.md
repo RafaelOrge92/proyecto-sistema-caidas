@@ -515,3 +515,4 @@ La clave se valida contra `device_key_hash` con bcrypt.
 <p align="center">
   <sub>Sistema de Detección de Caídas © 2026 | Full Stack Open Source</sub>
 </p>
+-
