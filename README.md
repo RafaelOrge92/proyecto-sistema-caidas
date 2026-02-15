@@ -59,6 +59,10 @@
 
 ## Features
 
+<img src="assets/readme-features.svg" alt="Features carousel" width="100%" />
+
+<img src="assets/readme-dots.svg" alt="Indicator" width="80px" />
+
 ✨ **Detección de Caídas en Tiempo Real**
 - Sensores MPU6050 (acelerómetro + giroscopio) integrados en ESP32.
 - Algoritmos de análisis de movimiento para identificar movimientos anómalos.
@@ -96,6 +100,8 @@
 ---
 
 ## Stack Tecnológico
+
+<img src="assets/readme-stack.svg" alt="Tech stack badges" width="100%" />
 
 | Capa | Tecnología | Versión |
 |------|-----------|---------|
@@ -159,27 +165,16 @@ proyecto-sistema-caidas/
 
 ---
 
-## Arquitectura
+<img src="assets/readme-architecture.svg" alt="System architecture diagram" width="100%" />
 
-```mermaid
-flowchart TB
-  ESP32["ESP32 + Sensores<br/>(MPU6050, Button, Tilt)"]
-  API["Backend Node/Express<br/>(Port 3000)"]
-  DB[("PostgreSQL<br/>(Usuarios, Eventos,<br/>Dispositivos)")]
-  CACHE[("Redis<br/>(Historial Chat)")]
-  WEB["Web Frontend<br/>(React + Vite)"]
-  MOBILE["Mobile App<br/>(Expo + React Native)"]
-  LLM["LLM<br/>(Groq/HuggingFace)"]
-  DISCORD["Discord Webhook<br/>(Notificaciones)"]
-
-  ESP32 -->|POST /heartbeat,<br/>POST /ingest<br/>device-auth| API
-  API --> DB
-  API --> CACHE
-  API --> WEB
-  API --> MOBILE
-  API --> LLM
-  API --> DISCORD
-
+**Flujo de datos:**
+```
+ESP32 (IoT) --[device-auth]--> Backend API (Node/Express)
+                                    ↓
+                        ┌───────────┼───────────┐
+                        ↓           ↓           ↓
+                    PostgreSQL  Redis      Clientes
+                     (datos)   (chat)    (Web/Mobile)
   WEB -->|JWT Token| API
   MOBILE -->|JWT Token| API
 ```

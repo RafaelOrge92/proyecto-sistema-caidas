@@ -1,0 +1,76 @@
+<svg width="1200" height="120" viewBox="0 0 1200 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tech stack animation">
+  <defs>
+    <linearGradient id="stackGrad1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#10B981" />
+    </linearGradient>
+    <linearGradient id="stackGrad2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7C3AED" />
+      <stop offset="100%" stop-color="#8B5CF6" />
+    </linearGradient>
+    <linearGradient id="stackGrad3" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0369A1" />
+      <stop offset="100%" stop-color="#0EA5E9" />
+    </linearGradient>
+    <linearGradient id="stackGrad4" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#DC2626" />
+      <stop offset="100%" stop-color="#EF4444" />
+    </linearGradient>
+  </defs>
+
+  <!-- Node.js -->
+  <g>
+    <rect x="30" y="30" width="100" height="60" rx="12" fill="url(#stackGrad1)" opacity="0.2" stroke="url(#stackGrad1)" stroke-width="2"/>
+    <text x="80" y="65" text-anchor="middle" font-size="12" fill="#10B981" font-family="Inter, sans-serif" font-weight="700">Node.js</text>
+    <animate attributeName="opacity" values="0.2;0.8;0.2" dur="3s" repeatCount="indefinite" />
+  </g>
+
+  <!-- TypeScript -->
+  <g>
+    <rect x="170" y="30" width="100" height="60" rx="12" fill="url(#stackGrad2)" opacity="0.2" stroke="url(#stackGrad2)" stroke-width="2"/>
+    <text x="220" y="65" text-anchor="middle" font-size="12" fill="#A78BFA" font-family="Inter, sans-serif" font-weight="700">TypeScript</text>
+    <animate attributeName="opacity" values="0.2;0.2;0.8;0.2" dur="3s" repeatCount="indefinite" />
+  </g>
+
+  <!-- React -->
+  <g>
+    <rect x="310" y="30" width="100" height="60" rx="12" fill="url(#stackGrad3)" opacity="0.2" stroke="url(#stackGrad3)" stroke-width="2"/>
+    <text x="360" y="65" text-anchor="middle" font-size="12" fill="#38BDF8" font-family="Inter, sans-serif" font-weight="700">React</text>
+    <animate attributeName="opacity" values="0.2;0.2;0.2;0.8;0.2" dur="3s" repeatCount="indefinite" />
+  </g>
+
+  <!-- PostgreSQL -->
+  <g>
+    <rect x="450" y="30" width="100" height="60" rx="12" fill="url(#stackGrad4)" opacity="0.2" stroke="url(#stackGrad4)" stroke-width="2"/>
+    <text x="500" y="65" text-anchor="middle" font-size="12" fill="#F87171" font-family="Inter, sans-serif" font-weight="700">PostgreSQL</text>
+    <animate attributeName="opacity" values="0.2;0.8;0.2;0.2;0.2" dur="3s" repeatCount="indefinite" />
+  </g>
+
+  <!-- TailwindCSS -->
+  <g>
+    <rect x="590" y="30" width="110" height="60" rx="12" fill="rgba(6, 182, 212, 0.2)" stroke="rgba(6, 182, 212, 0.8)" stroke-width="2"/>
+    <text x="645" y="65" text-anchor="middle" font-size="12" fill="#06B6D4" font-family="Inter, sans-serif" font-weight="700">TailwindCSS</text>
+    <animate attributeName="opacity" values="0.2;0.8;0.2" dur="2.5s" repeatCount="indefinite" />
+  </g>
+
+  <!-- Redis -->
+  <g>
+    <rect x="740" y="30" width="100" height="60" rx="12" fill="rgba(239, 68, 68, 0.2)" stroke="rgba(239, 68, 68, 0.8)" stroke-width="2"/>
+    <text x="790" y="65" text-anchor="middle" font-size="12" fill="#EF4444" font-family="Inter, sans-serif" font-weight="700">Redis</text>
+    <animate attributeName="opacity" values="0.2;0.2;0.8;0.2" dur="2.5s" repeatCount="indefinite" />
+  </g>
+
+  <!-- Expo -->
+  <g>
+    <rect x="880" y="30" width="100" height="60" rx="12" fill="rgba(249, 115, 22, 0.2)" stroke="rgba(249, 115, 22, 0.8)" stroke-width="2"/>
+    <text x="930" y="65" text-anchor="middle" font-size="12" fill="#F97316" font-family="Inter, sans-serif" font-weight="700">Expo</text>
+    <animate attributeName="opacity" values="0.2;0.2;0.2;0.8;0.2" dur="2.5s" repeatCount="indefinite" />
+  </g>
+
+  <!-- ESP32 -->
+  <g>
+    <rect x="1020" y="30" width="100" height="60" rx="12" fill="rgba(139, 92, 246, 0.2)" stroke="rgba(139, 92, 246, 0.8)" stroke-width="2"/>
+    <text x="1070" y="65" text-anchor="middle" font-size="12" fill="#C4B5FD" font-family="Inter, sans-serif" font-weight="700">ESP32 IoT</text>
+    <animate attributeName="opacity" values="0.2;0.8;0.2" dur="2.8s" repeatCount="indefinite" />
+  </g>
+</svg>
