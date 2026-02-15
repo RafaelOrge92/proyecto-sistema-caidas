@@ -94,6 +94,124 @@
 
 🌐 **Hardware IoT**
 - Firmware ESP32 en C++ (Arduino IDE).
+- Comunicación HTTP + autenticación de dispositivo.
+- Sensores: MPU6050, inclinómetro KY-017, botón de emergencia.
+
+---
+
+## Stack Tecnológico
+
+<img src="assets/readme-stack.svg" alt="Tech stack badges" width="100%" />
+
+| Capa | Tecnología | Versión |
+|------|-----------|---------|
+| **Backend** | Node.js, Express, TypeScript | 18+, 5.x, 5.x |
+| **Frontend Web** | React, Vite, TailwindCSS | 19, 7.x, 4.x |
+| **Mobile** | Expo, React Native | 54, 0.81 |
+| **Base de Datos** | PostgreSQL | 15+ |
+| **Cache** | Redis | 7.x |
+| **Hardware** | ESP32, Arduino SDK | - |
+| **LLM** | Groq, Hugging Face | - |
+| **Auth** | JWT, Google OAuth | - |
+
+---
+
+## Módulos
+
+```
+proyecto-sistema-caidas/
+├── backend/                          API principal Node.js + Express
+│   ├── src/
+│   │   ├── routes/                   Endpoints (auth, users, devices, events, chat)
+│   │   ├── middleware/               JWT + device auth
+│   │   ├── config/                   DB, Redis, env
+│   │   └── utils/                    Webhooks Discord, LLM, password hashing
+│   └── Base de Datos/                Scripts SQL y modelo relacional
+│
+├── fall-detection-frontend/          Panel web React + Vite
+│   ├── src/
+│   │   ├── pages/                    Admin, Dashboard, Events, Patients, Users
+│   │   ├── components/               Modales, gráficos, widgets
+│   │   ├── services/                 Clientes HTTP (adminService, chatService)
+│   │   ├── context/                  AuthContext, ThemeContext
+│   │   └── assets/                   Imágenes, íconos
+│   └── vite.config.js, tailwind.config.js
+│
+├── mobile/                           App móvil Expo + React Native
+│   ├── src/
+│   │   ├── screens/                  Home, Login, Events, Devices, Profile
+│   │   ├── components/               Botones, inputs, layouts reutilizables
+│   │   ├── api/                      Cliente HTTP, endpoints, mappers
+│   │   ├── auth/                     AuthContext, manejo de sesión
+│   │   ├── navigation/               Stack y Tab navigators
+│   │   └── theme/                    Tokens de color y tipografía
+│   ├── app.config.ts, tsconfig.json
+│   └── .env.example
+│
+├── hardware/                         Firmware y mock local
+│   ├── esp32/
+│   │   └── esp32_http.ino            Código del microcontrolador
+│   ├── server/                       Mock API en FastAPI (pruebas locales)
+│   │   ├── server.py
+│   │   └── requirements.txt
+│   └── docs/                         Documentación hardware
+│
+├── assets/                           SVG animados para README
+│   ├── readme-hero.svg
+│   ├── readme-pulse.svg
+│   ├── readme-features.svg
+│   ├── readme-stack.svg
+│   ├── readme-architecture.svg
+│   └── readme-dots.svg
+│
+└── package.json, .gitignore          Configuración raíz
+```
+
+## Arquitectura
+
+<img src="assets/readme-architecture.svg" alt="System architecture diagram" width="100%" />
+
+**Flujo de datos:**
+```
+ESP32 (IoT) --[device-auth]--> Backend API (Node/Express)
+                                    ↓
+                        ┌───────────┼───────────┐
+                        ↓           ↓           ↓
+                    PostgreSQL  Redis      Clientes
+                     (datos)   (chat)    (Web/Mobile)
+```
+
+---
+
+## Prerrequisitos
+
+### Backend
+- **Node.js**: 18 o superior (`node --version`)
+- **npm**: 9 o superior (`npm --version`)
+- **PostgreSQL**: 15+ con creación de base de datos
+- **Redis**: 7+ (opcional, requerido para chatbot)
+
+### Frontend Web
+- **Node.js**: 18+
+- **npm**: 9+
+- Navegador moderno (Chrome, Firefox, Safari, Edge)
+
+### Mobile
+- **Node.js**: 18+
+- **npm**: 9+
+- **Expo CLI**: `npm install -g expo-cli`
+- **Android Studio** o **Xcode** (emuladores)
+- O dispositivo físico con **Expo Go**
+
+### Hardware
+- **ESP32-DevKit** con WiFi integrado
+- **Sensores**:
+  - MPU6050 (I2C: GPIO 21/22)
+  - KY-017 inclinómetro (GPIO 26)
+  - Botón emergencia (GPIO 25)
+  - LED de estado (GPIO 2)
+- **Arduino IDE** + ESP32 board support
+
 ---
 
 ## Quick Start
@@ -396,122 +514,4 @@ La clave se valida contra `device_key_hash` con bcrypt.
 
 <p align="center">
   <sub>Sistema de Detección de Caídas © 2026 | Full Stack Open Source</sub>
-</p>e.json, .gitignore          Configuración raíz
-```
-
-## Arquitectura
-
-<img src="assets/readme-architecture.svg" alt="System architecture diagram" width="100%" />
-
-**Flujo de datos:**
-```
-ESP32 (IoT) --[device-auth]--> Backend API (Node/Express)
-                                    ↓
-                        ┌───────────┼───────────┐
-                        ↓           ↓           ↓
-                    PostgreSQL  Redis      Clientes
-                     (datos)   (chat)    (Web/Mobile)
-```
-
----
-
-## Prerrequisitos
-
-### Backend
-- **Node.js**: 18 o superior (`node --version`)
-- **npm**: 9 o superior (`npm --version`)
-- **PostgreSQL**: 15+ con creación de base de datos
-- **Redis**: 7+ (opcional, requerido para chatbot)
-
-### Frontend Web
-- **Node.js**: 18+
-- **npm**: 9+
-- Navegador moderno (Chrome, Firefox, Safari, Edge)
-
-### Mobile
-- **Node.js**: 18+
-- **npm**: 9+
-- **Expo CLI**: `npm install -g expo-cli`
-- **Android Studio** o **Xcode** (emuladores)
-- O dispositivo físico con **Expo Go**
-
-### Hardware
-- **ESP32-DevKit** con WiFi integrado
-- **Sensores**:
-  - MPU6050 (I2C: GPIO 21/22)
-  - KY-017 inclinómetro (GPIO 26)
-  - Botón emergencia (GPIO 25)
-  - LED de estado (GPIO 2)
-- **Arduino IDE** + ESP32 board support
-
-## Quick Start
-
-1) Backend
-
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-2) Frontend
-
-```bash
-cd fall-detection-frontend
-npm install
-npm run dev
-```
-
-3) Mobile
-
-```bash
-cd mobile
-npm install
-npm run start
-```
-
-4) Hardware (opcional)
-
-- Ver [hardware/docs/README.md](hardware/docs/README.md)
-- Firmware: [hardware/esp32/esp32_http.ino](hardware/esp32/esp32_http.ino)
-
-## Variables de entorno (resumen)
-
-Backend:
-
-- `PORT`, `NODE_ENV`, `JWT_SECRET`
-- `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USER`, `DB_PASSWORD`
-- `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-- `REDIS_URL` (chatbot)
-
-Frontend:
-
-- `VITE_GOOGLE_CLIENT_ID` (opcional)
-
-Mobile:
-
-- `EXPO_PUBLIC_API_BASE_URL`
-- `API_BASE_URL`
-- `EXPO_PUBLIC_GOOGLE_*_CLIENT_ID`
-
-## Base de datos
-
-Script principal:
-
-- [backend/Base%20de%20Datos/Scripts/create_db.sql](backend/Base%20de%20Datos/Scripts/create_db.sql)
-
-Incluye tablas de usuarios, pacientes, dispositivos y eventos, mas vistas y triggers.
-
-## Estilo visual
-
-La UI sigue un look dark glassmorphism con gradientes indigo/cyan, sombras suaves y transiciones.
-Esto replica el estilo de la app web y se refleja en este README con banners animados.
-
-## Contribuir
-
-- Issues y PRs bienvenidos.
-- Mantener consistencia con TypeScript y estilo tailwind.
-
-## Licencia
-
-Pendiente.
+</p>
