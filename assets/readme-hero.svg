@@ -1,0 +1,61 @@
+<svg width="1200" height="360" viewBox="0 0 1200 360" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fall detection system banner">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0F1419">
+        <animate attributeName="stop-color" values="#0F1419;#121826;#0F1419" dur="8s" repeatCount="indefinite" />
+      </stop>
+      <stop offset="45%" stop-color="#1A1F26">
+        <animate attributeName="stop-color" values="#1A1F26;#1B2230;#1A1F26" dur="8s" repeatCount="indefinite" />
+      </stop>
+      <stop offset="100%" stop-color="#111827">
+        <animate attributeName="stop-color" values="#111827;#0F172A;#111827" dur="8s" repeatCount="indefinite" />
+      </stop>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="50%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="18" />
+    </filter>
+  </defs>
+
+  <rect width="1200" height="360" rx="28" fill="url(#bg)" />
+
+  <g opacity="0.9" filter="url(#blur)">
+    <circle cx="180" cy="120" r="90" fill="#6366F1">
+      <animate attributeName="cx" values="160;200;160" dur="10s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="110;140;110" dur="10s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.25;0.5;0.25" dur="6s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="980" cy="80" r="70" fill="#8B5CF6">
+      <animate attributeName="cx" values="980;940;980" dur="9s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="70;100;70" dur="9s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.22;0.45;0.22" dur="7s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="780" cy="270" r="90" fill="#06B6D4">
+      <animate attributeName="cx" values="760;820;760" dur="11s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="260;290;260" dur="11s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.2;0.4;0.2" dur="8s" repeatCount="indefinite" />
+    </circle>
+  </g>
+
+  <g opacity="0.9">
+    <rect x="80" y="84" width="1040" height="192" rx="24" fill="rgba(26, 31, 38, 0.5)" stroke="rgba(255, 255, 255, 0.08)" />
+    <rect x="80" y="84" width="1040" height="6" rx="3" fill="url(#accent)">
+      <animate attributeName="x" values="80;120;80" dur="6s" repeatCount="indefinite" />
+    </rect>
+  </g>
+
+  <g fill="#F1F5F9" font-family="Space Grotesk, Inter, Arial, sans-serif">
+    <text x="130" y="156" font-size="28" font-weight="600" letter-spacing="0.5">Sistema de Deteccion de Caidas</text>
+    <text x="130" y="196" font-size="16" fill="#94A3B8">Web + API + Mobile + IoT con foco en monitoreo, alertas y analitica</text>
+    <text x="130" y="228" font-size="14" fill="#E2E8F0">Fall detection, eventos en tiempo real y paneles con glassmorphism</text>
+  </g>
+
+  <g>
+    <rect x="130" y="250" width="160" height="32" rx="16" fill="url(#accent)" />
+    <text x="150" y="271" font-size="13" fill="#0F1419" font-family="Space Grotesk, Inter, Arial, sans-serif" font-weight="600">Full Stack</text>
+  </g>
+</svg>
