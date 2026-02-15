@@ -61,7 +61,7 @@ const LandingFooter: React.FC = () => {
           </p>
           <div className="flex gap-8 text-sm font-bold text-[var(--color-text-secondary)]">
             <span>Diseñado en Vigo</span>
-            <span>v2.0.4</span>
+            <span>v1.0.0</span>
           </div>
         </div>
       </div>

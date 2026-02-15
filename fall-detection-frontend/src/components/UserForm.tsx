@@ -50,7 +50,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-900/30 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg text-sm">
+        <div className="border px-4 py-3 rounded-lg text-sm" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.5)', color: 'var(--color-text-primary)' }}>
           {error}
         </div>
       )}
@@ -58,7 +58,8 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
         <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase px-1">Nombre Completo</label>
         <input
           type="text"
-          className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-[var(--color-primary)] outline-none transition-all"
+          className="w-full border rounded-2xl p-4 focus:ring-2 focus:ring-[var(--color-primary)] outline-none transition-all"
+          style={{ backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
           value={formData.fullName}
           onChange={e => setFormData({ ...formData, fullName: e.target.value })}
           required
@@ -69,7 +70,8 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
         <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase px-1">Email</label>
         <input
           type="email"
-          className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-[var(--color-primary)] outline-none transition-all disabled:opacity-50"
+          className="w-full border rounded-2xl p-4 focus:ring-2 focus:ring-[var(--color-primary)] outline-none transition-all disabled:opacity-50"
+          style={{ backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
           value={formData.email}
           disabled={!!initialData}
           onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -82,7 +84,8 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
           <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase px-1">Contrasena</label>
           <input
             type="password"
-            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-[var(--color-primary)] outline-none transition-all"
+            className="w-full border rounded-2xl p-4 focus:ring-2 focus:ring-[var(--color-primary)] outline-none transition-all"
+            style={{ backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
             value={formData.password}
             onChange={e => setFormData({ ...formData, password: e.target.value })}
             required
@@ -93,11 +96,12 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
       <div className="space-y-2">
         <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase px-1">Rol de Acceso</label>
         <select
-          className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none appearance-none cursor-pointer"
+          className="w-full border rounded-2xl p-4 outline-none appearance-none cursor-pointer"
+          style={{ backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
           value={formData.role}
           onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })}
         >
-          <option value="MEMBER">Miembro (Paciente)</option>
+          <option value="MEMBER">Miembro</option>
           <option value="ADMIN">Administrador</option>
         </select>
       </div>

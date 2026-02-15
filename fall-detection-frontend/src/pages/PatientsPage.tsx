@@ -329,13 +329,17 @@ export const PatientsPage: React.FC = () => {
       </header>
 
       <div className="relative mb-8">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2" size={20} style={{ color: 'var(--color-text-secondary)' }} />
         <input
           type="text"
           placeholder="Buscar por nombre, paciente, usuario o dispositivo..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-[#1A1F26] border-none rounded-2xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-lg text-white"
+          className="w-full border-none rounded-2xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-lg"
+          style={{
+            backgroundColor: 'var(--color-bg-secondary)',
+            color: 'var(--color-text-primary)'
+          }}
         />
       </div>
 
@@ -345,8 +349,8 @@ export const PatientsPage: React.FC = () => {
         </div>
       ) : filteredPatients.length === 0 ? (
         <div className="glass-panel p-12 text-center">
-          <Activity className="mx-auto mb-4 text-[#64748B]" size={48} />
-          <p className="text-[var(--color-text-secondary)]">
+          <Activity className="mx-auto mb-4" size={48} style={{ color: 'var(--color-text-secondary)' }} />
+          <p style={{ color: 'var(--color-text-secondary)' }}>
             {normalizedSearch ? 'No hay pacientes que coincidan con la busqueda.' : 'No hay pacientes registrados en los dispositivos.'}
           </p>
         </div>
@@ -364,7 +368,7 @@ export const PatientsPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-xs px-3 py-1 rounded-full bg-white/5 text-[#94A3B8]">
+                    <span className="text-xs px-3 py-1 rounded-full bg-white/5" style={{ color: 'var(--color-text-secondary)' }}>
                       {patient.devices.length} disp.
                     </span>
                     <button
@@ -377,8 +381,8 @@ export const PatientsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <h2 className="text-xl font-bold text-white mb-1">{patient.name}</h2>
-                <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+                <h2 className="text-xl font-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>{patient.name}</h2>
+                <p className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>
                   {patient.patientId ? `ID paciente: ${patient.patientId}` : 'Sin patient_id registrado'}
                 </p>
 
@@ -395,7 +399,7 @@ export const PatientsPage: React.FC = () => {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-[#94A3B8]">Sin usuarios asignados</p>
+                      <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Sin usuarios asignados</p>
                     )}
                   </div>
 
@@ -406,9 +410,9 @@ export const PatientsPage: React.FC = () => {
                         <div key={device.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/5">
                           <div className="flex items-center gap-2 min-w-0">
                             <HardDrive size={14} className="text-indigo-300 shrink-0" />
-                            <p className="text-sm text-white truncate">{device.alias || device.id}</p>
+                            <p className="text-sm truncate" style={{ color: 'var(--color-text-primary)' }}>{device.alias || device.id}</p>
                           </div>
-                          <span className={`text-[11px] font-semibold ${device.isActive ? 'text-emerald-300' : 'text-[#94A3B8]'}`}>
+                          <span className={`text-[11px] font-semibold ${device.isActive ? 'text-emerald-300' : ''}`} style={{ color: device.isActive ? undefined : 'var(--color-text-secondary)' }}>
                             {device.isActive ? 'Activo' : 'Offline'}
                           </span>
                         </div>
@@ -424,9 +428,9 @@ export const PatientsPage: React.FC = () => {
 
       {isUsersModalOpen && selectedPatient && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeUsersModal} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeUsersModal} />
 
-          <div className="glass-panel w-full max-w-3xl relative z-10 overflow-hidden reveal bg-[var(--color-bg-secondary)]/90 p-8 border border-white/10">
+          <div className="glass-panel w-full max-w-3xl relative z-10 overflow-hidden reveal p-8 border border-white/10">
             <button
               onClick={closeUsersModal}
               className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
@@ -436,11 +440,11 @@ export const PatientsPage: React.FC = () => {
             </button>
 
             <div className="mb-6">
-              <h3 className="text-3xl font-bold text-white mb-2">Gestionar usuarios por paciente</h3>
-              <p className="text-[var(--color-text-secondary)]">
-                Paciente: <span className="text-white font-semibold">{selectedPatient.name}</span>
+              <h3 className="text-3xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>Gestionar usuarios por paciente</h3>
+              <p style={{ color: 'var(--color-text-secondary)' }}>
+                Paciente: <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{selectedPatient.name}</span>
               </p>
-              <p className="text-xs text-[#94A3B8] mt-1">{selectedPatient.patientId || 'Sin patient_id'}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>{selectedPatient.patientId || 'Sin patient_id'}</p>
             </div>
 
             {modalError && (
@@ -456,8 +460,7 @@ export const PatientsPage: React.FC = () => {
             ) : (
               <div className="space-y-6">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                    <UserPlus size={18} className="text-indigo-300" />
+                  <h4 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
                     Asignar usuario
                   </h4>
 
@@ -465,7 +468,12 @@ export const PatientsPage: React.FC = () => {
                     <select
                       value={selectedAccountId}
                       onChange={(e) => setSelectedAccountId(e.target.value)}
-                      className="md:col-span-2 bg-[var(--color-bg-secondary)] rounded-xl py-3 px-3 outline-none text-white border border-white/10"
+                      className="md:col-span-2 rounded-xl py-3 px-3 outline-none border border-white/10"
+                      style={{
+                        backgroundColor: 'var(--color-bg-secondary)',
+                        color: 'var(--color-text-primary)',
+                        borderColor: 'var(--color-border)'
+                      }}
                     >
                       <option value="">Selecciona un usuario...</option>
                       {allUsers.map((user) => (
@@ -478,7 +486,12 @@ export const PatientsPage: React.FC = () => {
                     <select
                       value={selectedAccessType}
                       onChange={(e) => setSelectedAccessType(e.target.value as 'OWNER' | 'MEMBER')}
-                      className="bg-[var(--color-bg-secondary)] rounded-xl py-3 px-3 outline-none text-white border border-white/10"
+                      className="rounded-xl py-3 px-3 outline-none border border-white/10"
+                      style={{
+                        backgroundColor: 'var(--color-bg-secondary)',
+                        color: 'var(--color-text-primary)',
+                        borderColor: 'var(--color-border)'
+                      }}
                     >
                       <option value="MEMBER">MEMBER</option>
                       <option value="OWNER">OWNER</option>
@@ -488,24 +501,24 @@ export const PatientsPage: React.FC = () => {
                   <button
                     onClick={handleAssignUserToPatient}
                     disabled={!selectedAccountId || assigning || !selectedPatient.patientId}
-                    className="mt-3 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold transition-colors"
+                    className="mt-3 px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#818CF8] hover:to-[#A78BFA] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold transition-colors"
                   >
                     {assigning ? 'Asignando...' : 'Asignar al paciente'}
                   </button>
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                  <h4 className="text-lg font-bold text-white mb-4">Usuarios actualmente asignados</h4>
+                  <h4 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>Usuarios actualmente asignados</h4>
 
                   {modalUsers.length === 0 ? (
-                    <p className="text-sm text-[#94A3B8]">No hay usuarios asignados a este paciente.</p>
+                    <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>No hay usuarios asignados a este paciente.</p>
                   ) : (
                     <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-1">
                       {modalUsers.map((user) => (
                         <div key={user.accountId} className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3">
                           <div className="min-w-0">
-                            <p className="text-white font-semibold truncate">{user.fullName}</p>
-                            <p className="text-xs text-[#94A3B8] truncate">{user.email}</p>
+                            <p className="font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>{user.fullName}</p>
+                            <p className="text-xs truncate" style={{ color: 'var(--color-text-secondary)' }}>{user.email}</p>
                             <div className="flex flex-wrap gap-2 mt-2">
                               <span className="px-2 py-0.5 rounded-full text-[11px] bg-indigo-500/15 text-indigo-300 flex items-center gap-1">
                                 <ShieldCheck size={11} />
@@ -544,168 +557,227 @@ export const PatientsPage: React.FC = () => {
       {/* Modal para crear nuevo paciente */}
       {isCreatePatientModalOpen && (
         <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setIsCreatePatientModalOpen(false)}
         >
           <div 
-            className="bg-[#1A1F26] rounded-2xl max-w-2xl w-full p-8 border border-white/10 relative max-h-[90vh] overflow-y-auto"
+            className="glass-panel rounded-2xl max-w-md w-full p-8 relative max-h-[90vh] overflow-y-auto reveal"
             onClick={(e) => e.stopPropagation()}
           >
             <button 
               onClick={() => setIsCreatePatientModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+              className="absolute top-4 right-4 transition-colors rounded-full p-1"
+              style={{ color: 'var(--color-text-secondary)', backgroundColor: 'transparent' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               <X size={24} />
             </button>
 
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2">Crear Paciente</h2>
-              <p className="text-[#94A3B8]">Registra un nuevo paciente en el sistema</p>
+              <h3 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
+                Crear <span style={{ color: 'var(--color-text-secondary)' }}>Paciente</span>
+              </h3>
+              <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>Registra un nuevo paciente en el sistema</p>
             </div>
 
             {createError && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-                <p className="text-red-400 text-sm">{createError}</p>
+              <div className="mb-6 p-4 border rounded-lg" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.5)' }}>
+                <p className="text-sm" style={{ color: 'var(--color-text-primary)' }}>{createError}</p>
               </div>
             )}
 
-            <div className="space-y-4 mb-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Nombre *</label>
-                  <input
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    disabled={creatingPatient}
-                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
-                    placeholder="Juan"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Apellido *</label>
-                  <input
-                    type="text"
-                    value={formData.lastName}
-                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    disabled={creatingPatient}
-                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
-                    placeholder="Pérez"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">NIF *</label>
-                  <input
-                    type="text"
-                    value={formData.nif}
-                    onChange={(e) => setFormData({ ...formData, nif: e.target.value })}
-                    disabled={creatingPatient}
-                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
-                    placeholder="12345678X"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Fecha de Nacimiento</label>
-                  <input
-                    type="date"
-                    value={formData.dateOfBirth}
-                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                    disabled={creatingPatient}
-                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
-                  />
-                </div>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-tighter mb-2" style={{ color: 'var(--color-text-secondary)' }}>Nombre *</label>
+                <input
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  disabled={creatingPatient}
+                  className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'var(--color-bg-primary)',
+                    color: 'var(--color-text-primary)',
+                    borderColor: 'var(--color-border)'
+                  }}
+                  placeholder="Juan"
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Dirección *</label>
+                <label className="block text-xs font-bold uppercase tracking-tighter mb-2" style={{ color: 'var(--color-text-secondary)' }}>Apellido *</label>
+                <input
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  disabled={creatingPatient}
+                  className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'var(--color-bg-primary)',
+                    color: 'var(--color-text-primary)',
+                    borderColor: 'var(--color-border)'
+                  }}
+                  placeholder="Pérez"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-tighter mb-2" style={{ color: 'var(--color-text-secondary)' }}>NIF *</label>
+                <input
+                  type="text"
+                  value={formData.nif}
+                  onChange={(e) => setFormData({ ...formData, nif: e.target.value })}
+                  disabled={creatingPatient}
+                  className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'var(--color-bg-primary)',
+                    color: 'var(--color-text-primary)',
+                    borderColor: 'var(--color-border)'
+                  }}
+                  placeholder="12345678X"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-tighter mb-2" style={{ color: 'var(--color-text-secondary)' }}>Fecha de Nacimiento</label>
+                <input
+                  type="date"
+                  value={formData.dateOfBirth}
+                  onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                  disabled={creatingPatient}
+                  className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'var(--color-bg-primary)',
+                    color: 'var(--color-text-primary)',
+                    borderColor: 'var(--color-border)'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-tighter mb-2" style={{ color: 'var(--color-text-secondary)' }}>Dirección *</label>
                 <input
                   type="text"
                   value={formData.addressLine1}
                   onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
                   disabled={creatingPatient}
-                  className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                  className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'var(--color-bg-primary)',
+                    color: 'var(--color-text-primary)',
+                    borderColor: 'var(--color-border)'
+                  }}
                   placeholder="Calle Principal 123"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Dirección 2 (Opcional)</label>
+                <label className="block text-xs font-bold uppercase tracking-tighter mb-2" style={{ color: 'var(--color-text-secondary)' }}>Dirección 2 (Opcional)</label>
                 <input
                   type="text"
                   value={formData.addressLine2}
                   onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })}
                   disabled={creatingPatient}
-                  className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                  className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'var(--color-bg-primary)',
+                    color: 'var(--color-text-primary)',
+                    borderColor: 'var(--color-border)'
+                  }}
                   placeholder="Apartamento 4B"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Ciudad *</label>
-                  <input
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    disabled={creatingPatient}
-                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
-                    placeholder="Madrid"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Provincia(Opcional)</label>
-                  <input
-                    type="text"
-                    value={formData.province}
-                    onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                    disabled={creatingPatient}
-                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
-                    placeholder="Madrid"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-tighter mb-2" style={{ color: 'var(--color-text-secondary)' }}>Ciudad *</label>
+                <input
+                  type="text"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  disabled={creatingPatient}
+                  className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'var(--color-bg-primary)',
+                    color: 'var(--color-text-primary)',
+                    borderColor: 'var(--color-border)'
+                  }}
+                  placeholder="Madrid"
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">Código Postal (Opcional)</label>
-                  <input
-                    type="text"
-                    value={formData.postalCode}
-                    onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                    disabled={creatingPatient}
-                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
-                    placeholder="28001"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#94A3B8] uppercase tracking-tighter mb-2">País</label>
-                  <input
-                    type="text"
-                    value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    disabled={creatingPatient}
-                    className="w-full bg-[#0F1419] border border-white/10 rounded-lg py-3 px-4 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
-                    placeholder="España"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-tighter mb-2" style={{ color: 'var(--color-text-secondary)' }}>Provincia (Opcional)</label>
+                <input
+                  type="text"
+                  value={formData.province}
+                  onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                  disabled={creatingPatient}
+                  className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'var(--color-bg-primary)',
+                    color: 'var(--color-text-primary)',
+                    borderColor: 'var(--color-border)'
+                  }}
+                  placeholder="Madrid"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-tighter mb-2" style={{ color: 'var(--color-text-secondary)' }}>Código Postal (Opcional)</label>
+                <input
+                  type="text"
+                  value={formData.postalCode}
+                  onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                  disabled={creatingPatient}
+                  className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'var(--color-bg-primary)',
+                    color: 'var(--color-text-primary)',
+                    borderColor: 'var(--color-border)'
+                  }}
+                  placeholder="28001"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-tighter mb-2" style={{ color: 'var(--color-text-secondary)' }}>País</label>
+                <input
+                  type="text"
+                  value={formData.country}
+                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                  disabled={creatingPatient}
+                  className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'var(--color-bg-primary)',
+                    color: 'var(--color-text-primary)',
+                    borderColor: 'var(--color-border)'
+                  }}
+                  placeholder="España"
+                />
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-4 pt-6">
               <button
                 onClick={() => setIsCreatePatientModalOpen(false)}
                 disabled={creatingPatient}
-                className="flex-1 px-4 py-3 rounded-lg border border-white/10 text-white hover:bg-white/5 transition-all disabled:opacity-50 font-semibold"
+                className="flex-1 px-4 py-2.5 rounded-lg border font-semibold transition-all disabled:opacity-50"
+                style={{
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)',
+                  backgroundColor: 'transparent'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-primary)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCreatePatient}
                 disabled={creatingPatient}
-                className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-all disabled:opacity-50 font-semibold flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#818CF8] hover:to-[#A78BFA] font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{ color: 'white' }}
               >
                 {creatingPatient ? (
                   <>

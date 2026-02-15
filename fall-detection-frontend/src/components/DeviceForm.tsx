@@ -66,38 +66,53 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, 
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-                <label className="block text-sm font-bold">ID del Dispositivo (ESP32)</label>
+                <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>ID del Dispositivo (ESP32)</label>
                 <input
                     type="text"
-                    className="w-full border p-2 rounded"
+                    className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                    style={{
+                        backgroundColor: 'var(--color-bg-primary)',
+                        color: 'var(--color-text-primary)',
+                        borderColor: 'var(--color-border)'
+                    }}
                     value={formData.id}
                     onChange={e => setFormData({ ...formData, id: e.target.value })}
-                    disabled={!!initialData} // Usually ID is immutable
+                    disabled={!!initialData}
                 />
-                {errors.id && <p className="text-red-500 text-xs">{errors.id}</p>}
+                {errors.id && <p className="text-red-500 text-xs mt-1">{errors.id}</p>}
             </div>
 
             <div>
-                <label className="block text-sm font-bold">Alias (Nombre amigable)</label>
+                <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Alias (Nombre amigable)</label>
                 <input
                     type="text"
-                    className="w-full border p-2 rounded"
+                    className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                    style={{
+                        backgroundColor: 'var(--color-bg-primary)',
+                        color: 'var(--color-text-primary)',
+                        borderColor: 'var(--color-border)'
+                    }}
                     value={formData.alias}
                     onChange={e => setFormData({ ...formData, alias: e.target.value })}
                 />
-                {errors.alias && <p className="text-red-500 text-xs">{errors.alias}</p>}
+                {errors.alias && <p className="text-red-500 text-xs mt-1">{errors.alias}</p>}
             </div>
 
             <div>
-                <label className="block text-sm font-bold">Asignar a Usuario (Opcional)</label>
+                <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Asignar a Usuario (Opcional)</label>
                 <select
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-[var(--color-primary)] transition-all"
+                    className="w-full border rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 appearance-none cursor-pointer"
+                    style={{
+                        backgroundColor: 'var(--color-bg-primary)',
+                        color: 'var(--color-text-primary)',
+                        borderColor: 'var(--color-border)'
+                    }}
                     value={formData.assignedUserId || ""}
                     onChange={e => setFormData({ ...formData, assignedUserId: e.target.value })}
                 >
-                    <option value="" className="bg-[#0F1419]">-- Sin asignar --</option>
+                    <option value="">-- Sin asignar --</option>
                     {users
                         .filter(u => u.role === 'MEMBER')
                         .map(user => (
@@ -110,13 +125,25 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({ initialData, onSuccess, 
 
             {errors.submit && <p className="text-red-500 text-xs">{errors.submit}</p>}
 
-            <div className="flex gap-2 justify-end">
-                <button type="button" onClick={onCancel} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+            <div className="flex gap-4 pt-6">
+                <button 
+                    type="button" 
+                    onClick={onCancel} 
+                    className="flex-1 px-4 py-2.5 rounded-lg border font-semibold transition-all"
+                    style={{
+                        borderColor: 'var(--color-border)',
+                        color: 'var(--color-text-primary)',
+                        backgroundColor: 'transparent'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-primary)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
                     Cancelar
                 </button>
                 <button
                     type="submit"
-                    className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-60"
+                    className="flex-1 px-4 py-2.5 rounded-lg bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#818CF8] hover:to-[#A78BFA] font-semibold transition-all disabled:opacity-50"
+                    style={{ color: 'white' }}
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar' : 'Registrar')}

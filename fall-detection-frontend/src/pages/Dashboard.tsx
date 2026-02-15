@@ -111,10 +111,10 @@ export const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0F1419]">
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-[#6366F1] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-xl text-[#94A3B8]">Cargando panel...</div>
+          <div className="text-xl" style={{ color: 'var(--color-text-secondary)' }}>Cargando panel...</div>
         </div>
       </div>
     );
@@ -130,37 +130,44 @@ export const Dashboard: React.FC = () => {
   const activeDevices = devices.filter(d => (d as any).isActive).length;
 
   return (
-    <div className={`min-h-screen p-8 transition-colors duration-1000 ${shouldAlert ? 'bg-red-950/20' : 'bg-[#0F1419]'}`}>
+    <div 
+      className="min-h-screen p-8 transition-colors duration-1000"
+      style={{ 
+        backgroundColor: shouldAlert 
+          ? 'var(--color-alert-bg)'
+          : 'var(--color-bg-primary)'
+      }}
+    >
       <div className="max-w-7xl mx-auto">
         
         {/* Resumen Superior */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <div className="glass-panel p-6">
-            <p className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-1">Estado Global</p>
+            <p className="text-sm font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Estado Global</p>
             <h2 className="text-3xl font-bold flex items-center gap-2">
               {shouldAlert ? <span className="text-red-500">Alerta Crítica</span> : <span className="text-green-500">Protegido</span>}
             </h2>
           </div>
           
           <div className="glass-panel p-6">
-            <p className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-1">Dispositivos Activos</p>
-            <h2 className="text-3xl font-bold text-white flex items-center gap-2">
+            <p className="text-sm font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Dispositivos Activos</p>
+            <h2 className="text-3xl font-bold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
               <Wifi size={28} className="text-[#6366F1]" />
               {activeDevices} / {devices.length}
             </h2>
           </div>
           
           <div className="glass-panel p-6">
-            <p className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-1">Total Eventos</p>
-            <h2 className="text-3xl font-bold text-white flex items-center gap-2">
+            <p className="text-sm font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Total Eventos</p>
+            <h2 className="text-3xl font-bold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
               <Activity size={28} className="text-cyan-400" />
               {totalEvents}
             </h2>
           </div>
           
           <div className="glass-panel p-6">
-            <p className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-1">Falsas Alarmas</p>
-            <h2 className="text-3xl font-bold text-white flex items-center gap-2">
+            <p className="text-sm font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Falsas Alarmas</p>
+            <h2 className="text-3xl font-bold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
               <CheckCircle size={28} className="text-emerald-400" />
               {falseAlarms}
             </h2>
@@ -170,27 +177,34 @@ export const Dashboard: React.FC = () => {
         {/* Widget Podium de Dispositivos */}
         {podium.length > 0 && (
           <div className="glass-panel p-8 mb-12">
-            <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
+            <h3 className="text-2xl font-bold mb-6 flex items-center gap-3" style={{ color: 'var(--color-text-primary)' }}>
               <Activity size={28} className="text-amber-400" />
               Dispositivos Más Activos
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {podium.slice(0, 3).map((item, index) => (
-                <div key={item.device_id} className="bg-[#1A1F26] rounded-xl p-6 border border-white/5 hover:border-white/10 transition-colors">
+                <div 
+                  key={item.device_id} 
+                  className="rounded-xl p-6 border transition-all duration-300 hover:scale-[1.02] hover:shadow-xl" 
+                  style={{ 
+                    backgroundColor: 'var(--color-bg-secondary)',
+                    borderColor: 'var(--color-border)'
+                  }}
+                >
                   <div className="flex items-center justify-between mb-4">
                     <div className={`text-4xl font-bold ${
                       index === 0 ? 'text-amber-400' : 
-                      index === 1 ? 'text-gray-300' : 
-                      'text-amber-700'
+                      index === 1 ? 'text-gray-400' : 
+                      'text-amber-600'
                     }`}>
                       #{index + 1}
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-[#94A3B8]">Eventos</p>
-                      <p className="text-3xl font-bold text-white">{item.count}</p>
+                      <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Eventos</p>
+                      <p className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{item.count}</p>
                     </div>
                   </div>
-                  <p className="text-white font-semibold truncate">
+                  <p className="font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
                     Dispositivo {item.device_id}
                   </p>
                 </div>
@@ -231,18 +245,30 @@ export const Dashboard: React.FC = () => {
 
           {/* Dispositivos */}
           <section className="lg:col-span-2 space-y-6">
-            <h3 className="text-2xl font-bold ml-2 text-white">Dispositivos Conectados</h3>
+            <h3 className="text-2xl font-bold ml-2" style={{ color: 'var(--color-text-primary)' }}>Dispositivos Conectados</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {devices.map((device) => (
-                <div key={device.id} className="glass-panel p-8 hover:bg-[#252B35] transition-colors group">
+                <div 
+                  key={device.id} 
+                  className="glass-panel p-8 transition-all duration-300 group hover:scale-[1.02] hover:shadow-2xl"
+                  style={{
+                    '--hover-bg': 'var(--color-bg-elevated)'
+                  } as React.CSSProperties}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '';
+                  }}
+                >
                   <div className="flex justify-between items-center mb-6">
                     <div className="p-3 bg-[#6366F1]/10 rounded-2xl text-[#6366F1] group-hover:scale-110 transition-transform">
                       <Wifi size={24} />
                     </div>
                     <span className="text-xs font-bold text-green-500 bg-green-500/10 px-3 py-1 rounded-full uppercase">Online</span>
                   </div>
-                  <h4 className="text-2xl font-bold mb-1 text-white">{(device as any).alias || device.id}</h4>
-                  <p className="text-[#94A3B8]">Paciente: {(device as any).patientName || 'No asignado'}</p>
+                  <h4 className="text-2xl font-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>{(device as any).alias || device.id}</h4>
+                  <p style={{ color: 'var(--color-text-secondary)' }}>Paciente: {(device as any).patientName || 'No asignado'}</p>
                 </div>
               ))}
             </div>
@@ -250,14 +276,14 @@ export const Dashboard: React.FC = () => {
 
           {/* Historial Lateral */}
           <aside className="glass-panel p-8 h-fit">
-            <h3 className="text-2xl font-bold mb-6 text-white">Actividad Reciente</h3>
+            <h3 className="text-2xl font-bold mb-6" style={{ color: 'var(--color-text-primary)' }}>Actividad Reciente</h3>
             <div className="space-y-6">
               {events.slice(0, 5).map((event) => (
-                <div key={event.id} className="flex gap-4 items-start border-b border-white/5 pb-4">
+                <div key={event.id} className="flex gap-4 items-start border-b pb-4" style={{ borderColor: 'var(--color-border)' }}>
                   <div className={`w-2 h-2 rounded-full mt-2 ${(event as any).status === 'OPEN' ? 'bg-red-500' : 'bg-gray-500'}`} />
                   <div>
-                    <p className="font-bold text-white">{(event as any).deviceAlias || (event as any).deviceId}</p>
-                    <p className="text-sm text-[#94A3B8]">{new Date((event as any).occurredAt || Date.now()).toLocaleTimeString()}</p>
+                    <p className="font-bold" style={{ color: 'var(--color-text-primary)' }}>{(event as any).deviceAlias || (event as any).deviceId}</p>
+                    <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{new Date((event as any).occurredAt || Date.now()).toLocaleTimeString()}</p>
                   </div>
                 </div>
               ))}

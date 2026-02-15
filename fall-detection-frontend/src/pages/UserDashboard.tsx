@@ -356,17 +356,17 @@ export const UserDashboard: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-bg-primary flex items-center justify-center text-white">Cargando tu proteccion...</div>;
+    return <div className="min-h-screen bg-bg-primary flex items-center justify-center" style={{ color: 'var(--color-text-primary)' }}>Cargando tu proteccion...</div>;
   }
 
   return (
     <div className="min-h-screen pt-32 pb-20 px-6 reveal">
       <div className="max-w-6xl mx-auto">
         <header className="mb-16">
-          <h1 className="text-5xl font-bold tracking-tighter text-white mb-4">
+          <h1 className="text-5xl font-bold tracking-tighter mb-4" style={{ color: 'var(--color-text-primary)' }}>
             Hola, <span className="text-indigo-400">{user?.fullName.split(' ')[0]}</span>.
           </h1>
-          <p className="text-xl text-text-secondary font-medium">
+          <p className="text-xl font-medium" style={{ color: 'var(--color-text-secondary)' }}>
             Tu sistema de proteccion esta activo y vigilando.
           </p>
         </header>
@@ -374,14 +374,16 @@ export const UserDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
           <button
             onClick={openDeviceModal}
-            className="glass-panel px-6 py-4 rounded-2xl font-semibold text-white hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 flex items-center gap-3"
+            className="glass-panel px-6 py-4 rounded-2xl font-semibold hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 flex items-center gap-3"
+            style={{ color: 'var(--color-text-primary)' }}
           >
             <Plus size={18} className="text-indigo-300" />
             Agregar dispositivo
           </button>
           <button
             onClick={openPatientModal}
-            className="glass-panel px-6 py-4 rounded-2xl font-semibold text-white hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 flex items-center gap-3"
+            className="glass-panel px-6 py-4 rounded-2xl font-semibold hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 flex items-center gap-3"
+            style={{ color: 'var(--color-text-primary)' }}
           >
             <Users size={18} className="text-indigo-300" />
             Agregar paciente
@@ -404,13 +406,13 @@ export const UserDashboard: React.FC = () => {
                       </div>
                       <Badge variant="success">En linea</Badge>
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-1">{device.alias || 'Dispositivo'}</h3>
-                    <p className="text-sm text-text-secondary font-mono uppercase tracking-widest">ID: {device.deviceId || device.id}</p>
+                    <h3 className="text-2xl font-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>{device.alias || 'Dispositivo'}</h3>
+                    <p className="text-sm font-mono uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>ID: {device.deviceId || device.id}</p>
                   </Card>
                 ))
               ) : (
                 <Card className="col-span-2 text-center py-12 border-dashed border-white/10 bg-transparent">
-                  <p className="text-text-secondary">No tienes dispositivos vinculados todavia.</p>
+                  <p style={{ color: 'var(--color-text-secondary)' }}>No tienes dispositivos vinculados todavia.</p>
                 </Card>
               )}
             </div>
@@ -424,7 +426,8 @@ export const UserDashboard: React.FC = () => {
               <button
                 onClick={exportActivityToPDF}
                 disabled={filteredEvents.length === 0}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold flex items-center gap-2 transition-colors"
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold flex items-center gap-2 transition-colors"
+                style={{ color: 'white' }}
               >
                 <Download size={16} />
                 Exportar PDF
@@ -432,18 +435,19 @@ export const UserDashboard: React.FC = () => {
             </div>
 
             <Card className="bg-bg-secondary/30 border-white/5">
-              <p className="text-xs text-text-secondary uppercase tracking-widest mb-3">Eventos pendientes</p>
-              <p className="text-4xl font-black text-white">{myOpenEvents.length}</p>
-              <p className="text-sm text-text-secondary mt-1">Click en un evento para revisar y confirmar/falsa alarma.</p>
+              <p className="text-xs uppercase tracking-widest mb-3" style={{ color: 'var(--color-text-secondary)' }}>Eventos pendientes</p>
+              <p className="text-4xl font-black" style={{ color: 'var(--color-text-primary)' }}>{myOpenEvents.length}</p>
+              <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>Click en un evento para revisar y confirmar/falsa alarma.</p>
             </Card>
 
             <Card className="bg-bg-secondary/30 border-white/5">
-              <p className="text-xs text-text-secondary uppercase tracking-widest mb-4">Filtros de actividad</p>
+              <p className="text-xs uppercase tracking-widest mb-4" style={{ color: 'var(--color-text-secondary)' }}>Filtros de actividad</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as 'ALL' | 'OPEN' | 'CONFIRMED_FALL' | 'FALSE_ALARM' | 'RESOLVED')}
-                  className="w-full bg-[var(--color-bg-secondary)] rounded-xl py-2.5 px-3 outline-none text-white border border-white/10"
+                  className="w-full rounded-xl py-2.5 px-3 outline-none border"
+                  style={{ backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
                 >
                   <option value="ALL">Todos los estados</option>
                   <option value="OPEN">OPEN</option>
@@ -455,7 +459,8 @@ export const UserDashboard: React.FC = () => {
                 <select
                   value={patientFilter}
                   onChange={(e) => setPatientFilter(e.target.value)}
-                  className="w-full bg-[var(--color-bg-secondary)] rounded-xl py-2.5 px-3 outline-none text-white border border-white/10"
+                  className="w-full rounded-xl py-2.5 px-3 outline-none border"
+                  style={{ backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
                 >
                   <option value="ALL">Todos los pacientes</option>
                   {patientFilterOptions.map((patientName) => (
@@ -479,11 +484,11 @@ export const UserDashboard: React.FC = () => {
                       <div className="flex items-center gap-4 min-w-0">
                         <div className={`w-2 h-2 rounded-full ${event.status === 'OPEN' ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
                         <div>
-                          <p className="text-white font-bold text-sm">{event.eventType}</p>
-                          <p className="text-text-secondary text-xs truncate">{new Date(event.occurredAt || '').toLocaleTimeString()}</p>
-                          <p className="text-[#94A3B8] text-xs truncate">Paciente: {event.patientName || 'Sin paciente'}</p>
+                          <p className="font-bold text-sm" style={{ color: 'var(--color-text-primary)' }}>{event.eventType}</p>
+                          <p className="text-xs truncate" style={{ color: 'var(--color-text-secondary)' }}>{new Date(event.occurredAt || '').toLocaleTimeString()}</p>
+                          <p className="text-xs truncate" style={{ color: 'var(--color-text-secondary)' }}>Paciente: {event.patientName || 'Sin paciente'}</p>
                           {event.reviewComment && (
-                            <p className="text-[#94A3B8] text-xs italic truncate max-w-[220px]">"{event.reviewComment}"</p>
+                            <p className="text-xs italic truncate max-w-[220px]" style={{ color: 'var(--color-text-secondary)' }}>"{event.reviewComment}"</p>
                           )}
                         </div>
                       </div>
@@ -491,9 +496,9 @@ export const UserDashboard: React.FC = () => {
                     </button>
                   ))
                 ) : myEvents.length > 0 ? (
-                  <div className="p-10 text-center text-text-secondary">No hay eventos para el filtro seleccionado.</div>
+                  <div className="p-10 text-center" style={{ color: 'var(--color-text-secondary)' }}>No hay eventos para el filtro seleccionado.</div>
                 ) : (
-                  <div className="p-10 text-center text-text-secondary">Sin eventos recientes.</div>
+                  <div className="p-10 text-center" style={{ color: 'var(--color-text-secondary)' }}>Sin eventos recientes.</div>
                 )}
               </div>
             </Card>
@@ -504,7 +509,7 @@ export const UserDashboard: React.FC = () => {
       {isDeviceModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsDeviceModalOpen(false)} />
-          <div className="glass-panel w-full max-w-2xl relative z-10 bg-[var(--color-bg-secondary)]/90 p-8 border border-white/10 max-h-[90vh] overflow-y-auto">
+          <div className="glass-panel w-full max-w-2xl relative z-10 p-8 border border-white/10 max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsDeviceModalOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
@@ -514,8 +519,8 @@ export const UserDashboard: React.FC = () => {
             </button>
 
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-white">Agregar dispositivo</h3>
-              <p className="text-text-secondary">Selecciona un dispositivo disponible para vincularlo a tu cuenta.</p>
+              <h3 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Agregar dispositivo</h3>
+              <p className="text-[var(--color-text-secondary)]">Selecciona un dispositivo disponible para vincularlo a tu cuenta.</p>
             </div>
 
             {assignError && (
@@ -531,13 +536,20 @@ export const UserDashboard: React.FC = () => {
                     key={device.id}
                     onClick={() => handleAssignDeviceToMe(device.id)}
                     disabled={assigningDeviceId === device.id}
-                    className="w-full text-left p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50"
+                    className="w-full text-left p-4 rounded-xl border transition-colors disabled:opacity-50"
+                    style={{
+                      borderColor: 'var(--color-border)',
+                      backgroundColor: 'var(--color-bg-primary)',
+                      color: 'var(--color-text-primary)'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-secondary)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-primary)'}
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="text-white font-semibold">{device.alias || 'Dispositivo'}</p>
-                        <p className="text-xs text-text-secondary font-mono">ID: {device.id}</p>
-                        <p className="text-xs text-text-secondary">Paciente: {device.patientName || 'Sin paciente'}</p>
+                        <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{device.alias || 'Dispositivo'}</p>
+                        <p className="text-xs font-mono" style={{ color: 'var(--color-text-secondary)' }}>ID: {device.id}</p>
+                        <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Paciente: {device.patientName || 'Sin paciente'}</p>
                       </div>
                       {assigningDeviceId === device.id && (
                         <div className="w-5 h-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
@@ -546,7 +558,7 @@ export const UserDashboard: React.FC = () => {
                   </button>
                 ))
               ) : (
-                <div className="p-8 text-center text-text-secondary">No hay dispositivos disponibles.</div>
+                <div className="p-8 text-center" style={{ color: 'var(--color-text-secondary)' }}>No hay dispositivos disponibles.</div>
               )}
             </div>
           </div>
@@ -556,7 +568,7 @@ export const UserDashboard: React.FC = () => {
       {isPatientModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsPatientModalOpen(false)} />
-          <div className="glass-panel w-full max-w-2xl relative z-10 bg-[var(--color-bg-secondary)]/90 p-8 border border-white/10 max-h-[90vh] overflow-y-auto">
+          <div className="glass-panel w-full max-w-2xl relative z-10 p-8 border border-white/10 max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsPatientModalOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
@@ -566,8 +578,8 @@ export const UserDashboard: React.FC = () => {
             </button>
 
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-white">Agregar paciente</h3>
-              <p className="text-text-secondary">Selecciona un paciente disponible para vincularlo a tu cuenta.</p>
+              <h3 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Agregar paciente</h3>
+              <p className="text-[var(--color-text-secondary)]">Selecciona un paciente disponible para vincularlo a tu cuenta.</p>
             </div>
 
             {assignError && (
@@ -583,14 +595,21 @@ export const UserDashboard: React.FC = () => {
                     key={patient.patientId}
                     onClick={() => handleAssignPatientToMe(patient.patientId)}
                     disabled={assigningPatientId === patient.patientId}
-                    className="w-full text-left p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50"
+                    className="w-full text-left p-4 rounded-xl border transition-colors disabled:opacity-50"
+                    style={{
+                      borderColor: 'var(--color-border)',
+                      backgroundColor: 'var(--color-bg-primary)',
+                      color: 'var(--color-text-primary)'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-secondary)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-primary)'}
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="text-white font-semibold">{patient.patientName}</p>
-                        {patient.nif && <p className="text-xs text-text-secondary">NIF: {patient.nif}</p>}
-                        {patient.city && <p className="text-xs text-text-secondary">Ciudad: {patient.city}</p>}
-                        <p className="text-xs text-text-secondary">Dispositivos: {patient.deviceCount ?? 0}</p>
+                        <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{patient.patientName}</p>
+                        {patient.nif && <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>NIF: {patient.nif}</p>}
+                        {patient.city && <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Ciudad: {patient.city}</p>}
+                        <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Dispositivos: {patient.deviceCount ?? 0}</p>
                       </div>
                       {assigningPatientId === patient.patientId && (
                         <div className="w-5 h-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
@@ -599,7 +618,7 @@ export const UserDashboard: React.FC = () => {
                   </button>
                 ))
               ) : (
-                <div className="p-8 text-center text-text-secondary">No hay pacientes disponibles.</div>
+                <div className="p-8 text-center" style={{ color: 'var(--color-text-secondary)' }}>No hay pacientes disponibles.</div>
               )}
             </div>
           </div>
@@ -610,7 +629,7 @@ export const UserDashboard: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeReviewModal} />
 
-          <div className="glass-panel w-full max-w-4xl relative z-10 bg-[var(--color-bg-secondary)]/90 p-8 border border-white/10 max-h-[90vh] overflow-y-auto">
+          <div className="glass-panel w-full max-w-4xl relative z-10 p-8 border border-white/10 max-h-[90vh] overflow-y-auto">
             <button
               onClick={closeReviewModal}
               className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
@@ -625,28 +644,28 @@ export const UserDashboard: React.FC = () => {
               </div>
             ) : (
               <>
-                <h3 className="text-2xl font-bold text-white mb-6">Detalle y revision del evento</h3>
+                <h3 className="text-2xl font-bold mb-6" style={{ color: 'var(--color-text-primary)' }}>Detalle y revision del evento</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                    <p className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Paciente</p>
-                    <p className="text-white font-semibold">{selectedEvent.patientName || 'Sin paciente'}</p>
+                  <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)', borderWidth: '1px' }}>
+                    <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Paciente</p>
+                    <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{selectedEvent.patientName || 'Sin paciente'}</p>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                    <p className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Dispositivo</p>
-                    <p className="text-white font-semibold">{selectedEvent.deviceAlias || selectedEvent.deviceId}</p>
+                  <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)', borderWidth: '1px' }}>
+                    <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Dispositivo</p>
+                    <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{selectedEvent.deviceAlias || selectedEvent.deviceId}</p>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                    <p className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Tipo</p>
-                    <p className="text-white font-semibold">{selectedEvent.eventType || '-'}</p>
+                  <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)', borderWidth: '1px' }}>
+                    <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Tipo</p>
+                    <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{selectedEvent.eventType || '-'}</p>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                    <p className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Estado</p>
+                  <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)', borderWidth: '1px' }}>
+                    <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Estado</p>
                     <Badge variant={statusVariant(selectedEvent.status)}>{statusLabel(selectedEvent.status)}</Badge>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 md:col-span-2">
-                    <p className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Ocurrido</p>
-                    <p className="text-white font-semibold">
+                  <div className="rounded-xl p-4 md:col-span-2" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)', borderWidth: '1px' }}>
+                    <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Ocurrido</p>
+                    <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                       {selectedEvent.occurredAt ? new Date(selectedEvent.occurredAt).toLocaleString() : 'N/A'}
                     </p>
                   </div>
@@ -656,7 +675,7 @@ export const UserDashboard: React.FC = () => {
                   <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4">
                     <h4 className="text-lg font-bold text-white mb-2">Muestras de aceleracion</h4>
                     {samplesLoading ? (
-                      <p className="text-sm text-[#94A3B8]">Cargando muestras...</p>
+                      <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Cargando muestras...</p>
                     ) : samplesError ? (
                       <p className="text-sm text-red-400">{samplesError}</p>
                     ) : selectedEventSamples.length > 0 ? (
@@ -664,14 +683,14 @@ export const UserDashboard: React.FC = () => {
                         <Line data={sampleChartData} options={sampleChartOptions} />
                       </div>
                     ) : (
-                      <p className="text-sm text-[#94A3B8]">Este evento no tiene muestras de aceleracion guardadas.</p>
+                      <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Este evento no tiene muestras de aceleracion guardadas.</p>
                     )}
                   </div>
                 )}
 
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm text-[#94A3B8] mb-2 block">Resultado</label>
+                    <label className="text-sm mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>Resultado</label>
                     <select
                       value={reviewStatus}
                       onChange={(e) => setReviewStatus(e.target.value as 'CONFIRMED_FALL' | 'FALSE_ALARM')}
@@ -683,7 +702,7 @@ export const UserDashboard: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-sm text-[#94A3B8] mb-2 block flex items-center gap-2">
+                    <label className="text-sm mb-2 block flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
                       <MessageSquare size={14} />
                       Comentario
                     </label>
@@ -695,7 +714,7 @@ export const UserDashboard: React.FC = () => {
                       placeholder="Anade observaciones de la revision..."
                       className="w-full bg-[var(--color-bg-secondary)] rounded-xl py-3 px-3 outline-none text-white border border-white/10 resize-none"
                     />
-                    <p className="text-xs text-[#64748B] mt-1">{reviewComment.length}/255</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>{reviewComment.length}/255</p>
                   </div>
                 </div>
 

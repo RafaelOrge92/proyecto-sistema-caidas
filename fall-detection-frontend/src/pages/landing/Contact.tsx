@@ -58,7 +58,7 @@ const Contact: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)] uppercase font-bold tracking-widest">Ubicación</p>
-                <p className="text-xl font-medium">Sede Central, Madrid</p>
+                <p className="text-xl font-medium">Sede Central, Vigo</p>
               </div>
             </div>
           </div>

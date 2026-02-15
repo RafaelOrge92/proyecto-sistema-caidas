@@ -29,6 +29,34 @@
   color: rgb(75, 85, 99) !important;
 }
 
+/* Device Card Dark Mode Styles */
+.dark-theme .device-card {
+  background: rgba(26, 31, 38, 0.7) !important;
+}
+
+.dark-theme .device-card-icon {
+  background-color: #252B35 !important;
+}
+
+.dark-theme .device-card h3,
+.dark-theme .device-card-title {
+  color: white !important;
+}
+
+.dark-theme .device-card-label,
+.dark-theme .device-card-text {
+  color: #94A3B8 !important;
+}
+
+.dark-theme .device-card-input,
+.dark-theme .device-card-input:hover,
+.dark-theme .device-card select,
+.dark-theme .device-card select:hover {
+  background-color: #0F1419 !important;
+  border-color: #2D3748 !important;
+  color: white !important;
+}
+
 .light-theme .text-gray-300  {
   color: rgb(107, 114, 128) !important;
 }
@@ -52,6 +80,15 @@
   background-color: rgba(31, 41, 55, 0.08) !important;
 }
 
+.light-theme .border-white\/10,
+.light-theme .border-white\/5 {
+  border-color: rgba(31, 41, 55, 0.15) !important;
+}
+
+.light-theme .divide-white\/5 {
+  border-color: rgba(31, 41, 55, 0.1) !important;
+}
+
 .light-theme .hover\:bg-white\/5:hover,
 .light-theme .hover\:bg-white\/10:hover {
   background-color: rgba(31, 41, 55, 0.08) !important;
@@ -62,12 +99,31 @@
   color: rgb(107, 114, 128) !important;
 }
 
+.light-theme input[type="text"]::placeholder,
+.light-theme input[type="email"]::placeholder,
+.light-theme input[type="password"]::placeholder,
+.light-theme input[type="date"]::placeholder,
+.light-theme textarea::placeholder {
+  color: rgb(100, 116, 139) !important;
+}
+
 .light-theme input[type="text"],
 .light-theme input[type="email"],
 .light-theme input[type="password"],
+.light-theme input[type="date"],
 .light-theme select {
   color: rgb(17, 24, 39) !important;
   background-color: var(--color-bg-elevated) !important;
+}
+
+.light-theme .glass-panel input[type="text"],
+.light-theme .glass-panel input[type="email"],
+.light-theme .glass-panel input[type="password"],
+.light-theme .glass-panel input[type="date"],
+.light-theme .glass-panel select {
+  color: rgb(30, 41, 59) !important;
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Button primary styles for light theme */
@@ -80,6 +136,20 @@
 .light-theme .btn-primary-light-mode:hover {
   background: linear-gradient(135deg, #818CF8 0%, #A78BFA 100%) !important;
   color: white !important;
+}
+
+/* Light theme glass-panel text colors */
+.light-theme .glass-panel h2,
+.light-theme .glass-panel h3,
+.light-theme .glass-panel h4,
+.light-theme .glass-panel p,
+.light-theme .glass-panel label {
+  color: rgb(30, 41, 59) !important;
+}
+
+/* Light theme glass-panel button styling */
+.light-theme .glass-panel button {
+  color: rgb(30, 41, 59) !important;
 }
 
 /* Gradient card adjustments for light theme */
@@ -176,3 +246,180 @@
     radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
     radial-gradient(circle at 40% 20%, rgba(6, 182, 212, 0.06) 0%, transparent 50%);
 }
+/* MemberEventsPage and similar pages light theme fixes */
+.light-theme table {
+  background-color: #ffffff !important;
+}
+
+.light-theme table thead {
+  background-color: rgba(31, 41, 55, 0.05) !important;
+}
+
+.light-theme table thead th {
+  color: rgb(75, 85, 99) !important;
+  border-color: rgba(31, 41, 55, 0.1) !important;
+}
+
+.light-theme table tbody tr {
+  border-color: rgba(31, 41, 55, 0.1) !important;
+}
+
+.light-theme table tbody td {
+  color: rgb(30, 41, 59) !important;
+}
+
+.light-theme table tbody tr:hover {
+  background-color: rgba(99, 102, 241, 0.03) !important;
+}
+
+.light-theme [class*="bg-\[#1A1F26\]"] {
+  background-color: #ffffff !important;
+  border-color: rgba(31, 41, 55, 0.15) !important;
+}
+
+.light-theme input[type="text"].bg-\[\#1A1F26\],
+.light-theme select.bg-\[\#1A1F26\] {
+  background-color: #f8f9fa !important;
+  color: rgb(30, 41, 59) !important;
+  border-color: rgba(31, 41, 55, 0.2) !important;
+}
+
+.light-theme input[type="text"].bg-\[\#1A1F26\]::placeholder {
+  color: rgb(107, 114, 128) !important;
+}
+
+.light-theme select.bg-\[\#1A1F26\] option {
+  background-color: white !important;
+  color: rgb(30, 41, 59) !important;
+}
+
+.light-theme .text-cyan-100 {
+  color: rgb(30, 41, 59) !important;
+}
+
+.light-theme .text-cyan-400 {
+  color: #06b6d4 !important;
+}
+
+.light-theme .text-emerald-400 {
+  color: #10b981 !important;
+}
+
+.light-theme .text-indigo-400 {
+  color: #6366f1 !important;
+}
+
+.light-theme .text-indigo-300 {
+  color: #a5b4fc !important;
+}
+
+.light-theme .border-white\/5,
+.light-theme .border-white\/10 {
+  border-color: rgba(31, 41, 55, 0.15) !important;
+}
+
+.light-theme .divide-white\/5 {
+  border-color: rgba(31, 41, 55, 0.1) !important;
+}
+
+.light-theme .bg-white\/5 {
+  background-color: rgba(31, 41, 55, 0.04) !important;
+}
+
+.light-theme .bg-white\/\[0\.02\] {
+  background-color: rgba(31, 41, 55, 0.02) !important;
+}
+
+.light-theme h1.text-white,
+.light-theme h2.text-white,
+.light-theme h3.text-white,
+.light-theme h4.text-white {
+  color: rgb(17, 24, 39) !important;
+}
+
+.light-theme .hover\:bg-indigo-600:hover,
+.light-theme .hover\:bg-emerald-700:hover,
+.light-theme .hover\:bg-indigo-700:hover {
+  color: white !important;
+}
+
+.light-theme .focus\:ring-indigo-500:focus {
+  --tw-ring-color: #6366f1;
+}
+
+.light-theme textarea.bg-\[\#1A1F26\] {
+  background-color: #f8f9fa !important;
+  color: rgb(30, 41, 59) !important;
+  border-color: rgba(31, 41, 55, 0.2) !important;
+}
+
+.light-theme textarea.bg-\[\#1A1F26\]::placeholder {
+  color: rgb(107, 114, 128) !important;
+}
+
+/* Modal backgrounds in light theme */
+.light-theme .bg-\[#1A1F26\] {
+  background-color: #ffffff !important;
+}
+
+/* Select options in light theme */
+.light-theme select option {
+  background-color: #ffffff !important;
+  color: rgb(30, 41, 59) !important;
+}
+
+.light-theme select option:checked {
+  background: linear-gradient(#6366f1, #6366f1) !important;
+  background-color: #6366f1 !important;
+  color: white !important;
+}
+
+/* Export PDF button styling - overrides glass-panel */
+.btn-export-pdf {
+  background-color: #6366f1 !important;
+  color: white !important;
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.btn-export-pdf:hover:not(:disabled) {
+  background-color: #4f46e5 !important;
+  outline: none !important;
+  box-shadow: 0 25px 15px -3px rgba(99, 102, 241, 0.3) !important;
+}
+
+.btn-export-pdf:focus {
+  outline: none !important;
+  box-shadow: 0 25px 15px -3px rgba(99, 102, 241, 0.3) !important;
+}
+
+.btn-export-pdf:focus-visible {
+  outline: none !important;
+  box-shadow: 0 25px 15px -3px rgba(99, 102, 241, 0.3) !important;
+}
+
+.light-theme .btn-export-pdf {
+  background-color: #6366f1 !important;
+  color: white !important;
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.light-theme .btn-export-pdf:hover:not(:disabled) {
+  background-color: #4f46e5 !important;
+  outline: none !important;
+  box-shadow: 0 25px 15px -3px rgba(99, 102, 241, 0.3) !important;
+}
+
+.light-theme .btn-export-pdf:focus {
+  outline: none !important;
+  box-shadow: 0 25px 15px -3px rgba(99, 102, 241, 0.3) !important;
+}
+
+.light-theme .btn-export-pdf:focus-visible {
+  outline: none !important;
+  box-shadow: 0 25px 15px -3px rgba(99, 102, 241, 0.3) !important;
+}
+

@@ -19,13 +19,13 @@ export const UserModal: React.FC<ModalProps> = ({ isOpen, onClose, onSuccess, da
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
             
             {/* Contenedor del Modal */}
-            <div className="glass-panel w-full max-w-md relative z-10 overflow-hidden reveal bg-[var(--color-bg-secondary)]/90">
+            <div className="glass-panel w-full max-w-md relative z-10 overflow-hidden reveal">
                 <div className="p-8">
                     <div className="flex justify-between items-center mb-8">
-                        <h3 className="text-3xl font-bold tracking-tight text-white">
+                        <h3 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
                             {dataToEdit ? 'Editar' : 'Nuevo'} <span className="text-[var(--color-text-secondary)]">Usuario</span>
                         </h3>
-                        <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-gray-400 transition-colors">
+                        <button onClick={onClose} className="p-2 rounded-full transition-colors" style={{ color: 'var(--color-text-secondary)', backgroundColor: 'transparent' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-primary)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                             <X size={20} />
                         </button>
                     </div>
