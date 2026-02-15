@@ -21,11 +21,13 @@ const Button: React.FC<ButtonProps> = ({
   
   const variants = {
     primary: theme === 'light' 
-      ? "bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white hover:from-[#818CF8] hover:to-[#A78BFA] focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:ring-offset-2 focus:ring-offset-bg-primary glow-primary"
-      : "bg-white text-black hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:ring-offset-2 focus:ring-offset-bg-primary",
-    secondary: "bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] glow-primary",
-    outline: "border border-white/20 text-white bg-transparent hover:bg-white/5",
-    ghost: "text-[var(--color-text-secondary)] hover:text-white hover:bg-white/5",
+      ? "bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white hover:from-[#818CF8] hover:to-[#A78BFA] focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:ring-offset-2 focus:ring-offset-bg-primary"
+      : "bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white hover:from-[#818CF8] hover:to-[#A78BFA] focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:ring-offset-2 focus:ring-offset-bg-primary glow-primary",
+    secondary: "bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] glow-primary",
+    outline: "border hover:bg-white/5",
+    ghost: theme === 'light'
+      ? "text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] border border-[var(--color-border)]"
+      : "text-[var(--color-text-secondary)] hover:bg-white/5",
     danger: "bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20"
   };
 
@@ -37,7 +39,8 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button 
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${fullWidth ? "w-full" : ""} ${className}`} 
+      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${fullWidth ? "w-full" : ""} ${className}`}
+      style={variant === 'secondary' || variant === 'outline' ? { color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' } : {}}
       {...props}
     >
       {children}

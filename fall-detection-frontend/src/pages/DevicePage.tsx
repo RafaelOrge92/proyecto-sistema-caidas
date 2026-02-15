@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AdminService } from '../services/adminService';
 import { Device, User, Patient, FallEvent } from '../types';
-import { Laptop, Plus, Settings2, Link as LinkIcon, X, Activity, Calendar, Users, ChevronDown } from 'lucide-react';
+import { Laptop, Plus, Settings2, Link as LinkIcon, X, Activity, Calendar, Users, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DeviceModal } from '../components/DeviceModal';
 
 export const DevicePage: React.FC = () => {
@@ -19,6 +19,10 @@ export const DevicePage: React.FC = () => {
   const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
   const [selectedDeviceForPatient, setSelectedDeviceForPatient] = useState<Device | null>(null);
   const [assigningPatientToDeviceId, setAssigningPatientToDeviceId] = useState<string | null>(null);
+
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   useEffect(() => { loadData(); }, []);
 
@@ -51,6 +55,7 @@ export const DevicePage: React.FC = () => {
       console.error(e);
     } finally {
       setLoading(false);
+      setCurrentPage(1);
     }
   };
 
@@ -98,8 +103,8 @@ export const DevicePage: React.FC = () => {
     <div className="p-8 max-w-7xl mx-auto reveal">
       <header className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
         <div>
-          <h1 className="text-5xl font-bold tracking-tight text-white">Dispositivos</h1>
-          <p className="text-xl text-[#94A3B8] mt-2">Hardware vinculado a tu red de protección.</p>
+          <h1 className="text-5xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>Dispositivos</h1>
+          <p className="text-xl mt-2" style={{ color: 'var(--color-text-secondary)' }}>Hardware vinculado a tu red de protección.</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
@@ -109,76 +114,137 @@ export const DevicePage: React.FC = () => {
         </button>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {devices.map((device) => (
-          /* TODO lo de abajo debe estar dentro de este único DIV con clase glass-panel */
-          <div key={device.id} className="glass-panel p-8 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 group relative overflow-hidden">
-            <div className="flex justify-between items-start mb-10">
-              <div className="w-14 h-14 bg-[#252B35] rounded-2xl flex items-center justify-center text-[#6366F1]">
-                <Laptop size={28} />
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+            {devices.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((device) => (
+              <div key={device.id} className="device-card glass-panel p-8 hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 group relative overflow-hidden">
+                <div className="flex justify-between items-start mb-10">
+                  <div className="device-card-icon w-14 h-14 bg-[var(--color-bg-elevated)] rounded-2xl flex items-center justify-center text-[#6366F1]">
+                    <Laptop size={28} />
+                  </div>
+                  <button 
+                    className="transition-colors cursor-pointer hover:scale-110"
+                    onClick={() => loadDeviceDetails(device)}
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
+                    <Settings2 size={20} />
+                  </button>
+                </div>
+
+                <h3 className="device-card-title text-2xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>{(device as any).alias || 'Sin nombre'}</h3>
+                <p className="device-card-text text-xs font-mono mb-8 tracking-widest uppercase" style={{ color: 'var(--color-text-secondary)' }}>ID: {device.id}</p>
+
+                <div className="space-y-4">
+                  {/* Sección de Paciente */}
+                  <div>
+                    <label className="device-card-label text-xs font-bold uppercase tracking-tighter block mb-2" style={{ color: 'var(--color-text-secondary)' }}>Paciente Asignado</label>
+                    <button
+                      onClick={() => {
+                        setSelectedDeviceForPatient(device);
+                        setIsPatientModalOpen(true);
+                      }}
+                      className="device-card-input w-full bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-elevated)] border rounded-xl py-3 px-4 transition-all text-left flex justify-between items-center cursor-pointer"
+                      style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
+                    >
+                      <span>{device.patientName || 'Sin paciente'}</span>
+                      <ChevronDown size={16} style={{ color: 'var(--color-text-secondary)' }} />
+                    </button>
+                  </div>
+
+                  {/* Sección de Usuario */}
+                  <div>
+                    <label className="device-card-label text-xs font-bold uppercase tracking-tighter block" style={{ color: 'var(--color-text-secondary)' }}>Asignación de Usuario</label>
+                    <div className="relative">
+                      <select
+                        value={device.assignedUserId || ""}
+                        className="device-card select w-full bg-[var(--color-bg-secondary)] border rounded-xl py-3 px-4 appearance-none focus:ring-2 focus:ring-[var(--color-primary)] transition-all cursor-pointer disabled:opacity-50"
+                        style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
+                        onChange={(e) => handleAssignDevice(device.id, e.target.value)}
+                        disabled={assigningDeviceId === device.id}
+                      >
+                        <option value="">
+                          {assigningDeviceId === device.id ? 'Asignando...' : 'Disponible'}
+                        </option>
+                        {users.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
+                      </select>
+                      <LinkIcon size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--color-text-secondary)' }} />
+                    </div>
+                    {device.assignedUserName && (
+                      <p className="text-xs text-green-400 mt-2">
+                        ✓ Asignado a: {device.assignedUserName}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Indicador de Estado */}
+                <div className="absolute top-0 right-0 p-4 pointer-events-none">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                    <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Activo</span>
+                  </div>
+                </div>
               </div>
-              <button 
-                className="text-gray-500 hover:text-white transition-colors"
-                onClick={() => loadDeviceDetails(device)}
+            ))}
+          </div>
+
+          {/* Paginación */}
+          {Math.ceil(devices.length / itemsPerPage) > 1 && (
+            <div className="flex justify-center items-center gap-4 pb-8">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2"
+                style={{ 
+                  borderColor: 'var(--color-primary)',
+                  color: 'var(--color-primary)',
+                  backgroundColor: 'var(--color-primary)',
+                  opacity: currentPage === 1 ? 0.5 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (currentPage > 1) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                }}
               >
-                <Settings2 size={20} />
+                <ChevronLeft size={24} className="text-white" />
+              </button>
+              <span className="text-[var(--color-text-secondary)] font-semibold">
+                Página {currentPage} de {Math.ceil(devices.length / itemsPerPage)}
+              </span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(Math.ceil(devices.length / itemsPerPage), p + 1))}
+                disabled={currentPage === Math.ceil(devices.length / itemsPerPage)}
+                className="p-2 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2"
+                style={{ 
+                  borderColor: 'var(--color-primary)',
+                  color: 'var(--color-primary)',
+                  backgroundColor: 'var(--color-primary)',
+                  opacity: currentPage === Math.ceil(devices.length / itemsPerPage) ? 0.5 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (currentPage < Math.ceil(devices.length / itemsPerPage)) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                }}
+              >
+                <ChevronRight size={24} className="text-white" />
               </button>
             </div>
-
-            <h3 className="text-2xl font-bold mb-2 text-white">{(device as any).alias || 'Sin nombre'}</h3>
-            <p className="text-xs font-mono text-[#94A3B8] mb-8 tracking-widest uppercase">ID: {device.id}</p>
-
-            <div className="space-y-4">
-              {/* Sección de Paciente */}
-              <div>
-                <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-tighter block mb-2">Paciente Asignado</label>
-                <button
-                  onClick={() => {
-                    setSelectedDeviceForPatient(device);
-                    setIsPatientModalOpen(true);
-                  }}
-                  className="w-full bg-[#0F1419] hover:bg-[#1A1F2E] border border-[#2D3748] text-white rounded-xl py-3 px-4 transition-all text-left flex justify-between items-center"
-                >
-                  <span>{device.patientName || 'Sin paciente'}</span>
-                  <ChevronDown size={16} className="text-gray-500" />
-                </button>
-              </div>
-
-              {/* Sección de Usuario */}
-              <div>
-                <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-tighter block">Asignación de Usuario</label>
-                <div className="relative">
-                  <select
-                    value={device.assignedUserId || ""}
-                    className="w-full bg-[#0F1419] border-none text-white rounded-xl py-3 px-4 appearance-none focus:ring-2 focus:ring-[#6366F1] transition-all cursor-pointer disabled:opacity-50"
-                    onChange={(e) => handleAssignDevice(device.id, e.target.value)}
-                    disabled={assigningDeviceId === device.id}
-                  >
-                    <option value="">
-                      {assigningDeviceId === device.id ? 'Asignando...' : 'Disponible'}
-                    </option>
-                    {users.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
-                  </select>
-                  <LinkIcon size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
-                {device.assignedUserName && (
-                  <p className="text-xs text-green-400 mt-2">
-                    ✓ Asignado a: {device.assignedUserName}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Indicador de Estado - Asegúrate que esté DENTRO del div superior */}
-            <div className="absolute top-0 right-0 p-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Activo</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+          )}
+        </>
+      )}
 
       <DeviceModal
         isOpen={isModalOpen}
@@ -189,29 +255,31 @@ export const DevicePage: React.FC = () => {
       {/* Modal de Detalles del Dispositivo */}
       {selectedDevice && (
                 <div 
-                  className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                  className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
                   onClick={() => setSelectedDevice(null)}
                 >
                   <div 
-                    className="bg-[#1A1F26] rounded-2xl max-w-4xl w-full p-8 border border-white/10 relative max-h-[90vh] overflow-y-auto"
+                    className="glass-panel rounded-2xl max-w-4xl w-full p-8 relative max-h-[90vh] overflow-y-auto"
+                    style={{ backgroundColor: 'var(--color-bg-secondary)' }}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button 
                       onClick={() => setSelectedDevice(null)}
-                      className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                      className="absolute top-4 right-4 transition-colors"
+                      style={{ color: 'var(--color-text-secondary)' }}
                     >
                       <X size={24} />
                     </button>
 
                     <div className="mb-8">
-                      <h2 className="text-3xl font-bold text-white mb-2">
+                      <h2 className="text-3xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
                         {(selectedDevice as any).alias || 'Dispositivo'}
                       </h2>
-                      <p className="text-[#94A3B8] font-mono text-sm">ID: {selectedDevice.id}</p>
+                      <p className="font-mono text-sm" style={{ color: 'var(--color-text-secondary)' }}>ID: {selectedDevice.id}</p>
                     </div>
 
                     <div className="mb-8">
-                      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
                         <Activity size={20} className="text-indigo-400" />
                         Historial de Eventos
                       </h3>
@@ -225,12 +293,13 @@ export const DevicePage: React.FC = () => {
                           {deviceEvents.map((event) => (
                             <div 
                               key={event.id} 
-                              className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors border border-white/5"
+                              className="rounded-lg p-4 hover:bg-white/10 transition-colors border"
+                              style={{ backgroundColor: 'var(--color-bg-elevated)', borderColor: 'var(--color-border)' }}
                             >
                               <div className="flex justify-between items-start mb-2">
                                 <div className="flex items-center gap-3">
                                   <Calendar size={16} className="text-indigo-400" />
-                                  <span className="text-white font-semibold text-sm">
+                                  <span className="font-semibold text-sm" style={{ color: 'var(--color-text-primary)' }}>
                                     {event.occurredAt ? new Date(event.occurredAt).toLocaleString() : '-'}
                                   </span>
                                 </div>
@@ -243,9 +312,9 @@ export const DevicePage: React.FC = () => {
                                   {event.status}
                                 </span>
                               </div>
-                              <p className="text-[#94A3B8] text-sm">{event.eventType}</p>
+                              <p style={{ color: 'var(--color-text-secondary)' }} className="text-sm">{event.eventType}</p>
                               {event.reviewedBy && (
-                                <p className="text-xs text-[#64748B] mt-2">
+                                <p className="text-xs mt-2" style={{ color: 'var(--color-text-secondary)' }}>
                                   Revisado por: {event.reviewedBy}
                                 </p>
                               )}
@@ -253,7 +322,7 @@ export const DevicePage: React.FC = () => {
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-12 text-[#64748B]">
+                        <div className="text-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
                           <Activity size={48} className="mx-auto mb-4 opacity-20" />
                           <p>No hay eventos registrados para este dispositivo</p>
                         </div>
@@ -262,7 +331,7 @@ export const DevicePage: React.FC = () => {
 
                     <button 
                       onClick={() => setSelectedDevice(null)}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold transition-all"
+                      className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white py-3 rounded-lg font-semibold transition-all"
                     >
                       Cerrar
                     </button>
@@ -273,23 +342,25 @@ export const DevicePage: React.FC = () => {
       {/* Modal de Asignar Paciente */}
       {isPatientModalOpen && selectedDeviceForPatient && (
         <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setIsPatientModalOpen(false)}
         >
           <div 
-            className="bg-[#1A1F26] rounded-2xl max-w-md w-full p-8 border border-white/10 relative"
+            className="glass-panel rounded-2xl max-w-md w-full p-8 relative"
+            style={{ backgroundColor: 'var(--color-bg-secondary)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <button 
               onClick={() => setIsPatientModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+              className="absolute top-4 right-4 transition-colors"
+              style={{ color: 'var(--color-text-secondary)' }}
             >
               <X size={24} />
             </button>
 
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Asignar Paciente</h2>
-              <p className="text-[#94A3B8]">Dispositivo: {selectedDeviceForPatient.alias || selectedDeviceForPatient.id}</p>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>Asignar Paciente</h2>
+              <p style={{ color: 'var(--color-text-secondary)' }}>Dispositivo: {selectedDeviceForPatient.alias || selectedDeviceForPatient.id}</p>
             </div>
 
             <div className="space-y-3 max-h-[60vh] overflow-y-auto">
@@ -297,11 +368,12 @@ export const DevicePage: React.FC = () => {
               <button
                 onClick={() => handleAssignPatient(null)}
                 disabled={assigningPatientToDeviceId === selectedDeviceForPatient.id}
-                className="w-full p-4 text-left bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all disabled:opacity-50"
+                className="w-full p-4 text-left bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-primary)] rounded-lg transition-all disabled:opacity-50"
+                style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-gray-500"></div>
-                  <span className="text-white">Sin paciente</span>
+                  <span>Sin paciente</span>
                 </div>
               </button>
 
@@ -315,21 +387,22 @@ export const DevicePage: React.FC = () => {
                     className={`w-full p-4 text-left rounded-lg transition-all disabled:opacity-50 ${
                       selectedDeviceForPatient.patientId === patient.patientId
                         ? 'bg-indigo-600/20 border border-indigo-500/50'
-                        : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                        : 'bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-primary)] border'
                     }`}
+                    style={{ borderColor: selectedDeviceForPatient.patientId === patient.patientId ? undefined : 'var(--color-border)', color: 'var(--color-text-primary)' }}
                   >
                     <div className="flex items-start gap-3">
                       <div className="w-3 h-3 rounded-full bg-indigo-400 mt-1"></div>
                       <div>
-                        <p className="text-white font-semibold">{patient.patientName}</p>
-                        {patient.nif && <p className="text-xs text-[#94A3B8]">NIF: {patient.nif}</p>}
-                        {patient.city && <p className="text-xs text-[#94A3B8]">{patient.city}</p>}
+                        <p className="font-semibold">{patient.patientName}</p>
+                        {patient.nif && <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>NIF: {patient.nif}</p>}
+                        {patient.city && <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{patient.city}</p>}
                       </div>
                     </div>
                   </button>
                 ))
               ) : (
-                <div className="text-center py-8 text-[#64748B]">
+                <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
                   <Users size={32} className="mx-auto mb-2 opacity-20" />
                   <p>No hay pacientes disponibles</p>
                 </div>

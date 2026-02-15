@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AdminService } from '../services/adminService';
 import { FallEvent, PaginationMeta } from '../types';
-import { Calendar, HardDrive, UserCheck, Activity, Search, AlertTriangle, X, Grid3x3, List } from 'lucide-react';
+import { Calendar, HardDrive, UserCheck, Activity, Search, AlertTriangle, X, Grid3x3, List, ChevronLeft, ChevronRight } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useAuth } from '../context/AuthContext';
@@ -163,8 +163,8 @@ export const EventsPage: React.FC = () => {
         <div className="p-8 max-w-7xl mx-auto reveal">
             <header className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
                 <div>
-                    <h1 className="text-5xl font-bold tracking-tight mb-2 text-white">Historial</h1>
-                    <p className="text-xl text-[#94A3B8]">Registro detallado de todos los incidentes detectados.</p>
+                    <h1 className="text-5xl font-bold tracking-tight mb-2" style={{ color: 'var(--color-text-primary)' }}>Historial</h1>
+                    <p className="text-xl" style={{ color: 'var(--color-text-secondary)' }}>Registro detallado de todos los incidentes detectados.</p>
                 </div>
                 <div className="flex gap-3">
                     <div className="flex gap-2 glass-panel p-1 rounded-full">
@@ -194,7 +194,20 @@ export const EventsPage: React.FC = () => {
                     <button
                         onClick={exportToPDF}
                         title="Descargar reporte en PDF"
-                        className="glass-panel px-6 py-3 rounded-full font-semibold text-white hover:scale-105 hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 flex items-center gap-2 group"
+                        className="px-6 py-3 rounded-full font-semibold transition-all duration-300 flex items-center gap-2 group"
+                        style={{
+                            background: 'linear-gradient(135deg, rgb(79, 70, 229), rgb(99, 102, 241))',
+                            color: 'white',
+                            boxShadow: '0 0 20px rgba(79, 70, 229, 0.5)'
+                        }}
+                        onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 30px rgba(79, 70, 229, 0.8)';
+                            (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 20px rgba(79, 70, 229, 0.5)';
+                            (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+                        }}
                     >
                         <Activity size={18} className="group-hover:animate-bounce" /> Exportar a PDF
                     </button>
@@ -225,7 +238,11 @@ export const EventsPage: React.FC = () => {
                             placeholder="Filtrar por paciente, dispositivo, estado o revisor..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-[#1A1F26] border-none rounded-2xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-lg text-white"
+                            className="w-full border-none rounded-2xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-lg"
+                            style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                color: 'var(--color-text-primary)'
+                            }}
                         />
                     </div>
 
@@ -234,7 +251,7 @@ export const EventsPage: React.FC = () => {
                             {filteredEvents.length === 0 ? (
                                 <div className="glass-panel p-12 text-center">
                                     <Activity size={48} className="mx-auto mb-4 opacity-20" />
-                                    <p className="text-xl text-[#64748B]">
+                                    <p className="text-xl" style={{ color: 'var(--color-text-secondary)' }}>
                                         {searchTerm ? 'No se encontraron eventos con ese criterio.' : 'No hay eventos registrados en el sistema.'}
                                     </p>
                                 </div>
@@ -248,14 +265,14 @@ export const EventsPage: React.FC = () => {
                                         >
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="flex-1">
-                                                    <p className="text-sm text-[#94A3B8] mb-1">
+                                                    <p className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>
                                                         {event.occurredAt ? new Date(event.occurredAt).toLocaleDateString('es-ES', {
                                                             year: 'numeric',
                                                             month: 'short',
                                                             day: 'numeric'
                                                         }) : '-'}
                                                     </p>
-                                                    <p className="text-xs text-[#64748B]">
+                                                    <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                                                         {event.occurredAt ? new Date(event.occurredAt).toLocaleTimeString('es-ES', {
                                                             hour: '2-digit',
                                                             minute: '2-digit'
@@ -269,25 +286,25 @@ export const EventsPage: React.FC = () => {
 
                                             <div className="space-y-3 mb-4">
                                                 <div>
-                                                    <p className="text-xs text-[#64748B] mb-1">Paciente</p>
-                                                    <p className="text-white font-semibold text-sm truncate">
+                                                    <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Paciente</p>
+                                                    <p className="font-semibold text-sm truncate" style={{ color: 'var(--color-text-primary)' }}>
                                                         {event.patientName || 'Sin paciente'}
                                                     </p>
                                                 </div>
 
                                                 <div>
-                                                    <p className="text-xs text-[#64748B] mb-1">Dispositivo</p>
+                                                    <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Dispositivo</p>
                                                     <div className="flex items-center gap-2">
                                                         <HardDrive size={14} className="text-cyan-400" />
-                                                        <p className="text-white font-semibold text-sm truncate">
+                                                        <p className="font-semibold text-sm truncate" style={{ color: 'var(--color-text-primary)' }}>
                                                             {event.deviceAlias || event.deviceId}
                                                         </p>
                                                     </div>
                                                 </div>
 
                                                 <div>
-                                                    <p className="text-xs text-[#64748B] mb-1">Tipo de Evento</p>
-                                                    <p className="text-white font-semibold text-sm">{event.eventType}</p>
+                                                    <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Tipo de Evento</p>
+                                                    <p className="font-semibold text-sm" style={{ color: 'var(--color-text-primary)' }}>{event.eventType}</p>
                                                 </div>
                                             </div>
 
@@ -300,15 +317,15 @@ export const EventsPage: React.FC = () => {
                                                         </p>
                                                     </div>
                                                     {event.reviewComment && (
-                                                        <p className="text-xs text-[#94A3B8] italic mt-2 truncate">
+                                                        <p className="text-xs italic mt-2 truncate" style={{ color: 'var(--color-text-secondary)' }}>
                                                             "{event.reviewComment}"
                                                         </p>
                                                     )}
                                                 </div>
                                             )}
 
-                                            <div className="mt-4 pt-4 border-t border-white/10">
-                                                <p className="text-xs text-[#64748B] group-hover:text-indigo-400 transition-colors">
+                                            <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
+                                                <p className="text-xs transition-colors" style={{ color: 'var(--color-text-secondary)' }}>
                                                     Haz clic para ver detalles →
                                                 </p>
                                             </div>
@@ -318,7 +335,7 @@ export const EventsPage: React.FC = () => {
                             )}
 
                             <div className="mt-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <p className="text-sm text-[#94A3B8]">
+                                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                                     Mostrando {events.length} de {pagination.total} eventos
                                 </p>
 
@@ -329,7 +346,12 @@ export const EventsPage: React.FC = () => {
                                             setPageSize(Number(e.target.value));
                                             setPage(1);
                                         }}
-                                        className="bg-[#1A1F26] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none"
+                                        className="border rounded-lg px-3 py-2 text-sm outline-none"
+                                        style={{
+                                            backgroundColor: 'var(--color-bg-secondary)',
+                                            borderColor: 'var(--color-border)',
+                                            color: 'var(--color-text-primary)'
+                                        }}
                                     >
                                         <option value={10}>10 / pag</option>
                                         <option value={20}>20 / pag</option>
@@ -339,21 +361,49 @@ export const EventsPage: React.FC = () => {
                                     <button
                                         onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                                         disabled={!pagination.hasPrevPage || loading}
-                                        className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                                        className="p-2 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2"
+                                        style={{
+                                            borderColor: 'var(--color-primary)',
+                                            color: 'var(--color-primary)',
+                                            backgroundColor: 'var(--color-primary)',
+                                            opacity: !pagination.hasPrevPage || loading ? 0.5 : 1
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (pagination.hasPrevPage && !loading) {
+                                                e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                                        }}
                                     >
-                                        Anterior
+                                        <ChevronLeft size={24} className="text-white" />
                                     </button>
 
-                                    <span className="text-sm text-[#CBD5E1] min-w-[120px] text-center">
+                                    <span className="text-sm min-w-[120px] text-center" style={{ color: 'var(--color-text-secondary)' }}>
                                         Pag {pagination.page} / {Math.max(pagination.totalPages, 1)}
                                     </span>
 
                                     <button
                                         onClick={() => setPage((prev) => prev + 1)}
                                         disabled={!pagination.hasNextPage || loading}
-                                        className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                                        className="p-2 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2"
+                                        style={{
+                                            borderColor: 'var(--color-primary)',
+                                            color: 'var(--color-primary)',
+                                            backgroundColor: 'var(--color-primary)',
+                                            opacity: !pagination.hasNextPage || loading ? 0.5 : 1
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (pagination.hasNextPage && !loading) {
+                                                e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                                        }}
                                     >
-                                        Siguiente
+                                        <ChevronRight size={24} className="text-white" />
                                     </button>
                                 </div>
                             </div>
@@ -363,39 +413,39 @@ export const EventsPage: React.FC = () => {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
-                                        <tr className="border-b border-white/5 bg-white/5">
-                                            <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Fecha y Hora</th>
-                                            <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Paciente</th>
-                                            <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Dispositivo</th>
-                                            <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Estado</th>
-                                            <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Revision</th>
+                                        <tr style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg-secondary)' }}>
+                                            <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Fecha y Hora</th>
+                                            <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Paciente</th>
+                                            <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Dispositivo</th>
+                                            <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Estado</th>
+                                            <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Revision</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-white/5">
+                                    <tbody style={{ borderColor: 'var(--color-border)' }}>
                                         {filteredEvents.map((event) => (
                                             <tr
                                                 key={event.id}
                                                 className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
                                                 onClick={() => loadEventDetails(event.id)}
                                             >
-                                                <td className="px-8 py-6">
+                                                <td className="px-8 py-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
                                                     <div className="flex items-center gap-3">
                                                         <Calendar size={18} className="text-indigo-400 opacity-70" />
-                                                        <span className="text-white font-medium">
+                                                        <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
                                                             {event.occurredAt ? new Date(event.occurredAt).toLocaleString() : '-'}
                                                         </span>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-6">
-                                                    <p className="text-white font-semibold">{event.patientName || 'Sin paciente'}</p>
+                                                <td className="px-8 py-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                                                    <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{event.patientName || 'Sin paciente'}</p>
                                                 </td>
-                                                <td className="px-8 py-6">
+                                                <td className="px-8 py-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
                                                     <div className="flex items-center gap-3">
                                                         <HardDrive size={18} className="text-cyan-400 opacity-70" />
                                                         <p className="text-cyan-100 font-medium">{event.deviceAlias || event.deviceId}</p>
                                                     </div>
                                                     {event.deviceAlias && (
-                                                        <p className="text-xs text-[#64748B] mt-1">{event.deviceId}</p>
+                                                        <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>{event.deviceId}</p>
                                                     )}
                                                 </td>
                                                 <td className="px-8 py-6">
@@ -403,28 +453,28 @@ export const EventsPage: React.FC = () => {
                                                         {event.status}
                                                     </span>
                                                 </td>
-                                                <td className="px-8 py-6">
+                                                <td className="px-8 py-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
                                                     {event.reviewedBy ? (
                                                         <div className="flex items-center gap-3">
                                                             <UserCheck size={18} className="text-emerald-400" />
                                                             <div>
-                                                                <p className="text-white font-bold text-sm">{getReviewerLabel(event.reviewedBy)}</p>
+                                                                <p className="font-bold text-sm" style={{ color: 'var(--color-text-primary)' }}>{getReviewerLabel(event.reviewedBy)}</p>
                                                                 {event.reviewComment && (
-                                                                    <p className="text-xs text-[#94A3B8] italic truncate max-w-[150px]">
+                                                                    <p className="text-xs italic truncate max-w-[150px]" style={{ color: 'var(--color-text-secondary)' }}>
                                                                         "{event.reviewComment}"
                                                                     </p>
                                                                 )}
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <span className="text-[#64748B] text-sm italic">Pendiente</span>
+                                                        <span className="text-sm italic" style={{ color: 'var(--color-text-secondary)' }}>Pendiente</span>
                                                     )}
                                                 </td>
                                             </tr>
                                         ))}
                                         {filteredEvents.length === 0 && (
                                             <tr>
-                                                <td colSpan={5} className="py-20 text-center text-[#64748B]">
+                                                <td colSpan={5} className="py-20 text-center" style={{ color: 'var(--color-text-secondary)' }}>
                                                     <Activity size={48} className="mx-auto mb-4 opacity-20" />
                                                     <p className="text-xl">
                                                         {searchTerm ? 'No se encontraron eventos con ese criterio.' : 'No hay eventos registrados en el sistema.'}
@@ -436,8 +486,8 @@ export const EventsPage: React.FC = () => {
                                 </table>
                             </div>
 
-                            <div className="border-t border-white/5 px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <p className="text-sm text-[#94A3B8]">
+                            <div className="border-t px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4" style={{ borderColor: 'var(--color-border)' }}>
+                                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                                     Mostrando {events.length} de {pagination.total} eventos
                                 </p>
 
@@ -448,7 +498,12 @@ export const EventsPage: React.FC = () => {
                                             setPageSize(Number(e.target.value));
                                             setPage(1);
                                         }}
-                                        className="bg-[#1A1F26] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none"
+                                        className="border rounded-lg px-3 py-2 text-sm outline-none"
+                                        style={{
+                                            backgroundColor: 'var(--color-bg-secondary)',
+                                            borderColor: 'var(--color-border)',
+                                            color: 'var(--color-text-primary)'
+                                        }}
                                     >
                                         <option value={10}>10 / pag</option>
                                         <option value={20}>20 / pag</option>
@@ -458,21 +513,49 @@ export const EventsPage: React.FC = () => {
                                     <button
                                         onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                                         disabled={!pagination.hasPrevPage || loading}
-                                        className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                                        className="p-2 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2"
+                                        style={{
+                                            borderColor: 'var(--color-primary)',
+                                            color: 'var(--color-primary)',
+                                            backgroundColor: 'var(--color-primary)',
+                                            opacity: !pagination.hasPrevPage || loading ? 0.5 : 1
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (pagination.hasPrevPage && !loading) {
+                                                e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                                        }}
                                     >
-                                        Anterior
+                                        <ChevronLeft size={24} className="text-white" />
                                     </button>
 
-                                    <span className="text-sm text-[#CBD5E1] min-w-[120px] text-center">
+                                    <span className="text-sm min-w-[120px] text-center" style={{ color: 'var(--color-text-secondary)' }}>
                                         Pag {pagination.page} / {Math.max(pagination.totalPages, 1)}
                                     </span>
 
                                     <button
                                         onClick={() => setPage((prev) => prev + 1)}
                                         disabled={!pagination.hasNextPage || loading}
-                                        className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                                        className="p-2 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2"
+                                        style={{
+                                            borderColor: 'var(--color-primary)',
+                                            color: 'var(--color-primary)',
+                                            backgroundColor: 'var(--color-primary)',
+                                            opacity: !pagination.hasNextPage || loading ? 0.5 : 1
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (pagination.hasNextPage && !loading) {
+                                                e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                                        }}
                                     >
-                                        Siguiente
+                                        <ChevronRight size={24} className="text-white" />
                                     </button>
                                 </div>
                             </div>
@@ -488,7 +571,7 @@ export const EventsPage: React.FC = () => {
                     
                     {/* Contenedor del Modal */}
                     <div
-                        className="glass-panel w-full max-w-2xl relative z-10 overflow-hidden reveal bg-[var(--color-bg-secondary)]/90 max-h-[90vh] overflow-y-auto"
+                        className="glass-panel w-full max-w-2xl relative z-10 overflow-hidden reveal max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {modalLoading ? (
@@ -498,12 +581,16 @@ export const EventsPage: React.FC = () => {
                         ) : (
                             <div className="p-8">
                                 <div className="flex justify-between items-center mb-8">
-                                    <h2 className="text-3xl font-bold tracking-tight text-white">
-                                        Detalles del <span className="text-[var(--color-text-secondary)]">Evento</span>
+                                    <h2 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
+                                        Detalles del <span style={{ color: 'var(--color-text-secondary)' }}>Evento</span>
                                     </h2>
                                     <button
                                         onClick={closeModal}
-                                        className="p-2 hover:bg-white/5 rounded-full text-gray-400 transition-colors"
+                                        className="p-2 rounded-full transition-colors"
+                                        style={{
+                                            backgroundColor: 'transparent',
+                                            color: 'var(--color-text-secondary)'
+                                        }}
                                     >
                                         <X size={20} />
                                     </button>
@@ -512,14 +599,14 @@ export const EventsPage: React.FC = () => {
                                 <div className="space-y-6">
                                     <div className="grid grid-cols-2 gap-6">
                                         <div>
-                                            <p className="text-sm text-[#94A3B8] mb-2">Paciente</p>
-                                            <p className="text-white font-semibold bg-white/5 px-3 py-2 rounded-lg">
+                                            <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>Paciente</p>
+                                            <p className="font-semibold px-3 py-2 rounded-lg" style={{ color: 'var(--color-text-primary)', backgroundColor: 'var(--color-bg-secondary)' }}>
                                                 {selectedEvent.patientName || 'Sin paciente asignado'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-sm text-[#94A3B8] mb-2">Dispositivo</p>
-                                            <p className="text-white font-semibold bg-white/5 px-3 py-2 rounded-lg">
+                                            <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>Dispositivo</p>
+                                            <p className="font-semibold px-3 py-2 rounded-lg" style={{ color: 'var(--color-text-primary)', backgroundColor: 'var(--color-bg-secondary)' }}>
                                                 {selectedEvent.deviceAlias || selectedEvent.deviceId}
                                             </p>
                                         </div>
@@ -527,11 +614,11 @@ export const EventsPage: React.FC = () => {
 
                                     <div className="grid grid-cols-2 gap-6">
                                         <div>
-                                            <p className="text-sm text-[#94A3B8] mb-2">Tipo de Evento</p>
-                                            <p className="text-white font-semibold">{selectedEvent.eventType}</p>
+                                            <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>Tipo de Evento</p>
+                                            <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{selectedEvent.eventType}</p>
                                         </div>
                                         <div>
-                                            <p className="text-sm text-[#94A3B8] mb-2">Estado actual</p>
+                                            <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>Estado actual</p>
                                             <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold border ${getStatusBadge(selectedEvent.status || '')}`}>
                                                 {selectedEvent.status}
                                             </span>
@@ -539,8 +626,8 @@ export const EventsPage: React.FC = () => {
                                     </div>
 
                                     <div>
-                                        <p className="text-sm text-[#94A3B8] mb-2">Fecha de Ocurrencia</p>
-                                        <p className="text-white font-semibold">
+                                        <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>Fecha de Ocurrencia</p>
+                                        <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                                             {selectedEvent.occurredAt
                                                 ? new Date(selectedEvent.occurredAt).toLocaleString('es-ES', {
                                                       dateStyle: 'full',
@@ -550,16 +637,21 @@ export const EventsPage: React.FC = () => {
                                         </p>
                                     </div>
 
-                                    <div className="border-t border-white/10 pt-6 space-y-4">
-                                        <h3 className="text-xl font-bold text-white">Registrar revision</h3>
+                                    <div className="border-t pt-6 space-y-4" style={{ borderColor: 'var(--color-border)' }}>
+                                        <h3 className="text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Registrar revision</h3>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="text-sm text-[#94A3B8] mb-2 block">Resultado</label>
+                                                <label className="text-sm mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>Resultado</label>
                                                 <select
                                                     value={reviewStatus}
                                                     onChange={(e) => setReviewStatus(e.target.value as 'CONFIRMED_FALL' | 'FALSE_ALARM')}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                                                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                                                    style={{
+                                                        backgroundColor: 'var(--color-bg-secondary)',
+                                                        borderColor: 'var(--color-border)',
+                                                        color: 'var(--color-text-primary)'
+                                                    }}
                                                 >
                                                     <option value="CONFIRMED_FALL">Confirmada</option>
                                                     <option value="FALSE_ALARM">Falsa alarma</option>
@@ -567,55 +659,69 @@ export const EventsPage: React.FC = () => {
                                             </div>
 
                                             <div>
-                                                <label className="text-sm text-[#94A3B8] mb-2 block">Revisado por</label>
+                                                <label className="text-sm mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>Revisado por</label>
                                                 <input
                                                     value={user?.fullName || user?.email || 'Administrador'}
                                                     readOnly
-                                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[#CBD5E1]"
+                                                    className="w-full border rounded-lg px-3 py-2"
+                                                    style={{
+                                                        backgroundColor: 'var(--color-bg-secondary)',
+                                                        borderColor: 'var(--color-border)',
+                                                        color: 'var(--color-text-secondary)'
+                                                    }}
                                                 />
                                             </div>
                                         </div>
 
                                         <div>
-                                            <label className="text-sm text-[#94A3B8] mb-2 block">Comentario</label>
+                                            <label className="text-sm mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>Comentario</label>
                                             <textarea
                                                 value={reviewComment}
                                                 onChange={(e) => setReviewComment(e.target.value)}
                                                 maxLength={255}
                                                 rows={4}
                                                 placeholder="Anade detalles de la revision..."
-                                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                                                className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                                                style={{
+                                                    backgroundColor: 'var(--color-bg-secondary)',
+                                                    borderColor: 'var(--color-border)',
+                                                    color: 'var(--color-text-primary)'
+                                                }}
                                             />
-                                            <p className="text-xs text-[#64748B] mt-1">{reviewComment.length}/255</p>
+                                            <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>{reviewComment.length}/255</p>
                                         </div>
 
                                         <button
                                             onClick={handleSaveReview}
                                             disabled={savingReview}
-                                            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all"
+                                            className="w-full disabled:opacity-60 disabled:cursor-not-allowed py-3 rounded-lg font-semibold transition-all"
+                                            style={{
+                                                background: 'linear-gradient(135deg, rgb(34, 197, 94), rgb(22, 163, 74))',
+                                                color: 'white'
+                                            }}
                                         >
                                             {savingReview ? 'Guardando revision...' : 'Guardar revision'}
                                         </button>
                                     </div>
 
                                     {selectedEvent.reviewedBy && (
-                                        <div className="border-t border-white/10 pt-6 space-y-4">
+                                        <div className="border-t pt-6 space-y-4" style={{ borderColor: 'var(--color-border)' }}>
                                             <div>
-                                                <p className="text-sm text-[#94A3B8] mb-2">Ultima revision por</p>
-                                                <p className="text-white font-semibold">{getReviewerLabel(selectedEvent.reviewedBy)}</p>
+                                                <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>Ultima revision por</p>
+                                                <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{getReviewerLabel(selectedEvent.reviewedBy)}</p>
                                             </div>
 
                                             {selectedEvent.reviewedAt && (
                                                 <div>
-                                                    <p className="text-sm text-[#94A3B8] mb-2">Fecha de revision</p>
-                                                    <p className="text-white">{new Date(selectedEvent.reviewedAt).toLocaleString()}</p>
+                                                    <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>Fecha de revision</p>
+                                                    <p style={{ color: 'var(--color-text-primary)' }}>{new Date(selectedEvent.reviewedAt).toLocaleString()}</p>
                                                 </div>
                                             )}
 
                                             {selectedEvent.reviewComment && (
                                                 <div>
-                                                    <p className="text-sm text-[#94A3B8] mb-2">Comentario guardado</p>
-                                                    <p className="text-white bg-white/5 px-4 py-3 rounded-lg italic">"{selectedEvent.reviewComment}"</p>
+                                                    <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>Comentario guardado</p>
+                                                    <p className="px-4 py-3 rounded-lg italic" style={{ color: 'var(--color-text-primary)', backgroundColor: 'var(--color-bg-secondary)' }}>"{selectedEvent.reviewComment}"</p>
                                                 </div>
                                             )}
                                         </div>
@@ -624,7 +730,11 @@ export const EventsPage: React.FC = () => {
 
                                 <button
                                     onClick={closeModal}
-                                    className="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold transition-all"
+                                    className="mt-8 w-full py-3 rounded-lg font-semibold transition-all"
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgb(79, 70, 229), rgb(99, 102, 241))',
+                                        color: 'white'
+                                    }}
                                 >
                                     Cerrar
                                 </button>

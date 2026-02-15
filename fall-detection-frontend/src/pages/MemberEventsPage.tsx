@@ -290,14 +290,14 @@ export const MemberEventsPage: React.FC = () => {
     <div className="p-8 max-w-7xl mx-auto reveal">
       <header className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
         <div>
-          <h1 className="text-5xl font-bold tracking-tight mb-2 text-white">Eventos</h1>
-          <p className="text-xl text-[#94A3B8]">Eventos de tus pacientes asignados.</p>
+          <h1 className="text-5xl font-bold tracking-tight mb-2" style={{ color: 'var(--color-text-primary)' }}>Eventos</h1>
+        <p className="text-xl" style={{ color: 'var(--color-text-secondary)' }}>Eventos de tus pacientes asignados.</p>
         </div>
         <button
           onClick={exportToPDF}
           disabled={loading || filteredEvents.length === 0}
           title="Descargar eventos filtrados en PDF"
-          className="glass-panel px-6 py-3 rounded-full font-semibold text-white hover:scale-105 hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-export-pdf px-6 py-3 rounded-full font-semibold outline-none hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Download size={18} /> Exportar PDF
         </button>
@@ -322,7 +322,8 @@ export const MemberEventsPage: React.FC = () => {
                 placeholder="Buscar por paciente, dispositivo, tipo o estado..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-[#1A1F26] border-none rounded-2xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-lg text-white"
+                className="w-full rounded-2xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-lg border-none"
+                style={{ backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }}
               />
             </div>
 
@@ -330,7 +331,8 @@ export const MemberEventsPage: React.FC = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as 'ALL' | 'OPEN' | 'CONFIRMED_FALL' | 'FALSE_ALARM' | 'RESOLVED')}
-                className="bg-[#1A1F26] border border-white/10 rounded-xl px-3 py-3 text-white outline-none"
+                className="rounded-xl px-3 py-3 outline-none border"
+                style={{ backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
               >
                 <option value="ALL">Todos</option>
                 <option value="OPEN">OPEN</option>
@@ -342,7 +344,8 @@ export const MemberEventsPage: React.FC = () => {
               <select
                 value={patientFilter}
                 onChange={(e) => setPatientFilter(e.target.value)}
-                className="bg-[#1A1F26] border border-white/10 rounded-xl px-3 py-3 text-white outline-none"
+                className="rounded-xl px-3 py-3 outline-none border"
+                style={{ backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
               >
                 <option value="ALL">Pacientes</option>
                 {patientOptions.map((patientName) => (
@@ -358,16 +361,16 @@ export const MemberEventsPage: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/5 bg-white/5">
-                    <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Fecha y hora</th>
-                    <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Paciente</th>
-                    <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Dispositivo</th>
-                    <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Tipo</th>
-                    <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Estado</th>
-                    <th className="px-8 py-5 text-sm font-bold text-[#94A3B8] uppercase tracking-widest">Revision</th>
+                  <tr className="border-b" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg-secondary)' }}>
+                    <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Fecha y hora</th>
+                    <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Paciente</th>
+                    <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Dispositivo</th>
+                    <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Tipo</th>
+                    <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Estado</th>
+                    <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Revision</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
                   {filteredEvents.map((event) => (
                     <tr
                       key={event.id}
@@ -377,19 +380,19 @@ export const MemberEventsPage: React.FC = () => {
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-3">
                           <Calendar size={18} className="text-indigo-400 opacity-70" />
-                          <span className="text-white font-medium">
+                          <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
                             {event.occurredAt ? new Date(event.occurredAt).toLocaleString() : '-'}
                           </span>
                         </div>
                       </td>
-                      <td className="px-8 py-6 text-white font-semibold">{event.patientName || 'Sin paciente'}</td>
+                      <td className="px-8 py-6 font-semibold" style={{ color: 'var(--color-text-primary)' }}>{event.patientName || 'Sin paciente'}</td>
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-3">
                           <HardDrive size={18} className="text-cyan-400 opacity-70" />
                           <p className="text-cyan-100 font-medium">{event.deviceAlias || event.deviceId}</p>
                         </div>
                       </td>
-                      <td className="px-8 py-6 text-white">{event.eventType || '-'}</td>
+                      <td className="px-8 py-6" style={{ color: 'var(--color-text-primary)' }}>{event.eventType || '-'}</td>
                       <td className="px-8 py-6">
                         <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ${getStatusBadge(event.status || '')}`}>
                           {event.status || '-'}
@@ -400,14 +403,14 @@ export const MemberEventsPage: React.FC = () => {
                           <div className="flex items-center gap-3">
                             <UserCheck size={18} className="text-emerald-400" />
                             <div>
-                              <p className="text-white font-bold text-sm">{event.reviewedBy}</p>
+                              <p className="font-bold text-sm" style={{ color: 'var(--color-text-primary)' }}>{event.reviewedBy}</p>
                               {event.reviewComment && (
-                                <p className="text-xs text-[#94A3B8] italic truncate max-w-[180px]">"{event.reviewComment}"</p>
+                                <p className="text-xs italic truncate max-w-[180px]" style={{ color: 'var(--color-text-secondary)' }}>" {event.reviewComment}"</p>
                               )}
                             </div>
                           </div>
                         ) : (
-                          <span className="text-[#64748B] text-sm italic">Pendiente</span>
+                          <span className="text-sm italic" style={{ color: 'var(--color-text-secondary)' }}>Pendiente</span>
                         )}
                       </td>
                     </tr>
@@ -415,7 +418,7 @@ export const MemberEventsPage: React.FC = () => {
 
                   {filteredEvents.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-20 text-center text-[#64748B]">
+                      <td colSpan={6} className="py-20 text-center" style={{ color: 'var(--color-text-secondary)' }}>
                         <Activity size={48} className="mx-auto mb-4 opacity-20" />
                         <p className="text-xl">No hay eventos para los filtros seleccionados.</p>
                       </td>
@@ -425,8 +428,8 @@ export const MemberEventsPage: React.FC = () => {
               </table>
             </div>
 
-            <div className="border-t border-white/5 px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <p className="text-sm text-[#94A3B8]">
+            <div className="border-t px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4" style={{ borderColor: 'var(--color-border)' }}>
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                 Mostrando {events.length} de {pagination.total} eventos
               </p>
 
@@ -437,7 +440,8 @@ export const MemberEventsPage: React.FC = () => {
                     setPageSize(Number(e.target.value));
                     setPage(1);
                   }}
-                  className="bg-[#1A1F26] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none"
+                  className="border rounded-lg px-3 py-2 text-sm outline-none"
+                  style={{ backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
                 >
                   <option value={10}>10 / pag</option>
                   <option value={20}>20 / pag</option>
@@ -447,19 +451,21 @@ export const MemberEventsPage: React.FC = () => {
                 <button
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                   disabled={!pagination.hasPrevPage || loading}
-                  className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                  className="px-3 py-2 text-sm rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }}
                 >
                   Anterior
                 </button>
 
-                <span className="text-sm text-[#CBD5E1] min-w-[120px] text-center">
+                <span className="text-sm min-w-[120px] text-center" style={{ color: 'var(--color-text-primary)' }}>
                   Pag {pagination.page} / {Math.max(pagination.totalPages, 1)}
                 </span>
 
                 <button
                   onClick={() => setPage((prev) => prev + 1)}
                   disabled={!pagination.hasNextPage || loading}
-                  className="px-3 py-2 text-sm rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                  className="px-3 py-2 text-sm rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }}
                 >
                   Siguiente
                 </button>
@@ -471,8 +477,8 @@ export const MemberEventsPage: React.FC = () => {
 
       {selectedEvent && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={closeEventDetails}>
-          <div className="bg-[#1A1F26] rounded-2xl max-w-4xl w-full p-8 border border-white/10 relative max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <button onClick={closeEventDetails} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+          <div className="rounded-2xl max-w-4xl w-full p-8 border relative max-h-[90vh] overflow-y-auto" style={{ backgroundColor: 'var(--color-bg-primary)', borderColor: 'var(--color-border)' }} onClick={(e) => e.stopPropagation()}>
+            <button onClick={closeEventDetails} className="absolute top-4 right-4 transition-colors" style={{ color: 'var(--color-text-secondary)' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-secondary)'}>
               <X size={24} />
             </button>
 
@@ -482,36 +488,36 @@ export const MemberEventsPage: React.FC = () => {
               </div>
             ) : (
               <>
-                <h3 className="text-2xl font-bold text-white mb-5">Detalle del evento</h3>
+                <h3 className="text-2xl font-bold mb-5" style={{ color: 'var(--color-text-primary)' }}>Detalle del evento</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                    <p className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Paciente</p>
-                    <p className="text-white font-semibold">{selectedEvent.patientName || 'Sin paciente'}</p>
+                  <div className="border rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}>
+                    <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Paciente</p>
+                    <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{selectedEvent.patientName || 'Sin paciente'}</p>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                    <p className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Dispositivo</p>
-                    <p className="text-white font-semibold">{selectedEvent.deviceAlias || selectedEvent.deviceId}</p>
+                  <div className="border rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}>
+                    <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Dispositivo</p>
+                    <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{selectedEvent.deviceAlias || selectedEvent.deviceId}</p>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                    <p className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Tipo</p>
-                    <p className="text-white font-semibold">{selectedEvent.eventType || '-'}</p>
+                  <div className="border rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}>
+                    <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Tipo</p>
+                    <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{selectedEvent.eventType || '-'}</p>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                    <p className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Estado</p>
+                  <div className="border rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}>
+                    <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Estado</p>
                     <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusBadge(selectedEvent.status || '')}`}>
                       {selectedEvent.status || '-'}
                     </span>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 md:col-span-2">
-                    <p className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Ocurrido</p>
-                    <p className="text-white font-semibold">
+                  <div className="border rounded-xl p-4 md:col-span-2" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}>
+                    <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Ocurrido</p>
+                    <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                       {selectedEvent.occurredAt ? new Date(selectedEvent.occurredAt).toLocaleString() : 'N/A'}
                     </p>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 md:col-span-2">
-                    <p className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Comentario de revision</p>
-                    <p className="text-white">{selectedEvent.reviewComment || 'Sin comentario'}</p>
+                  <div className="border rounded-xl p-4 md:col-span-2" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}>
+                    <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Comentario de revision</p>
+                    <p style={{ color: 'var(--color-text-primary)' }}>{selectedEvent.reviewComment || 'Sin comentario'}</p>
                   </div>
                 </div>
 
@@ -520,26 +526,27 @@ export const MemberEventsPage: React.FC = () => {
                   {samplesLoading ? (
                     <p className="text-sm text-[#94A3B8]">Cargando muestras...</p>
                   ) : samplesError ? (
-                    <p className="text-sm text-red-400">{samplesError}</p>
+                    <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{samplesError}</p>
                   ) : selectedEventSamples.length > 0 ? (
                     <div className="h-72">
                       <Line data={sampleChartData} options={sampleChartOptions} />
                     </div>
                   ) : (
-                    <p className="text-sm text-[#94A3B8]">Este evento no tiene muestras de aceleracion guardadas.</p>
+                    <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Este evento no tiene muestras de aceleracion guardadas.</p>
                   )}
                 </div>
 
-                <div className="mt-6 border-t border-white/10 pt-6 space-y-4">
-                  <h4 className="text-xl font-bold text-white">Revision del evento</h4>
+                <div className="mt-6 pt-6 space-y-4" style={{ borderTop: `1px solid var(--color-border)` }}>
+                  <h4 className="text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Revision del evento</h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-[#94A3B8] mb-2 block">Estado</label>
+                      <label className="text-sm mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>Estado</label>
                       <select
                         value={reviewStatus}
                         onChange={(e) => setReviewStatus(e.target.value as ReviewStatus)}
-                        className="w-full bg-[#1A1F26] border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                        style={{ backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
                       >
                         <option value="OPEN">OPEN</option>
                         <option value="CONFIRMED_FALL">CONFIRMED_FALL</option>
@@ -549,7 +556,7 @@ export const MemberEventsPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="text-sm text-[#94A3B8] mb-2 block">Estado actual guardado</label>
+                      <label className="text-sm mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>Estado actual guardado</label>
                       <span className={`inline-block px-4 py-2 rounded-full text-xs font-bold border ${getStatusBadge(selectedEvent.status || '')}`}>
                         {selectedEvent.status || '-'}
                       </span>
@@ -557,7 +564,7 @@ export const MemberEventsPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-sm text-[#94A3B8] mb-2 block flex items-center gap-2">
+                    <label className="text-sm mb-2 block flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
                       <MessageSquare size={14} />
                       Comentario de revision
                     </label>
@@ -567,9 +574,10 @@ export const MemberEventsPage: React.FC = () => {
                       maxLength={255}
                       rows={4}
                       placeholder="Anade observaciones de la revision..."
-                      className="w-full bg-[#1A1F26] border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                      className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                      style={{ backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}
                     />
-                    <p className="text-xs text-[#64748B] mt-1">{reviewComment.length}/255</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>{reviewComment.length}/255</p>
                   </div>
 
                   <button

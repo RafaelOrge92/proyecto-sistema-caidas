@@ -173,7 +173,8 @@ export const UsersPage: React.FC = () => {
             placeholder="Buscar por nombre o email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[var(--color-bg-secondary)] border-none rounded-2xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-[var(--color-primary)] transition-all outline-none text-lg text-white"
+            className="w-full bg-[var(--color-bg-secondary)] border-none rounded-2xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-[var(--color-primary)] transition-all outline-none text-lg"
+            style={{ color: 'var(--color-text-primary)' }}
           />
         </div>
 
@@ -183,13 +184,12 @@ export const UsersPage: React.FC = () => {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full bg-[var(--color-bg-secondary)] appearance-none rounded-2xl py-4 pl-12 pr-10 outline-none text-white cursor-pointer focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-full bg-[var(--color-bg-secondary)] appearance-none rounded-2xl py-4 pl-12 pr-10 outline-none cursor-pointer focus:ring-2 focus:ring-[var(--color-primary)]"
+              style={{ color: 'var(--color-text-primary)' }}
             >
               <option value="ALL">Todos los Roles</option>
               <option value="ADMIN">Administrador</option>
-              <option value="USER">Usuario</option>
-              <option value="DOCTOR">Doctor</option>
-              <option value="FAMILY">Familiar</option>
+              <option value="MEMBER">Miembro</option>
             </select>
           </div>
 
@@ -198,7 +198,8 @@ export const UsersPage: React.FC = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full bg-[var(--color-bg-secondary)] appearance-none rounded-2xl py-4 pl-12 pr-10 outline-none text-white cursor-pointer focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-full bg-[var(--color-bg-secondary)] appearance-none rounded-2xl py-4 pl-12 pr-10 outline-none cursor-pointer focus:ring-2 focus:ring-[var(--color-primary)]"
+              style={{ color: 'var(--color-text-primary)' }}
             >
               <option value="name_asc">Nombre A-Z</option>
               <option value="name_desc">Nombre Z-A</option>
@@ -249,7 +250,8 @@ export const UsersPage: React.FC = () => {
                               event.stopPropagation();
                               handleEditUser(user);
                             }}
-                            className="w-full text-left px-4 py-2 hover:bg-white/10 text-white flex items-center gap-2 transition-colors"
+                            className="w-full text-left px-4 py-2 hover:bg-white/10 flex items-center gap-2 transition-colors"
+                            style={{ color: 'var(--color-text-primary)' }}
                           >
                             <Edit2 size={16} /> Editar Usuario
                           </button>
@@ -267,7 +269,7 @@ export const UsersPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <h3 className="text-xl font-bold mb-1">{user.fullName}</h3>
+                  <h3 className="text-xl font-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>{user.fullName}</h3>
                   <p className="text-[var(--color-text-secondary)] mb-4">{user.email}</p>
 
                   <div className="flex items-center gap-3 mb-3">
@@ -289,7 +291,7 @@ export const UsersPage: React.FC = () => {
 
                   <p className="text-xs text-[#94A3B8]">
                     Pacientes asignados:{' '}
-                    <span className="text-white font-semibold">{typeof patientCount === 'number' ? patientCount : 'Click para cargar'}</span>
+                    <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{typeof patientCount === 'number' ? patientCount : 'Click para cargar'}</span>
                   </p>
                 </div>
               );
@@ -302,19 +304,47 @@ export const UsersPage: React.FC = () => {
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-2 rounded-full bg-[var(--color-bg-secondary)] text-white disabled:opacity-50 hover:bg-white/10 transition-colors"
+                className="p-2 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2"
+                style={{ 
+                  borderColor: 'var(--color-primary)',
+                  color: 'var(--color-primary)',
+                  backgroundColor: 'var(--color-primary)',
+                  opacity: currentPage === 1 ? 0.5 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (currentPage > 1) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                }}
               >
-                <ChevronLeft size={24} />
+                <ChevronLeft size={24} className="text-white" />
               </button>
-              <span className="text-[var(--color-text-secondary)]">
+              <span className="text-[var(--color-text-secondary)] font-semibold">
                 Página {currentPage} de {totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-full bg-[var(--color-bg-secondary)] text-white disabled:opacity-50 hover:bg-white/10 transition-colors"
+                className="p-2 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2"
+                style={{ 
+                  borderColor: 'var(--color-primary)',
+                  color: 'var(--color-primary)',
+                  backgroundColor: 'var(--color-primary)',
+                  opacity: currentPage === totalPages ? 0.5 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (currentPage < totalPages) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                }}
               >
-                <ChevronRight size={24} />
+                <ChevronRight size={24} className="text-white" />
               </button>
             </div>
           )}
@@ -336,19 +366,20 @@ export const UsersPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closePatientsModal} />
 
-          <div className="glass-panel w-full max-w-3xl relative z-10 overflow-hidden reveal bg-[var(--color-bg-secondary)]/90 p-8 border border-white/10">
+          <div className="glass-panel w-full max-w-3xl relative z-10 overflow-hidden reveal p-8 border border-white/10">
             <button
               onClick={closePatientsModal}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+              className="absolute top-4 right-4 transition-colors"
+              style={{ color: 'var(--color-text-secondary)' }}
               aria-label="Cerrar"
             >
               <X size={24} />
             </button>
 
             <div className="mb-6">
-              <h3 className="text-3xl font-bold text-white mb-2">Pacientes asignados</h3>
+              <h3 className="text-3xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>Pacientes asignados</h3>
               <p className="text-[var(--color-text-secondary)]">
-                Usuario: <span className="text-white font-semibold">{selectedUserForPatients.fullName}</span>
+                Usuario: <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{selectedUserForPatients.fullName}</span>
               </p>
             </div>
 
@@ -372,7 +403,7 @@ export const UsersPage: React.FC = () => {
                   <div key={patient.patientId} className="rounded-2xl border border-white/10 bg-white/5 p-5">
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div>
-                        <h4 className="text-lg font-bold text-white">{patient.patientName}</h4>
+                        <h4 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>{patient.patientName}</h4>
                         <p className="text-sm text-[var(--color-text-secondary)]">ID paciente: {patient.patientId}</p>
                       </div>
                       <span className="px-3 py-1 rounded-full text-xs bg-indigo-500/15 text-indigo-300">
@@ -412,14 +443,14 @@ export const UsersPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)} />
 
-          <div className="glass-panel w-full max-w-md relative z-10 overflow-hidden reveal bg-[var(--color-bg-secondary)]/90 p-8">
+          <div className="glass-panel w-full max-w-md relative z-10 overflow-hidden reveal p-8">
             <div className="flex items-center justify-center mb-6 w-12 h-12 rounded-full bg-red-500/10 mx-auto">
               <AlertCircle size={24} className="text-red-400" />
             </div>
 
-            <h3 className="text-2xl font-bold text-center mb-2">Eliminar Usuario</h3>
+            <h3 className="text-2xl font-bold text-center mb-2" style={{ color: 'var(--color-text-primary)' }}>Eliminar Usuario</h3>
             <p className="text-[var(--color-text-secondary)] text-center mb-2">¿Estás seguro de que deseas eliminar a</p>
-            <p className="text-center font-semibold text-white mb-6">{deleteConfirm.fullName}?</p>
+            <p className="text-center font-semibold mb-6" style={{ color: 'var(--color-text-primary)' }}>{deleteConfirm.fullName}?</p>
 
             <p className="text-sm text-[var(--color-text-secondary)] text-center mb-6 bg-white/5 p-3 rounded-lg">
               Esta acción desactivará la cuenta del usuario. Podrán volver a ser activados posteriormente.
@@ -428,7 +459,8 @@ export const UsersPage: React.FC = () => {
             <div className="flex gap-4">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-semibold transition-colors"
+                className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 rounded-xl font-semibold transition-colors"
+                style={{ color: 'var(--color-text-primary)' }}
               >
                 Cancelar
               </button>

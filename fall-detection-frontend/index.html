@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>fall-detection-frontend</title>
+    <script>
+      // Aplicar tema antes de que se renderice React para evitar parpadeos
+      (function() {
+        try {
+          const theme = localStorage.getItem('theme');
+          const htmlElement = document.documentElement;
+          htmlElement.classList.remove('light-theme', 'dark-theme');
+          htmlElement.classList.add(theme === 'light' ? 'light-theme' : 'dark-theme');
+        } catch (e) {
+          console.error('Error applying theme:', e);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

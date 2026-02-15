@@ -14,6 +14,8 @@
   
   --color-border: rgba(255, 255, 255, 0.08);
   
+  --color-alert-bg: rgba(127, 29, 29, 0.2);
+  
   --radius-apple: 22px; /* Bordes estilo iOS/macOS */
   
   --shadow-apple: 0 20px 40px rgba(0, 0, 0, 0.4);
@@ -32,6 +34,8 @@
   --color-text-secondary: #64748B;
   
   --color-border: rgba(0, 0, 0, 0.08);
+  
+  --color-alert-bg: rgba(254, 226, 226, 0.6);
   
   --radius-apple: 22px;
   
@@ -67,14 +71,21 @@ body {
 }
 
 .glass-panel {
-  background: rgba(26, 31, 38, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-apple);
+  background: rgba(26, 31, 38, 0.3) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-apple) !important;
+}
+
+/* Light theme: more transparent with lighter background */
+:root .glass-panel,
+.dark-theme .glass-panel {
+  background: rgba(26, 31, 38, 0.3) !important;
 }
 
 .light-theme .glass-panel {
-  background: rgba(248, 250, 252, 0.7);
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
 }
 
 /* Animación de entrada suave */
@@ -117,4 +128,18 @@ body {
 
 .light-theme {
   scrollbar-color: rgba(99, 102, 241, 0.5) rgba(0, 0, 0, 0.03);
+}
+
+/* Button reset - remove default outline */
+button {
+  outline: none !important;
+  border: none !important;
+}
+
+button:focus {
+  outline: none !important;
+}
+
+button:focus-visible {
+  outline: none !important;
 }

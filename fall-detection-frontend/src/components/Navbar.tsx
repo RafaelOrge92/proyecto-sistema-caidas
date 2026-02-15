@@ -19,7 +19,7 @@ export const Navbar = () => {
     if (!user) return null;
 
     return (
-        <nav className="bg-bg-secondary border-b border-border backdrop-blur-sm sticky top-0 z-50 animate-fade-in transition-colors">
+        <nav className="border-b backdrop-blur-sm sticky top-0 z-50 animate-fade-in transition-colors" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex items-center gap-8">
@@ -27,7 +27,7 @@ export const Navbar = () => {
                             <div className="bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] p-2 rounded-lg shadow-lg glow-primary">
                                 <ShieldAlert className="w-6 h-6 text-white" />
                             </div>
-                            <span className="font-black text-xl tracking-tight text-text-primary group-hover:text-primary-hover transition-colors">
+                            <span className="font-black text-xl tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
                                 FALL-DETECT
                             </span>
                         </Link>
@@ -39,29 +39,40 @@ export const Navbar = () => {
                         )}
 
                         {user.role === 'ADMIN' ? (
-                            <div className="flex gap-4 border-l pl-4 border-primary/30">
-                                <Link to="/admin/users" className="hover:text-primary text-text-secondary text-sm transition-colors">Usuarios</Link>
-                                <Link to="/admin/patients" className="hover:text-primary text-text-secondary text-sm transition-colors">Pacientes</Link>
-                                <Link to="/admin/devices" className="hover:text-primary text-text-secondary text-sm transition-colors">Dispositivos</Link>
-                                <Link to="/admin/events" className="hover:text-primary text-text-secondary text-sm transition-colors">Eventos</Link>
-                                <Link to="/admin?tab=podium" className="hover:text-primary text-text-secondary text-sm transition-colors">Podium</Link>
+                            <div className="flex gap-4 border-l pl-4" style={{ borderColor: 'rgba(99, 102, 241, 0.3)' }}>
+                                <Link to="/admin/users" className="text-sm transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Usuarios</Link>
+                                <Link to="/admin/patients" className="text-sm transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Pacientes</Link>
+                                <Link to="/admin/devices" className="text-sm transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Dispositivos</Link>
+                                <Link to="/admin/events" className="text-sm transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Eventos</Link>
+                                <Link to="/admin?tab=podium" className="text-sm transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Podium</Link>
                             </div>
                         ) : (
-                            <div className="flex gap-4 border-l pl-4 border-primary/30">
-                                <Link to="/my-protection" className="hover:text-primary text-text-secondary text-sm transition-colors">Mi Proteccion</Link>
-                                <Link to="/member/events" className="hover:text-primary text-text-secondary text-sm transition-colors">Eventos</Link>
+                            <div className="flex gap-4 border-l pl-4" style={{ borderColor: 'rgba(99, 102, 241, 0.3)' }}>
+                                <Link to="/my-protection" className="text-sm transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Mi Proteccion</Link>
+                                <Link to="/member/events" className="text-sm transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Eventos</Link>
                             </div>
                         )}
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <span className="hidden sm:block px-3 py-1.5 bg-bg-elevated text-primary text-xs font-semibold rounded-full border border-border transition-colors">
+                        <span className="hidden sm:block px-3 py-1.5 text-xs font-semibold rounded-full" style={{ backgroundColor: 'var(--color-bg-elevated)', color: 'var(--color-primary)', borderColor: 'var(--color-border)', borderWidth: '1px' }}>
                             {user.role}
                         </span>
 
                         <button
-                            onClick={toggleTheme}
-                            className="flex items-center justify-center p-2 bg-bg-elevated hover:bg-primary text-text-secondary hover:text-white rounded-lg transition-all hover-lift"
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                toggleTheme();
+                            }}
+                            className="flex items-center justify-center p-2 rounded-lg transition-all"
+                            style={{ 
+                                backgroundColor: 'var(--color-bg-elevated)',
+                                color: 'var(--color-text-secondary)',
+                                border: `1px solid var(--color-border)`,
+                                cursor: 'pointer'
+                            }}
                             title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
                         >
                             {theme === 'dark' ? (
@@ -73,10 +84,22 @@ export const Navbar = () => {
 
                         <button
                             onClick={handleLogout}
-                            className="flex items-center gap-2 px-4 py-2 bg-bg-elevated hover:bg-[#EF4444] text-text-secondary hover:text-white rounded-lg transition-all hover-lift"
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all font-medium"
+                            style={{ 
+                                backgroundColor: 'var(--color-bg-elevated)',
+                                color: 'var(--color-text-secondary)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#EF4444';
+                                e.currentTarget.style.color = 'white';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                                e.currentTarget.style.color = 'var(--color-text-secondary)';
+                            }}
                         >
                             <LogOut className="w-4 h-4" />
-                            <span className="hidden sm:inline font-medium">Salir</span>
+                            <span className="hidden sm:inline">Salir</span>
                         </button>
                     </div>
                 </div>

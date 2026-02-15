@@ -56,26 +56,41 @@ export const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-bg-primary particle-bg transition-colors">
+        <div className="min-h-screen flex flex-col particle-bg transition-colors" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
             {/* Header con botón de tema */}
-            <div className="flex justify-between items-center px-6 py-4 border-b border-border">
+            <div className="flex justify-between items-center px-6 py-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
                 <div className="flex items-center gap-3 group">
                     <div className="w-10 h-10 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-xl flex items-center justify-center shadow-lg glow-primary">
                         <ShieldAlert className="w-6 h-6 text-white" />
                     </div>
-                    <span className="font-bold text-lg text-text-primary tracking-tight">Fall-Detect</span>
+                    <span className="font-bold text-lg tracking-tight" style={{ color: 'var(--color-text-primary)' }}>Fall-Detect</span>
                 </div>
-                <button
-                    onClick={toggleTheme}
-                    className="flex items-center justify-center p-2 rounded-lg transition-colors hover:bg-white/10"
-                    title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-                >
-                    {theme === 'dark' ? (
-                        <Sun className="w-5 h-5 text-text-secondary" />
-                    ) : (
-                        <Moon className="w-5 h-5 text-text-secondary" />
-                    )}
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleTheme();
+                        }}
+                        className="flex items-center justify-center p-2 rounded-lg transition-all"
+                        style={{ 
+                            backgroundColor: 'var(--color-bg-secondary)',
+                            color: 'var(--color-text-secondary)',
+                            border: `1px solid var(--color-border)`,
+                            cursor: 'pointer',
+                            pointerEvents: 'auto',
+                            zIndex: 50
+                        }}
+                        title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+                    >
+                        {theme === 'dark' ? (
+                            <Sun className="w-5 h-5" />
+                        ) : (
+                            <Moon className="w-5 h-5" />
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Contenido principal */}
@@ -88,7 +103,7 @@ export const LoginPage = () => {
 
                 {/* Formulario de Login */}
                 <div className="relative z-10 w-full max-w-lg px-6 animate-scale-in">
-                    <div className="bg-bg-secondary rounded-2xl shadow-2xl border border-border overflow-hidden transition-colors">
+                    <div className="rounded-2xl shadow-2xl overflow-hidden transition-colors" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)', borderWidth: '1px' }}>
                         {/* Header */}
                         <div className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] p-8 text-center">
                             <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-2xl backdrop-blur-sm mb-4 glow-primary">
@@ -102,14 +117,19 @@ export const LoginPage = () => {
                         <form onSubmit={handleSubmit} className="p-10 space-y-6">
                             {/* Mensaje de Error */}
                             {error && (
-                                <div className="bg-red-900/30 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg text-sm">
+                                <div className="px-4 py-3 rounded-lg text-sm" style={{ 
+                                    backgroundColor: 'rgba(127, 29, 29, 0.2)',
+                                    borderColor: 'rgba(239, 68, 68, 0.5)',
+                                    borderWidth: '1px',
+                                    color: '#fca5a5'
+                                }}>
                                     {error}
                                 </div>
                             )}
 
                             {/* Campo Email */}
                             <div className="space-y-3">
-                                <label className="text-text-secondary text-sm font-semibold flex items-center gap-2">
+                                <label className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
                                     <Mail className="w-4 h-4" />
                                     Email
                                 </label>
@@ -119,15 +139,19 @@ export const LoginPage = () => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    className="w-full bg-bg-elevated border border-border text-text-primary px-5 py-4 rounded-lg text-base
-                                             focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 
-                                             transition-all placeholder:text-text-secondary"
+                                    className="w-full px-5 py-4 rounded-lg text-base focus:outline-none focus:ring-2 transition-all"
+                                    style={{ 
+                                        backgroundColor: 'var(--color-bg-elevated)',
+                                        borderColor: 'var(--color-border)',
+                                        borderWidth: '1px',
+                                        color: 'var(--color-text-primary)'
+                                    }}
                                 />
                             </div>
 
                             {/* Campo Contraseña */}
                             <div className="space-y-3">
-                                <label className="text-text-secondary text-sm font-semibold flex items-center gap-2">
+                                <label className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
                                     <Lock className="w-4 h-4" />
                                     Contraseña
                                 </label>
@@ -137,9 +161,13 @@ export const LoginPage = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className="w-full bg-bg-elevated border border-border text-text-primary px-5 py-4 rounded-lg text-base
-                                             focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 
-                                             transition-all placeholder:text-text-secondary"
+                                    className="w-full px-5 py-4 rounded-lg text-base focus:outline-none focus:ring-2 transition-all"
+                                    style={{ 
+                                        backgroundColor: 'var(--color-bg-elevated)',
+                                        borderColor: 'var(--color-border)',
+                                        borderWidth: '1px',
+                                        color: 'var(--color-text-primary)'
+                                    }}
                                 />
                             </div>
 
@@ -182,9 +210,9 @@ export const LoginPage = () => {
 
                             {/* Divider */}
                             <div className="flex items-center gap-4 my-6">
-                                <div className="flex-1 h-px bg-border"></div>
-                                <span className="text-text-secondary text-xs font-medium">O continúa con</span>
-                                <div className="flex-1 h-px bg-border"></div>
+                                <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-border)' }}></div>
+                                <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>O continúa con</span>
+                                <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-border)' }}></div>
                             </div>
 
                             {/* Google Login Button */}
@@ -201,7 +229,7 @@ export const LoginPage = () => {
 
                         {/* Footer */}
                         <div className="px-8 pb-8 text-center">
-                            <p className="text-text-secondary text-sm">
+                            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                                 Sistema de Monitoreo en Tiempo Real
                             </p>
                         </div>

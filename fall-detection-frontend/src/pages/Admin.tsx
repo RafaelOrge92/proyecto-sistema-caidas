@@ -58,7 +58,7 @@ const Admin = () => {
         {!isPodiumOnly && (
           <header className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
             <div className="space-y-2">
-              <h1 className="text-6xl font-bold tracking-tighter text-white">Consola de Control</h1>
+              <h1 className="text-6xl font-bold tracking-tighter" style={{ color: 'var(--color-text-primary)' }}>Consola de Control</h1>
               <p className="text-xl text-[var(--color-text-secondary)] font-medium">Gestión avanzada de infraestructura y seguridad.</p>
             </div>
             <div className="flex bg-white/5 p-1 rounded-full backdrop-blur-xl border border-white/10">
@@ -67,25 +67,37 @@ const Admin = () => {
                   setActiveTab('home');
                   navigate('/Dashboard');
                 }}
-                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'home' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
+                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'home' ? 'bg-[var(--color-primary)] shadow-lg' : ''}`}
+                style={{ color: activeTab === 'home' ? 'white' : 'var(--color-text-secondary)' }}
+                onMouseEnter={(e) => { if (activeTab !== 'home') e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                onMouseLeave={(e) => { if (activeTab !== 'home') e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
               >
                 Home
               </button>
               <button 
                 onClick={() => setActiveTab('users')}
-                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
+                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-[var(--color-primary)] shadow-lg' : ''}`}
+                style={{ color: activeTab === 'users' ? 'white' : 'var(--color-text-secondary)' }}
+                onMouseEnter={(e) => { if (activeTab !== 'users') e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                onMouseLeave={(e) => { if (activeTab !== 'users') e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
               >
                 Usuarios
               </button>
               <button 
                 onClick={() => setActiveTab('devices')}
-                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'devices' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
+                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'devices' ? 'bg-[var(--color-primary)] shadow-lg' : ''}`}
+                style={{ color: activeTab === 'devices' ? 'white' : 'var(--color-text-secondary)' }}
+                onMouseEnter={(e) => { if (activeTab !== 'devices') e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                onMouseLeave={(e) => { if (activeTab !== 'devices') e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
               >
                 Dispositivos
               </button>
               <button 
                 onClick={() => setActiveTab('podium')}
-                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'podium' ? 'bg-white text-black shadow-lg' : 'text-[#94A3B8] hover:text-white'}`}
+                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'podium' ? 'bg-[var(--color-primary)] shadow-lg' : ''}`}
+                style={{ color: activeTab === 'podium' ? 'white' : 'var(--color-text-secondary)' }}
+                onMouseEnter={(e) => { if (activeTab !== 'podium') e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                onMouseLeave={(e) => { if (activeTab !== 'podium') e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
               >
                 Podium
               </button>
@@ -102,7 +114,7 @@ const Admin = () => {
             <div className="space-y-6">
               <div className="flex items-center gap-3">
                 <Activity size={24} className="text-amber-400" />
-                <h2 className="text-2xl font-bold text-white">Dispositivos con mas eventos</h2>
+                <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Dispositivos con mas eventos</h2>
               </div>
               {podium.length === 0 ? (
                 <Card className="text-center py-12 border-dashed border-white/10 bg-transparent">
@@ -123,10 +135,10 @@ const Admin = () => {
                         </div>
                         <div className="text-right">
                           <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-widest">Eventos</p>
-                          <p className="text-3xl font-bold text-white">{item.count}</p>
+                          <p className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{item.count}</p>
                         </div>
                       </div>
-                      <p className="text-white font-semibold truncate">Dispositivo {item.device_id}</p>
+                      <p className="font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>Dispositivo {item.device_id}</p>
                     </Card>
                   ))}
                 </div>
@@ -142,7 +154,7 @@ const Admin = () => {
                     </div>
                     <Badge variant={user.role === 'ADMIN' ? 'error' : 'info'}>{user.role}</Badge>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-1">{user.fullName}</h3>
+                  <h3 className="text-xl font-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>{user.fullName}</h3>
                   <p className="text-[var(--color-text-secondary)] text-sm mb-6">{user.email}</p>
                   <Button variant="outline" size="sm" fullWidth>Configurar Perfil</Button>
                 </Card>
@@ -158,7 +170,7 @@ const Admin = () => {
                         {(device as any).isActive ? 'En Línea' : 'Desconectado'}
                       </Badge>
                    </div>
-                   <h3 className="text-2xl font-bold text-white mb-2">{(device as any).alias || device.id}</h3>
+                   <h3 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>{(device as any).alias || device.id}</h3>
                    <p className="text-sm text-[var(--color-text-secondary)] mb-6">Paciente: {(device as any).patientName || 'No asignado'}</p>
                    <div className="flex gap-3">
                      <Button variant="outline" size="sm" className="flex-1">Logs</Button>
@@ -171,7 +183,7 @@ const Admin = () => {
             <div className="space-y-6">
               <div className="flex items-center gap-3">
                 <Activity size={24} className="text-amber-400" />
-                <h2 className="text-2xl font-bold text-white">Dispositivos con mas eventos</h2>
+                <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Dispositivos con mas eventos</h2>
               </div>
               {podium.length === 0 ? (
                 <Card className="text-center py-12 border-dashed border-white/10 bg-transparent">
@@ -192,10 +204,10 @@ const Admin = () => {
                         </div>
                         <div className="text-right">
                           <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-widest">Eventos</p>
-                          <p className="text-3xl font-bold text-white">{item.count}</p>
+                          <p className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{item.count}</p>
                         </div>
                       </div>
-                      <p className="text-white font-semibold truncate">Dispositivo {item.device_id}</p>
+                      <p className="font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>Dispositivo {item.device_id}</p>
                     </Card>
                   ))}
                 </div>
