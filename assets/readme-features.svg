@@ -1,0 +1,57 @@
+<svg width="800" height="200" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Features animation">
+  <defs>
+    <linearGradient id="featureGrad1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#8B5CF6" />
+    </linearGradient>
+    <linearGradient id="featureGrad2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#14B8A6" />
+    </linearGradient>
+    <linearGradient id="featureGrad3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#EC4899" />
+      <stop offset="100%" stop-color="#F43F5E" />
+    </linearGradient>
+  </defs>
+
+  <!-- Card 1: Detection -->
+  <g opacity="0">
+    <rect x="20" y="20" width="200" height="160" rx="16" fill="rgba(99, 102, 241, 0.15)" stroke="url(#featureGrad1)" stroke-width="2"/>
+    <circle cx="120" cy="60" r="20" fill="url(#featureGrad1)"/>
+    <text x="120" y="120" text-anchor="middle" font-size="14" fill="#F1F5F9" font-family="Inter, sans-serif" font-weight="600">Real-Time Detection</text>
+    <animate attributeName="opacity" values="0;1;1;0" dur="6s" repeatCount="indefinite" />
+  </g>
+
+  <!-- Card 2: Dashboard -->
+  <g opacity="0">
+    <rect x="300" y="20" width="200" height="160" rx="16" fill="rgba(6, 182, 212, 0.15)" stroke="url(#featureGrad2)" stroke-width="2"/>
+    <rect x="320" y="50" width="160" height="80" rx="8" fill="url(#featureGrad2)" opacity="0.3"/>
+    <line x1="330" y1="60" x2="450" y2="60" stroke="url(#featureGrad2)" stroke-width="2"/>
+    <line x1="330" y1="75" x2="450" y2="75" stroke="url(#featureGrad2)" stroke-width="2"/>
+    <line x1="330" y1="90" x2="450" y2="90" stroke="url(#featureGrad2)" stroke-width="2"/>
+    <text x="400" y="150" text-anchor="middle" font-size="14" fill="#F1F5F9" font-family="Inter, sans-serif" font-weight="600">Advanced Dashboard</text>
+    <animate attributeName="opacity" values="0;0;1;1;0" dur="6s" repeatCount="indefinite" />
+  </g>
+
+  <!-- Card 3: Mobile -->
+  <g opacity="0">
+    <rect x="580" y="20" width="200" height="160" rx="16" fill="rgba(236, 72, 153, 0.15)" stroke="url(#featureGrad3)" stroke-width="2"/>
+    <rect x="620" y="45" width="120" height="90" rx="8" fill="url(#featureGrad3)" opacity="0.2"/>
+    <circle cx="680" cy="70" r="6" fill="url(#featureGrad3)"/>
+    <circle cx="680" cy="95" r="6" fill="url(#featureGrad3)"/>
+    <circle cx="680" cy="120" r="6" fill="url(#featureGrad3)"/>
+    <text x="680" y="150" text-anchor="middle" font-size="14" fill="#F1F5F9" font-family="Inter, sans-serif" font-weight="600">Cross-Platform App</text>
+    <animate attributeName="opacity" values="0;0;0;1;1;0" dur="6s" repeatCount="indefinite" />
+  </g>
+
+  <!-- Indicator dots -->
+  <circle cx="120" cy="190" r="4" fill="#6366F1">
+    <animate attributeName="r" values="4;8;4" dur="6s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="400" cy="190" r="4" fill="#06B6D4">
+    <animate attributeName="r" values="4;4;8;4" dur="6s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="680" cy="190" r="4" fill="#EC4899">
+    <animate attributeName="r" values="4;4;4;8;4" dur="6s" repeatCount="indefinite" />
+  </circle>
+</svg>

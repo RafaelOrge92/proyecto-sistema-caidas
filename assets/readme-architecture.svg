@@ -1,0 +1,98 @@
+<svg width="1000" height="280" viewBox="0 0 1000 280" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture animation">
+  <defs>
+    <linearGradient id="archGrad1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#8B5CF6" />
+    </linearGradient>
+    <linearGradient id="archGrad2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#14B8A6" />
+    </linearGradient>
+    <filter id="glow-effect" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- ESP32 Node -->
+  <g filter="url(#glow-effect)">
+    <circle cx="100" cy="100" r="35" fill="rgba(139, 92, 246, 0.2)" stroke="url(#archGrad1)" stroke-width="2"/>
+    <circle cx="100" cy="100" r="30" fill="none" stroke="url(#archGrad1)" stroke-width="1" opacity="0">
+      <animate attributeName="r" values="30;45;30" dur="2s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite" />
+    </circle>
+    <text x="100" y="100" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#A78BFA" font-family="Inter, sans-serif" font-weight="600">ESP32</text>
+    <text x="100" y="150" text-anchor="middle" font-size="10" fill="#94A3B8">Sensores</text>
+  </g>
+
+  <!-- API Node -->
+  <g filter="url(#glow-effect)">
+    <circle cx="500" cy="100" r="50" fill="rgba(99, 102, 241, 0.15)" stroke="url(#archGrad1)" stroke-width="2"/>
+    <text x="500" y="95" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#818CF8" font-family="Inter, sans-serif" font-weight="700">Backend</text>
+    <text x="500" y="115" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#94A3B8">Node + Express</text>
+    <circle cx="500" cy="100" r="55" fill="none" stroke="url(#archGrad1)" stroke-width="1" opacity="0">
+      <animate attributeName="r" values="55;70;55" dur="3s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.5;0.1;0.5" dur="3s" repeatCount="indefinite" />
+    </circle>
+  </g>
+
+  <!-- Database Node -->
+  <g filter="url(#glow-effect)">
+    <rect x="850" y="50" width="100" height="100" rx="12" fill="rgba(6, 182, 212, 0.15)" stroke="url(#archGrad2)" stroke-width="2"/>
+    <text x="900" y="95" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#06B6D4" font-family="Inter, sans-serif" font-weight="700">PostgreSQL</text>
+    <text x="900" y="115" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#94A3B8">+ Redis</text>
+  </g>
+
+  <!-- Web Frontend -->
+  <g filter="url(#glow-effect)">
+    <rect x="50" y="200" width="120" height="60" rx="10" fill="rgba(99, 102, 241, 0.1)" stroke="url(#archGrad1)" stroke-width="2"/>
+    <text x="110" y="225" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#818CF8" font-family="Inter, sans-serif" font-weight="600">Frontend Web</text>
+    <text x="110" y="245" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="#94A3B8">React + Vite</text>
+  </g>
+
+  <!-- Mobile App -->
+  <g filter="url(#glow-effect)">
+    <rect x="280" y="200" width="120" height="60" rx="10" fill="rgba(6, 182, 212, 0.1)" stroke="url(#archGrad2)" stroke-width="2"/>
+    <text x="340" y="225" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#06B6D4" font-family="Inter, sans-serif" font-weight="600">Mobile App</text>
+    <text x="340" y="245" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="#94A3B8">Expo + React Native</text>
+  </g>
+
+  <!-- LLM Chatbot -->
+  <g filter="url(#glow-effect)">
+    <rect x="740" y="200" width="110" height="60" rx="10" fill="rgba(139, 92, 246, 0.1)" stroke="url(#archGrad1)" stroke-width="2"/>
+    <text x="795" y="225" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#C4B5FD" font-family="Inter, sans-serif" font-weight="600">Chatbot LLM</text>
+    <text x="795" y="245" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="#94A3B8">Groq/HF</text>
+  </g>
+
+  <!-- Connection lines with animation -->
+  <!-- ESP32 to API -->
+  <line x1="135" y1="100" x2="450" y2="100" stroke="url(#archGrad1)" stroke-width="2" stroke-dasharray="10,5">
+    <animate attributeName="stroke-dashoffset" values="0;15" dur="0.5s" repeatCount="indefinite" />
+  </line>
+
+  <!-- API to Database -->
+  <line x1="550" y1="100" x2="850" y2="100" stroke="url(#archGrad2)" stroke-width="2" stroke-dasharray="10,5">
+    <animate attributeName="stroke-dashoffset" values="0;15" dur="0.6s" repeatCount="indefinite" />
+  </line>
+
+  <!-- API to Web -->
+  <path d="M 460 145 Q 300 170 170 230" stroke="url(#archGrad1)" stroke-width="2" fill="none" stroke-dasharray="15,5">
+    <animate attributeName="stroke-dashoffset" values="0;20" dur="0.8s" repeatCount="indefinite" />
+  </path>
+
+  <!-- API to Mobile -->
+  <path d="M 480 150 Q 410 180 400 200" stroke="url(#archGrad2)" stroke-width="2" fill="none" stroke-dasharray="15,5">
+    <animate attributeName="stroke-dashoffset" values="0;20" dur="0.9s" repeatCount="indefinite" />
+  </path>
+
+  <!-- API to Chatbot -->
+  <path d="M 540 150 Q 650 170 760 230" stroke="url(#archGrad1)" stroke-width="2" fill="none" stroke-dasharray="15,5">
+    <animate attributeName="stroke-dashoffset" values="0;20" dur="1s" repeatCount="indefinite" />
+  </path>
+
+  <!-- Legend -->
+  <text x="100" y="30" font-size="14" fill="#F1F5F9" font-family="Inter, sans-serif" font-weight="600">IoT → API → Storage + Clients</text>
+</svg>
