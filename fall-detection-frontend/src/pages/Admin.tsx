@@ -2,20 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AdminService } from '../services/adminService';
 import { User, Device } from '../types';
-import { Users, HardDrive, RefreshCw, Activity } from 'lucide-react';
+import { Users, HardDrive, RefreshCw, Activity, BarChart3 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
+import { useAuth } from '../context/AuthContext';
 
 const Admin = () => {
-  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'devices' | 'podium'>('users');
+  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'devices' | 'podium' | 'graficas'>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [devices, setDevices] = useState<Device[]>([]);
   const [podium, setPodium] = useState<Array<{ device_id: string; count: number }>>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const isPodiumOnly = new URLSearchParams(location.search).get('tab') === 'podium';
+  const isAdmin = user?.role === 'ADMIN';
 
   useEffect(() => {
     const loadData = async () => {
@@ -47,7 +50,7 @@ const Admin = () => {
 
   useEffect(() => {
     const tab = new URLSearchParams(location.search).get('tab');
-    if (tab === 'users' || tab === 'devices' || tab === 'podium' || tab === 'home') {
+    if (tab === 'users' || tab === 'devices' || tab === 'podium' || tab === 'home' || tab === 'graficas') {
       setActiveTab(tab);
     }
   }, [location.search]);
@@ -56,51 +59,10 @@ const Admin = () => {
     <div className="min-h-screen pt-24 px-8 reveal">
       <div className="max-w-7xl mx-auto">
         {!isPodiumOnly && (
-          <header className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+          <header className="mb-16">
             <div className="space-y-2">
               <h1 className="text-6xl font-bold tracking-tighter" style={{ color: 'var(--color-text-primary)' }}>Consola de Control</h1>
               <p className="text-xl text-[var(--color-text-secondary)] font-medium">Gestión avanzada de infraestructura y seguridad.</p>
-            </div>
-            <div className="flex bg-white/5 p-1 rounded-full backdrop-blur-xl border border-white/10">
-              <button
-                onClick={() => {
-                  setActiveTab('home');
-                  navigate('/Dashboard');
-                }}
-                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'home' ? 'bg-[var(--color-primary)] shadow-lg' : ''}`}
-                style={{ color: activeTab === 'home' ? 'white' : 'var(--color-text-secondary)' }}
-                onMouseEnter={(e) => { if (activeTab !== 'home') e.currentTarget.style.color = 'var(--color-text-primary)'; }}
-                onMouseLeave={(e) => { if (activeTab !== 'home') e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
-              >
-                Home
-              </button>
-              <button 
-                onClick={() => setActiveTab('users')}
-                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-[var(--color-primary)] shadow-lg' : ''}`}
-                style={{ color: activeTab === 'users' ? 'white' : 'var(--color-text-secondary)' }}
-                onMouseEnter={(e) => { if (activeTab !== 'users') e.currentTarget.style.color = 'var(--color-text-primary)'; }}
-                onMouseLeave={(e) => { if (activeTab !== 'users') e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
-              >
-                Usuarios
-              </button>
-              <button 
-                onClick={() => setActiveTab('devices')}
-                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'devices' ? 'bg-[var(--color-primary)] shadow-lg' : ''}`}
-                style={{ color: activeTab === 'devices' ? 'white' : 'var(--color-text-secondary)' }}
-                onMouseEnter={(e) => { if (activeTab !== 'devices') e.currentTarget.style.color = 'var(--color-text-primary)'; }}
-                onMouseLeave={(e) => { if (activeTab !== 'devices') e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
-              >
-                Dispositivos
-              </button>
-              <button 
-                onClick={() => setActiveTab('podium')}
-                className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${activeTab === 'podium' ? 'bg-[var(--color-primary)] shadow-lg' : ''}`}
-                style={{ color: activeTab === 'podium' ? 'white' : 'var(--color-text-secondary)' }}
-                onMouseEnter={(e) => { if (activeTab !== 'podium') e.currentTarget.style.color = 'var(--color-text-primary)'; }}
-                onMouseLeave={(e) => { if (activeTab !== 'podium') e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
-              >
-                Podium
-              </button>
             </div>
           </header>
         )}
@@ -179,6 +141,34 @@ const Admin = () => {
                  </Card>
                ))}
              </div>
+          ) : activeTab === 'graficas' ? (
+            isAdmin ? (
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <BarChart3 size={24} className="text-[var(--color-primary)]" />
+                <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Gráficas de Monitoreo</h2>
+              </div>
+              <Card noPadding className="border-white/5 overflow-hidden">
+                <div className="flex justify-center items-center p-8">
+                  <iframe 
+                    src="http://localhost:3003/d-solo/ad9j82t/grafana-test?orgId=1&timezone=browser&panelId=panel-2&__feature.dashboardSceneSolo=true" 
+                    width="100%" 
+                    height="600" 
+                    frameBorder="0"
+                    style={{ borderRadius: '8px', minWidth: '100%' }}
+                    title="Grafana Dashboard"
+                  ></iframe>
+                </div>
+              </Card>
+              <p className="text-sm text-[var(--color-text-secondary)] text-center">
+                Dashboard de Grafana - Datos en tiempo real del sistema de monitoreo
+              </p>
+            </div>
+            ) : (
+              <Card className="text-center py-12 border-dashed border-white/10 bg-transparent">
+                <p className="text-[var(--color-text-secondary)]">No tienes permisos para acceder a las gráficas.</p>
+              </Card>
+            )
           ) : (
             <div className="space-y-6">
               <div className="flex items-center gap-3">

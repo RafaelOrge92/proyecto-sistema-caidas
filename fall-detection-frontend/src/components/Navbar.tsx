@@ -45,6 +45,7 @@ export const Navbar = () => {
                                 <Link to="/admin/devices" className="text-sm transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Dispositivos</Link>
                                 <Link to="/admin/events" className="text-sm transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Eventos</Link>
                                 <Link to="/admin?tab=podium" className="text-sm transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Podium</Link>
+                                <Link to="/admin?tab=graficas" className="text-sm transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Gráficas</Link>
                             </div>
                         ) : (
                             <div className="flex gap-4 border-l pl-4" style={{ borderColor: 'rgba(99, 102, 241, 0.3)' }}>
