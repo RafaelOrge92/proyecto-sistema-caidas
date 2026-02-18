@@ -1,19 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink, ShieldAlert } from 'lucide-react';
+import footerQr from '../../assets/footer-qr.png';
 
 const LandingFooter: React.FC = () => {
   return (
     <footer className="bg-[var(--color-bg-primary)] border-t border-white/5 pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
-          
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-16 mb-20">
           <div className="col-span-1 md:col-span-1 space-y-6">
             <span className="flex items-center gap-3 font-bold text-2xl text-white tracking-tighter">
-               <div className="w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center">
-                 <ShieldAlert size={24}/>
-               </div>
-               Fall Detect
+              <div className="w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center">
+                <ShieldAlert size={24} />
+              </div>
+              Fall Detect
             </span>
             <p className="text-[var(--color-text-secondary)] leading-relaxed font-medium">
               Tecnología que redefine el cuidado. <br />
@@ -24,26 +24,46 @@ const LandingFooter: React.FC = () => {
           <div>
             <h3 className="text-xs font-black text-white tracking-[0.2em] uppercase mb-8">Navegación</h3>
             <ul className="space-y-4 font-semibold">
-              <li><Link to="/" className="text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors">Inicio</Link></li>
-              <li><Link to="/about" className="text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors">Nosotros</Link></li>
-              <li><Link to="/contact" className="text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors">Contacto</Link></li>
+              <li>
+                <Link to="/" className="text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors">
+                  Inicio
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors">
+                  Nosotros
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors">
+                  Contacto
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
-             <h3 className="text-xs font-black text-white tracking-[0.2em] uppercase mb-8">Recursos</h3>
-             <ul className="space-y-4 font-semibold">
-                <li>
-                  <a href="https://www.who.int" target="_blank" className="text-[var(--color-text-secondary)] hover:text-indigo-400 flex items-center gap-2 transition-colors">
-                    <span>OMS</span> <ExternalLink size={12}/>
-                  </a>
-                </li>
-                <li>
-                  <a href="https://www.cdc.gov" target="_blank" className="text-[var(--color-text-secondary)] hover:text-indigo-400 flex items-center gap-2 transition-colors">
-                    <span>CDC Falls</span> <ExternalLink size={12}/>
-                  </a>
-                </li>
-             </ul>
+            <h3 className="text-xs font-black text-white tracking-[0.2em] uppercase mb-8">Recursos</h3>
+            <ul className="space-y-4 font-semibold">
+              <li>
+                <a
+                  href="https://www.who.int"
+                  target="_blank"
+                  className="text-[var(--color-text-secondary)] hover:text-indigo-400 flex items-center gap-2 transition-colors"
+                >
+                  <span>OMS</span> <ExternalLink size={12} />
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.cdc.gov"
+                  target="_blank"
+                  className="text-[var(--color-text-secondary)] hover:text-indigo-400 flex items-center gap-2 transition-colors"
+                >
+                  <span>CDC Falls</span> <ExternalLink size={12} />
+                </a>
+              </li>
+            </ul>
           </div>
 
           <div>
@@ -53,12 +73,20 @@ const LandingFooter: React.FC = () => {
               <li className="hover:text-indigo-400 cursor-pointer transition-colors">Términos</li>
             </ul>
           </div>
+
+          <div className="space-y-3 md:justify-self-end">
+            <p className="text-xs font-black text-white tracking-[0.2em] uppercase">Así funciona</p>
+            <img
+              src={footerQr}
+              alt="Codigo QR de Fall Detect"
+              className="w-28 sm:w-32 md:w-36 h-auto rounded-xl bg-white p-2 transition-transform duration-300 ease-out hover:-translate-y-1 hover:scale-105 hover:shadow-xl"
+              loading="lazy"
+            />
+          </div>
         </div>
-        
+
         <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-[var(--color-text-secondary)] text-sm font-medium">
-            &copy; {new Date().getFullYear()} Fall Detect S.L.
-          </p>
+          <p className="text-[var(--color-text-secondary)] text-sm font-medium">&copy; {new Date().getFullYear()} Fall Detect S.L.</p>
           <div className="flex gap-8 text-sm font-bold text-[var(--color-text-secondary)]">
             <span>Diseñado en Vigo</span>
             <span>v1.0.0</span>
