@@ -200,7 +200,7 @@ Notas:
 
 ### Grafana (JWT Embed)
 
-- `GET /api/grafana/embed?panelId=2`
+- `GET /api/grafana/embed?panelId=3`
 
 Notas:
 

@@ -6,7 +6,7 @@ const router = Router();
 
 const DEFAULT_GRAFANA_ISSUER = 'fallguard-backend';
 const DEFAULT_ORG_ID = '1';
-const DEFAULT_PANEL_ID = '2';
+const DEFAULT_PANEL_ID = '3';
 const DEFAULT_TOKEN_TTL_SECONDS = 300;
 const DEFAULT_ADMIN_UID = 'fallguard-admin-overview';
 const DEFAULT_MEMBER_UID = 'fallguard-member-overview';

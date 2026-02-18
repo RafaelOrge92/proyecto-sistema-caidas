@@ -3,11 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.usersRoutes = void 0;
 const express_1 = require("express");
 const db_1 = require("../config/db");
+const password_1 = require("../utils/password");
+const auth_1 = require("../middleware/auth");
 const router = (0, express_1.Router)();
 // Get all users
-router.get('/', async (req, res) => {
+router.get('/', auth_1.authenticateToken, auth_1.requireAdmin, async (req, res) => {
     try {
-        const database = (0, db_1.db)();
+        const database = db_1.db;
         const users = await database.query('SELECT account_id as id, email, role, full_name as "fullName", phone, created_at as "createdAt", updated_at as "updatedAt" FROM public.accounts ORDER BY created_at DESC');
         res.json(users);
     }
@@ -17,10 +19,11 @@ router.get('/', async (req, res) => {
     }
 });
 // Get user by id
-router.get('/:id', async (req, res) => {
+router.get('/:id', auth_1.authenticateToken, auth_1.requireAdmin, async (req, res) => {
     try {
-        const database = (0, db_1.db)();
-        const users = await database.query('SELECT account_id as id, email, role, full_name as "fullName", phone, created_at as "createdAt", updated_at as "updatedAt" FROM public.accounts WHERE account_id = $1', [req.params.id]);
+        const id = req.params.id;
+        const database = db_1.db;
+        const users = await database.query('SELECT account_id as id, email, role, full_name as "fullName", phone, created_at as "createdAt", updated_at as "updatedAt" FROM public.accounts WHERE account_id = $1', [id]);
         if (users.length === 0) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
@@ -31,16 +34,44 @@ router.get('/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener usuario' });
     }
 });
+// Get patients assigned to a user via device_access -> devices -> patients
+router.get('/:id/patients', auth_1.authenticateToken, auth_1.requireAdmin, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const database = db_1.db;
+        const rows = await database.query(`SELECT
+         p.patient_id AS "patientId",
+         CONCAT(p.first_name, ' ', p.last_name) AS "patientName",
+         ARRAY_AGG(DISTINCT da.access_type::text) AS "accessTypes",
+         JSONB_AGG(
+           DISTINCT JSONB_BUILD_OBJECT(
+             'id', d.device_id,
+             'alias', d.alias
+           )
+         ) AS devices
+       FROM public.device_access da
+       JOIN public.devices d ON d.device_id = da.device_id
+       JOIN public.patients p ON p.patient_id = d.patient_id
+       WHERE da.account_id = $1
+       GROUP BY p.patient_id, p.first_name, p.last_name
+       ORDER BY "patientName" ASC`, [id]);
+        res.json(rows);
+    }
+    catch (error) {
+        console.error('Error fetching user patients:', error);
+        res.status(500).json({ error: 'Error al obtener pacientes asignados al usuario' });
+    }
+});
 // Create user
-router.post('/', async (req, res) => {
+router.post('/', auth_1.authenticateToken, auth_1.requireAdmin, async (req, res) => {
     const { email, fullName, phone, role, password } = req.body;
     if (!email || !fullName) {
         return res.status(400).json({ error: 'Email y nombre completo son requeridos' });
     }
     try {
-        const database = (0, db_1.db)();
-        // Insert new user (password_hash will store the plain password for simplicity)
-        const result = await database.query('INSERT INTO public.accounts (email, password_hash, role, full_name, phone) VALUES ($1, $2, $3, $4, $5) RETURNING account_id as id, email, role, full_name as "fullName", phone, created_at as "createdAt"', [email, password || '1234', role || 'MEMBER', fullName, phone || null]);
+        const database = db_1.db;
+        const passwordHash = await (0, password_1.hashPassword)(password || '1234');
+        const result = await database.query('INSERT INTO public.accounts (email, password_hash, role, full_name, phone) VALUES ($1, $2, $3, $4, $5) RETURNING account_id as id, email, role, full_name as "fullName", phone, created_at as "createdAt"', [email, passwordHash, role || 'MEMBER', fullName, phone || null]);
         res.status(201).json(result[0]);
     }
     catch (error) {
@@ -49,17 +80,24 @@ router.post('/', async (req, res) => {
     }
 });
 // Update user
-router.put('/:id', async (req, res) => {
-    const { email, fullName, phone, role } = req.body;
+router.put('/:id', auth_1.authenticateToken, auth_1.requireAdmin, async (req, res) => {
+    const routeId = req.params.id;
+    const { email, password, fullName, phone, role, id: bodyId } = req.body;
+    if (bodyId && bodyId !== routeId) {
+        return res.status(400).json({ error: 'El id del body no coincide con el id de la URL' });
+    }
     try {
-        const database = (0, db_1.db)();
+        const database = db_1.db;
+        const passwordHash = typeof password === 'string' && password.length > 0
+            ? await (0, password_1.hashPassword)(password)
+            : null;
         // Check if user exists
-        const existingUsers = await database.query('SELECT account_id FROM public.accounts WHERE account_id = $1', [req.params.id]);
+        const existingUsers = await database.query('SELECT account_id FROM public.accounts WHERE account_id = $1', [routeId]);
         if (existingUsers.length === 0) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
         // Update user
-        const result = await database.query('UPDATE public.accounts SET email = COALESCE($1, email), full_name = COALESCE($2, full_name), phone = COALESCE($3, phone), role = COALESCE($4, role), updated_at = now() WHERE account_id = $5 RETURNING account_id as id, email, role, full_name as "fullName", phone, updated_at as "updatedAt"', [email, fullName, phone, role, req.params.id]);
+        const result = await database.query('UPDATE public.accounts SET email = COALESCE($1, email), password_hash = COALESCE($2, password_hash) ,full_name = COALESCE($3, full_name), phone = COALESCE($4, phone), role = COALESCE($5, role), updated_at = now() WHERE account_id = $6 RETURNING account_id as id, email, role, full_name as "fullName", phone, updated_at as "updatedAt"', [email, passwordHash, fullName, phone, role, routeId]);
         res.json(result[0]);
     }
     catch (error) {
@@ -67,14 +105,53 @@ router.put('/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar usuario' });
     }
 });
+router.post('/assign', auth_1.authenticateToken, auth_1.requireAdmin, async (req, res) => {
+    const { accountId, deviceId, accessType } = req.body;
+    // Validaciones
+    if (!accountId) {
+        return res.status(400).json({ error: 'accountId es requerido' });
+    }
+    if (!deviceId) {
+        return res.status(400).json({ error: 'deviceId es requerido' });
+    }
+    if (!accessType) {
+        return res.status(400).json({ error: 'accessType es requerido' });
+    }
+    try {
+        // Verificar que el usuario existe
+        const userExists = await db_1.db.query('SELECT account_id FROM public.accounts WHERE account_id = $1', [accountId]);
+        if (userExists.length === 0) {
+            return res.status(404).json({ error: `Usuario '${accountId}' no existe` });
+        }
+        // Verificar que el dispositivo existe
+        const deviceExists = await db_1.db.query('SELECT device_id FROM public.devices WHERE device_id = $1', [deviceId]);
+        if (deviceExists.length === 0) {
+            return res.status(404).json({ error: `Dispositivo '${deviceId}' no existe` });
+        }
+        // Asignar dispositivo a usuario
+        const result = await db_1.db.query(`INSERT INTO public.device_access (account_id, device_id, access_type) values ($1, $2, $3)`, [accountId, deviceId, accessType]);
+        res.status(201).json(result);
+    }
+    catch (error) {
+        console.error('Error asignando dispositivo:', error);
+        if (error?.code === '23505') {
+            return res.status(409).json({ error: `El dispositivo '${deviceId}' ya está asignado a un usuario` });
+        }
+        if (error?.code === '23502') {
+            return res.status(400).json({ error: 'Parámetros incompletos o inválidos' });
+        }
+        res.status(500).json({ error: 'Error al asignar dispositivo' });
+    }
+});
 // Deactivate user (soft delete)
 // Note: The accounts table doesn't have an is_active column, so this will add a comment
 // If you want true soft delete, you'd need to add an is_active column to the schema
-router.patch('/:id/deactivate', async (req, res) => {
+router.patch('/:id/deactivate', auth_1.authenticateToken, auth_1.requireAdmin, async (req, res) => {
     try {
-        const database = (0, db_1.db)();
+        const id = req.params.id;
+        const database = db_1.db;
         // Check if user exists
-        const existingUsers = await database.query('SELECT account_id as id, email, role, full_name as "fullName", phone FROM public.accounts WHERE account_id = $1', [req.params.id]);
+        const existingUsers = await database.query('SELECT account_id as id, email, role, full_name as "fullName", phone FROM public.accounts WHERE account_id = $1', [id]);
         if (existingUsers.length === 0) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }

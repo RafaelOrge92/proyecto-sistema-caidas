@@ -8,22 +8,80 @@ const router = Router();
 
 //get all devices
 
-router.get('/', authenticateToken, requireAdmin, async (req, res) => {
-  const result = await db.query(`
-    SELECT
-      d.*,
-      p.first_name AS patient_first_name,
-      p.last_name AS patient_last_name,
-      CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name,
-      a.account_id AS assigned_user_id,
-      a.full_name AS assigned_user_name,
-      a.email AS assigned_user_email
-    FROM public.devices d
-    LEFT JOIN public.patients p ON p.patient_id = d.patient_id
-    LEFT JOIN public.device_access da ON d.device_id = da.device_id AND da.access_type = 'MEMBER'
-    LEFT JOIN public.accounts a ON da.account_id = a.account_id
-  `)
-  res.json(result)
+router.get('/', authenticateToken, async (req, res) => {
+  if (!req.user?.sub) {
+    return res.status(401).json({ error: 'Token requerido' });
+  }
+
+  // ADMIN: lista completa con metadatos de asignacion.
+  if (req.user.role === 'ADMIN') {
+    const result = await db.query(`
+      SELECT
+        d.device_id,
+        d.patient_id,
+        d.alias,
+        d.is_active,
+        d.last_seen_at,
+        d.created_at,
+        d.updated_at,
+        p.first_name AS patient_first_name,
+        p.last_name AS patient_last_name,
+        CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name,
+        MIN(a.account_id::text) AS assigned_user_id,
+        MIN(a.full_name) AS assigned_user_name,
+        MIN(a.email) AS assigned_user_email
+      FROM public.devices d
+      LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+      LEFT JOIN public.device_access da ON d.device_id = da.device_id AND da.access_type = 'MEMBER'
+      LEFT JOIN public.accounts a ON da.account_id = a.account_id
+      GROUP BY
+        d.device_id,
+        d.patient_id,
+        d.alias,
+        d.is_active,
+        d.last_seen_at,
+        d.created_at,
+        d.updated_at,
+        p.first_name,
+        p.last_name
+      ORDER BY d.created_at DESC
+    `);
+    return res.json(result);
+  }
+
+  // MEMBER/otros: solo dispositivos accesibles por device_access.
+  const result = await db.query(
+    `
+      SELECT
+        d.device_id,
+        d.patient_id,
+        d.alias,
+        d.is_active,
+        d.last_seen_at,
+        d.created_at,
+        d.updated_at,
+        p.first_name AS patient_first_name,
+        p.last_name AS patient_last_name,
+        CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name
+      FROM public.devices d
+      INNER JOIN public.device_access da ON da.device_id = d.device_id
+      LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+      WHERE da.account_id = $1
+      GROUP BY
+        d.device_id,
+        d.patient_id,
+        d.alias,
+        d.is_active,
+        d.last_seen_at,
+        d.created_at,
+        d.updated_at,
+        p.first_name,
+        p.last_name
+      ORDER BY d.created_at DESC
+    `,
+    [req.user.sub]
+  );
+  return res.json(result);
 })
 
 // Get available devices (not assigned to any user)
@@ -98,21 +156,52 @@ router.get('/podium', authenticateToken, requireAdmin, async (req, res) => {
 })
 
 // Get device by id
-router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
+  if (!req.user?.sub) {
+    return res.status(401).json({ error: 'Token requerido' });
+  }
+
   const id = req.params.id as string;
-  const result = await db.query(`
-    SELECT
-      d.*,
-      p.first_name AS patient_first_name,
-      p.last_name AS patient_last_name,
-      CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name
-    FROM public.devices d
-    LEFT JOIN public.patients p ON p.patient_id = d.patient_id
-    WHERE d.device_id = $1
-  `,
-    [id]
-  )
-  res.json(result)
+
+  // ADMIN puede consultar cualquier dispositivo.
+  if (req.user.role === 'ADMIN') {
+    const result = await db.query(`
+      SELECT
+        d.*,
+        p.first_name AS patient_first_name,
+        p.last_name AS patient_last_name,
+        CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name
+      FROM public.devices d
+      LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+      WHERE d.device_id = $1
+    `,
+      [id]
+    );
+    return res.json(result);
+  }
+
+  // MEMBER/otros: solo si tiene acceso al dispositivo.
+  const result = await db.query(
+    `
+      SELECT
+        d.*,
+        p.first_name AS patient_first_name,
+        p.last_name AS patient_last_name,
+        CONCAT(p.first_name, ' ', p.last_name) AS patient_full_name
+      FROM public.devices d
+      INNER JOIN public.device_access da ON da.device_id = d.device_id
+      LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+      WHERE d.device_id = $1 AND da.account_id = $2
+      LIMIT 1
+    `,
+    [id, req.user.sub]
+  );
+
+  if (result.length === 0) {
+    return res.status(403).json({ error: 'No tienes permiso para ver este dispositivo' });
+  }
+
+  return res.json(result);
 });
 
 router.get('/user/:userId', authenticateToken, async (req, res) => {
