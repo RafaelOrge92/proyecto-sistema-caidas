@@ -1,6 +1,7 @@
 import { ReactElement } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { ShieldAlert, LayoutDashboard, Users, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut } from 'lucide-react';
+import fallguardLogo from '../assets/fallguard-logo-escudo-pulso.svg';
 
 const Layout = (): ReactElement => {
   const location = useLocation();
@@ -24,10 +25,12 @@ const Layout = (): ReactElement => {
       {/* SIDEBAR */}
       <aside className="w-64 bg-[#1A1F26] text-[#F1F5F9] flex flex-col shadow-xl border-r border-[#1E293B]">
         <div className="p-6 text-2xl font-bold border-b border-[#1E293B] flex items-center gap-2">
-          <div className="bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] p-2 rounded-lg shadow-lg glow-primary">
-            <ShieldAlert className="w-5 h-5 text-white" />
-          </div>
-          <span>Fall-Detect</span>
+          <img
+            src={fallguardLogo}
+            alt="FallGuard logo"
+            className="w-9 h-9 object-contain drop-shadow-[0_6px_18px_rgba(99,102,241,0.35)]"
+          />
+          <span>FallGuard</span>
         </div>
 
         <nav className="flex-grow p-4 space-y-2">

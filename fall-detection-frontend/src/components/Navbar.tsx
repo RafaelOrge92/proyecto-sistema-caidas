@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { ShieldAlert, LogOut, Sun, Moon } from 'lucide-react';
+import { LogOut, Sun, Moon } from 'lucide-react';
+import fallguardLogo from '../assets/fallguard-logo-escudo-pulso.svg';
 
 export const Navbar = () => {
     const { user } = useAuth();
@@ -23,12 +24,14 @@ export const Navbar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex items-center gap-8">
-                        <Link to={user.role === 'ADMIN' ? '/dashboard' : '/my-protection'} className="flex items-center gap-2 group">
-                            <div className="bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] p-2 rounded-lg shadow-lg glow-primary">
-                                <ShieldAlert className="w-6 h-6 text-white" />
-                            </div>
+                        <Link to={user.role === 'ADMIN' ? '/dashboard' : '/my-protection'} className="flex items-center gap-3 group">
+                            <img
+                                src={fallguardLogo}
+                                alt="FallGuard logo"
+                                className="w-10 h-10 object-contain drop-shadow-[0_6px_18px_rgba(99,102,241,0.35)]"
+                            />
                             <span className="font-black text-xl tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
-                                FALL-DETECT
+                                FallGuard
                             </span>
                         </Link>
 

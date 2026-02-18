@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ExternalLink, ShieldAlert } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import footerQr from '../../assets/footer-qr.png';
+import fallguardLogo from '../../assets/fallguard-logo-escudo-pulso.svg';
 
 const LandingFooter: React.FC = () => {
   return (
@@ -10,10 +11,12 @@ const LandingFooter: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-16 mb-20">
           <div className="col-span-1 md:col-span-1 space-y-6">
             <span className="flex items-center gap-3 font-bold text-2xl text-white tracking-tighter">
-              <div className="w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center">
-                <ShieldAlert size={24} />
-              </div>
-              Fall Detect
+              <img
+                src={fallguardLogo}
+                alt="FallGuard logo"
+                className="w-10 h-10 object-contain drop-shadow-[0_6px_18px_rgba(99,102,241,0.35)]"
+              />
+              FallGuard
             </span>
             <p className="text-[var(--color-text-secondary)] leading-relaxed font-medium">
               Tecnología que redefine el cuidado. <br />

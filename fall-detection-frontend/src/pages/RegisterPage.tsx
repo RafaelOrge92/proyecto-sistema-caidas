@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldAlert, Mail, Lock, UserPlus, User, Sun, Moon } from 'lucide-react';
+import { Mail, Lock, UserPlus, User, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { buildApiUrl } from '../config/api';
+import fallguardLogo from '../assets/fallguard-logo-escudo-pulso.svg';
 
 export const RegisterPage = () => {
     const [fullName, setFullName] = useState('');
@@ -40,10 +41,12 @@ export const RegisterPage = () => {
             {/* Header con botón de tema */}
             <div className="flex justify-between items-center px-6 py-4 border-b border-border">
                 <div className="flex items-center gap-3 group">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-xl flex items-center justify-center shadow-lg glow-primary">
-                        <ShieldAlert className="w-6 h-6 text-white" />
-                    </div>
-                    <span className="font-bold text-lg text-text-primary tracking-tight">Fall-Detect</span>
+                    <img
+                        src={fallguardLogo}
+                        alt="FallGuard logo"
+                        className="w-10 h-10 object-contain drop-shadow-[0_8px_20px_rgba(99,102,241,0.35)]"
+                    />
+                    <span className="font-bold text-lg text-text-primary tracking-tight">FallGuard</span>
                 </div>
                 <button
                     onClick={toggleTheme}
@@ -72,7 +75,7 @@ export const RegisterPage = () => {
                         {/* Header */}
                         <div className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] p-8 text-center">
                             <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-2xl backdrop-blur-sm mb-4 glow-primary">
-                                <ShieldAlert className="w-8 h-8 text-white" />
+                                <img src={fallguardLogo} alt="FallGuard logo" className="w-12 h-12 object-contain" />
                             </div>
                             <h2 className="text-3xl font-bold text-white mb-2">Crear Cuenta</h2>
                             <p className="text-[#E0E7FF] text-sm">Sistema de Deteccion de Caidas</p>

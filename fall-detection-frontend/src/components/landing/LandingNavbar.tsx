@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ShieldAlert, Sun, Moon } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import Button from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import fallguardLogo from '../../assets/fallguard-logo-escudo-pulso.svg';
 
 const LandingNavbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,11 +26,13 @@ const LandingNavbar: React.FC = () => {
         <div className="flex justify-between h-20">
           <div className="flex">
             <Link to="/" className="flex-shrink-0 flex items-center gap-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-xl flex items-center justify-center shadow-lg glow-primary">
-                <ShieldAlert className="w-6 h-6 text-white" />
-              </div>
+              <img
+                src={fallguardLogo}
+                alt="FallGuard logo"
+                className="w-10 h-10 object-contain drop-shadow-[0_6px_18px_rgba(99,102,241,0.35)]"
+              />
               <span className="font-bold text-xl text-text-primary tracking-tight group-hover:text-primary-hover transition-colors">
-                Fall-Detect
+                FallGuard
               </span>
             </Link>
           </div>
