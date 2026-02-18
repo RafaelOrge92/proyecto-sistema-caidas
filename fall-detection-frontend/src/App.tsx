@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -47,11 +47,65 @@ const LandingLayout = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
+const APP_TITLE = 'FallGuard';
+
+const normalizePath = (pathname: string) => {
+  const base = pathname.trim().toLowerCase();
+  if (!base) return '/';
+  if (base === '/') return '/';
+  return base.endsWith('/') ? base.slice(0, -1) : base;
+};
+
+const getDocumentTitle = (pathname: string, search: string): string => {
+  const normalizedPath = normalizePath(pathname);
+  const tab = new URLSearchParams(search).get('tab')?.toLowerCase();
+
+  if (normalizedPath === '/admin' && tab) {
+    const adminTabTitle: Record<string, string> = {
+      home: 'Consola de Control',
+      users: 'Usuarios',
+      devices: 'Dispositivos',
+      podium: 'Podium',
+      graficas: 'Graficas'
+    };
+    return `${adminTabTitle[tab] || 'Administracion'} | ${APP_TITLE}`;
+  }
+
+  const routeTitle: Record<string, string> = {
+    '/': 'Inicio',
+    '/about': 'Nosotros',
+    '/contact': 'Contacto',
+    '/login': 'Iniciar Sesion',
+    '/register': 'Registro',
+    '/dashboard': 'Dashboard',
+    '/admin': 'Administracion',
+    '/admin/users': 'Usuarios',
+    '/admin/devices': 'Dispositivos',
+    '/admin/events': 'Eventos',
+    '/admin/patients': 'Pacientes',
+    '/my-protection': 'Mi Proteccion',
+    '/member/events': 'Mis Eventos'
+  };
+
+  return `${routeTitle[normalizedPath] || 'Plataforma'} | ${APP_TITLE}`;
+};
+
+const DocumentTitleManager = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    document.title = getDocumentTitle(location.pathname, location.search);
+  }, [location.pathname, location.search]);
+
+  return null;
+};
+
 const AppContent = () => {
   const { user } = useAuth();
 
   return (
     <BrowserRouter>
+      <DocumentTitleManager />
       {user && <Navbar />} 
       {user && <ChatbotWidget />}
       
