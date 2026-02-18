@@ -35,6 +35,7 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+grafana/jwt-private.pem
 
 # Caché
 .cache/

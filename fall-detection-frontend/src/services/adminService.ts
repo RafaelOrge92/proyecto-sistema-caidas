@@ -261,6 +261,13 @@ export const AdminService = {
     const response = await api.get<any[]>('/devices/podium');
     return { data: response.data };
   },
+
+  getGrafanaEmbedUrl: async (params?: { panelId?: number; view?: 'panel' | 'full' }) => {
+    const response = await api.get<{ embedUrl: string; view: 'panel' | 'full'; dashboardUid: string }>('/grafana/embed', {
+      params
+    });
+    return { data: response.data };
+  },
   
   // ⚠️ ADVERTENCIA: El endpoint PUT /devices/:id NO existe en el backend
   // TODO: Implementar en backend antes de usar

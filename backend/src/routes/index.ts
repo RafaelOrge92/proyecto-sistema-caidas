@@ -5,3 +5,4 @@ export { devicesRoutes } from './devices';
 export { eventsRoutes } from './events';
 export { patientsRoutes } from './patients';
 export { chatRoutes } from './chat';
+export { grafanaRoutes } from './grafana';

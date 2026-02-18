@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { AdminService } from '../services/adminService';
 import { User, Device } from '../types';
 import { Users, HardDrive, RefreshCw, Activity, BarChart3 } from 'lucide-react';
@@ -13,8 +13,10 @@ const Admin = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [devices, setDevices] = useState<Device[]>([]);
   const [podium, setPodium] = useState<Array<{ device_id: string; count: number }>>([]);
+  const [grafanaEmbedUrl, setGrafanaEmbedUrl] = useState('');
+  const [grafanaLoading, setGrafanaLoading] = useState(false);
+  const [grafanaError, setGrafanaError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const isPodiumOnly = new URLSearchParams(location.search).get('tab') === 'podium';
@@ -54,6 +56,39 @@ const Admin = () => {
       setActiveTab(tab);
     }
   }, [location.search]);
+
+  useEffect(() => {
+    if (activeTab !== 'graficas' || !isAdmin) {
+      return;
+    }
+
+    let cancelled = false;
+    const loadGrafanaEmbed = async () => {
+      setGrafanaLoading(true);
+      setGrafanaError(null);
+      try {
+        const response = await AdminService.getGrafanaEmbedUrl({ view: 'panel', panelId: 2 });
+        if (!cancelled) {
+          setGrafanaEmbedUrl(response.data.embedUrl);
+        }
+      } catch (error) {
+        console.error('Error cargando embed de Grafana:', error);
+        if (!cancelled) {
+          setGrafanaEmbedUrl('');
+          setGrafanaError('No se pudo cargar Grafana. Verifica configuracion de backend y servicio Grafana.');
+        }
+      } finally {
+        if (!cancelled) {
+          setGrafanaLoading(false);
+        }
+      }
+    };
+
+    void loadGrafanaEmbed();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, isAdmin]);
 
   return (
     <div className="min-h-screen pt-24 px-8 reveal">
@@ -150,14 +185,26 @@ const Admin = () => {
               </div>
               <Card noPadding className="border-white/5 overflow-hidden">
                 <div className="flex justify-center items-center p-8">
-                  <iframe 
-                    src="http://localhost:3003/d-solo/ad9j82t/grafana-test?orgId=1&timezone=browser&panelId=panel-2&__feature.dashboardSceneSolo=true" 
-                    width="100%" 
-                    height="600" 
-                    frameBorder="0"
-                    style={{ borderRadius: '8px', minWidth: '100%' }}
-                    title="Grafana Dashboard"
-                  ></iframe>
+                  {grafanaLoading ? (
+                    <div className="w-full py-20 text-center text-[var(--color-text-secondary)]">
+                      Cargando Grafana...
+                    </div>
+                  ) : grafanaError ? (
+                    <div className="w-full py-20 text-center text-red-400">{grafanaError}</div>
+                  ) : grafanaEmbedUrl ? (
+                    <iframe
+                      src={grafanaEmbedUrl}
+                      width="100%"
+                      height="600"
+                      frameBorder="0"
+                      style={{ borderRadius: '8px', minWidth: '100%' }}
+                      title="Grafana Dashboard"
+                    ></iframe>
+                  ) : (
+                    <div className="w-full py-20 text-center text-[var(--color-text-secondary)]">
+                      No hay URL de Grafana disponible.
+                    </div>
+                  )}
                 </div>
               </Card>
               <p className="text-sm text-[var(--color-text-secondary)] text-center">

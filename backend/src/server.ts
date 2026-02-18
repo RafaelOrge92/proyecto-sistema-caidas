@@ -8,6 +8,7 @@ import { devicesRoutes } from './routes/devices';
 import { eventsRoutes } from './routes/events';
 import { patientsRoutes } from './routes/patients';
 import { chatRoutes } from './routes/chat';
+import { grafanaRoutes } from './routes/grafana';
 import { db } from './config/db';
 import { getJwtSecret } from './config/env';
 
@@ -53,6 +54,7 @@ app.use('/api/devices', devicesRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/patients', patientsRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/grafana', grafanaRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {

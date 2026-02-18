@@ -71,6 +71,15 @@ Variables usadas por el backend:
 - `GROQ_MODEL` (opcional, default `llama-3.1-8b-instant`)
 - `HF_API_KEY` (si `CHAT_PROVIDER=huggingface`)
 - `HF_MODEL` (opcional)
+- `GRAFANA_BASE_URL` (opcional; si no se define usa `https://$RAILWAY_SERVICE_GRAFANA_URL`)
+- `GRAFANA_JWT_PRIVATE_KEY` (obligatoria para `/api/grafana/embed`; clave privada PEM RS256)
+- `GRAFANA_JWT_ISSUER` (opcional, default `fallguard-backend`)
+- `GRAFANA_JWT_TTL_SECONDS` (opcional, default `300`)
+- `GRAFANA_ORG_ID` (opcional, default `1`)
+- `GRAFANA_DASHBOARD_UID_ADMIN` (opcional, default `fallguard-admin-overview`)
+- `GRAFANA_DASHBOARD_SLUG_ADMIN` (opcional, default `fallguard-admin-overview`)
+- `GRAFANA_DASHBOARD_UID_MEMBER` (opcional, default `fallguard-member-overview`)
+- `GRAFANA_DASHBOARD_SLUG_MEMBER` (opcional, default `fallguard-member-overview`)
 
 Notas:
 
@@ -79,6 +88,7 @@ Notas:
 - Si `DISCORD_WEBHOOK_URL` esta definido, se envia un mensaje a Discord cuando se crea un evento (`POST /api/events/ingest` y `POST /api/events`).
 - El link del evento en Discord se arma con `FRONTEND_URL`; en local usa `http://localhost:5173`.
 - Si `REDIS_URL` no esta definido, las rutas `/api/chat/*` responden `503`.
+- Si `GRAFANA_JWT_PRIVATE_KEY` no esta definido, `/api/grafana/embed` devolvera error.
 
 ## Base de datos
 
@@ -187,6 +197,16 @@ Notas:
 - El contexto del bot se ajusta al rol (`ADMIN` global, `MEMBER` solo datos asignados).
 - En el contexto se incluyen resumenes de eventos con fecha/hora en formato `es-ES` y tipo/estado humanizados.
 - Los eventos del resumen se listan como "mas recientes primero" (y se incluyen explicitamente el evento mas antiguo y el mas reciente para evitar ambiguedades).
+
+### Grafana (JWT Embed)
+
+- `GET /api/grafana/embed?view=panel|full&panelId=2`
+
+Notas:
+
+- Requiere JWT de usuario valido del sistema.
+- Firma un token RS256 para Grafana con rol `Admin` (usuarios `ADMIN`) o `Viewer` (resto).
+- `view=panel` usa `d-solo`; `view=full` usa dashboard completo.
 
 ## Integracion con ESP32
 
