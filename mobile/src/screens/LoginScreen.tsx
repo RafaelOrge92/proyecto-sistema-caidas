@@ -36,9 +36,15 @@ const getAuthErrorMessage = (error: unknown, mode: AuthMode) => {
   if (error instanceof ApiError) {
     const apiMessage = typeof error.message === 'string' ? error.message.toLowerCase() : '';
     if (error.status === 401) {
+      if (apiMessage.includes('google')) {
+        return 'Google rechazo el token. Revisa la configuracion OAuth del backend.';
+      }
       return mode === 'login' ? 'Credenciales incorrectas' : 'Registro creado, pero no se pudo iniciar sesion';
     }
     if (error.status === 400) {
+      if (apiMessage.includes('google')) {
+        return 'No se recibio un token valido de Google en el movil.';
+      }
       return 'Revisa los campos obligatorios';
     }
     if (error.status === 409 || apiMessage.includes('duplicate') || apiMessage.includes('unique')) {
@@ -64,10 +70,13 @@ export const LoginScreen = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const [googleRequest, , promptGoogleSignIn] = Google.useIdTokenAuthRequest({
+    clientId: GOOGLE_WEB_CLIENT_ID || GOOGLE_ANDROID_CLIENT_ID || GOOGLE_IOS_CLIENT_ID || undefined,
     webClientId: GOOGLE_WEB_CLIENT_ID || undefined,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID || undefined,
     iosClientId: GOOGLE_IOS_CLIENT_ID || undefined,
     selectAccount: true
+  }, {
+    native: 'fallguardmobile:/oauthredirect'
   });
 
   const isRegisterMode = mode === 'register';
@@ -106,6 +115,19 @@ export const LoginScreen = () => {
     try {
       const result = await promptGoogleSignIn();
 
+      if (result.type === 'error') {
+        const detail =
+          (result.params as Record<string, string> | undefined)?.error_description ||
+          (result.params as Record<string, string> | undefined)?.error;
+        const normalized = (detail || '').toLowerCase();
+        if (normalized.includes('redirect_uri') || normalized.includes('invalid_request')) {
+          setError('Google OAuth 400: revisa Client IDs, SHA-1 y URI de redireccion del proyecto móvil.');
+          return;
+        }
+        setError(detail || 'Google devolvio un error de autenticacion');
+        return;
+      }
+
       if (result.type !== 'success') {
         if (result.type !== 'cancel' && result.type !== 'dismiss') {
           setError('No se pudo completar el login con Google');
@@ -113,7 +135,10 @@ export const LoginScreen = () => {
         return;
       }
 
-      const googleIdToken = result.params.id_token;
+      const googleIdToken =
+        result.params?.id_token ||
+        result.authentication?.idToken ||
+        '';
       if (!googleIdToken) {
         setError('Google no devolvio id_token');
         return;

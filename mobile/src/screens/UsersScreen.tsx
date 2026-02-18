@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { deactivateUser, getUsers } from '../api/endpoints';
+import { getUsers } from '../api/endpoints';
 import { AppUser, UserRole } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import { AnimatedReveal } from '../components/AnimatedReveal';
@@ -96,16 +96,10 @@ const TopIconButton = ({
 const UserDeckItem = React.memo(
   ({
     item,
-    delay,
-    onDeactivate,
-    isBusy,
-    isSelf
+    delay
   }: {
     item: AppUser;
     delay?: number;
-    onDeactivate: (id: string) => void;
-    isBusy: boolean;
-    isSelf: boolean;
   }) => {
     return (
       <AnimatedReveal delay={delay}>
@@ -149,21 +143,6 @@ const UserDeckItem = React.memo(
               {`ID: ${item.id}`}
             </Text>
           </View>
-
-          <View style={styles.actionsRow}>
-            <Pressable
-              onPress={() => onDeactivate(item.id)}
-              disabled={isBusy || isSelf}
-              style={({ pressed }) => [
-                styles.deactivateButton,
-                (isBusy || isSelf) && styles.deactivateButtonDisabled,
-                pressed && !(isBusy || isSelf) && styles.deactivateButtonPressed
-              ]}
-            >
-              <MaterialCommunityIcons name="account-off-outline" size={16} color="#FFD3D3" />
-              <Text style={styles.deactivateButtonText}>{isSelf ? 'Cuenta actual' : 'Desactivar'}</Text>
-            </Pressable>
-          </View>
         </View>
       </AnimatedReveal>
     );
@@ -172,26 +151,13 @@ const UserDeckItem = React.memo(
 
 export const UsersScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [roleFilter, setRoleFilter] = useState<UserFilter>(USER_FILTER.ALL);
   const [queryText, setQueryText] = useState('');
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   const query = useQuery({
     queryKey: ['users'],
     queryFn: ({ signal }) => getUsers(signal)
-  });
-
-  const deactivateMutation = useMutation({
-    mutationFn: (id: string) => deactivateUser(id),
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      setFeedback(result.note || 'Usuario desactivado correctamente.');
-    },
-    onError: () => {
-      setFeedback('No se pudo desactivar el usuario.');
-    }
   });
 
   const users = useMemo(() => query.data ?? [], [query.data]);
@@ -234,7 +200,6 @@ export const UsersScreen = () => {
   const handleResetRefinements = () => {
     setRoleFilter(USER_FILTER.ALL);
     setQueryText('');
-    setFeedback(null);
   };
 
   if (user?.role !== 'ADMIN') {
@@ -278,12 +243,6 @@ export const UsersScreen = () => {
           <UserDeckItem
             item={item}
             delay={220 + Math.min(index, 8) * 24}
-            onDeactivate={(id) => {
-              setFeedback(null);
-              deactivateMutation.mutate(id);
-            }}
-            isBusy={deactivateMutation.isPending && deactivateMutation.variables === item.id}
-            isSelf={item.id === user.id}
           />
         )}
         ListHeaderComponent={
@@ -372,7 +331,6 @@ export const UsersScreen = () => {
               </AnimatedReveal>
             </View>
 
-            {feedback ? <GlassBanner message={feedback} /> : null}
             {query.error ? <GlassBanner message="No se pudieron cargar los usuarios." /> : null}
           </View>
         }
@@ -677,33 +635,6 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.family.medium,
     fontSize: theme.typography.size.sm,
     color: '#A3B0CB'
-  },
-  actionsRow: {
-    marginTop: theme.spacing.xs,
-    flexDirection: 'row',
-    justifyContent: 'flex-end'
-  },
-  deactivateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(127,29,29,0.42)',
-    borderWidth: 1,
-    borderColor: 'rgba(248,113,113,0.5)'
-  },
-  deactivateButtonPressed: {
-    opacity: 0.84
-  },
-  deactivateButtonDisabled: {
-    opacity: 0.48
-  },
-  deactivateButtonText: {
-    fontFamily: theme.typography.family.medium,
-    fontSize: 12,
-    color: '#FFD3D3'
   },
   bottomSpacer: {
     height: 20

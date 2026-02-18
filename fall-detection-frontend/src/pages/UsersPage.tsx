@@ -6,8 +6,6 @@ import {
   MoreHorizontal,
   ShieldCheck,
   Edit2,
-  Trash2,
-  AlertCircle,
   HeartPulse,
   HardDrive,
   X,
@@ -29,8 +27,6 @@ export const UsersPage: React.FC = () => {
   const [patientsModalLoading, setPatientsModalLoading] = useState(false);
   const [patientsModalError, setPatientsModalError] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<User | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Estados para filtros, ordenamiento y paginación
@@ -97,21 +93,6 @@ export const UsersPage: React.FC = () => {
       setPatientsModalError('No se pudieron cargar los pacientes asignados para este usuario.');
     } finally {
       setPatientsModalLoading(false);
-    }
-  };
-
-  const handleDeleteUser = async () => {
-    if (!deleteConfirm) return;
-
-    setIsDeleting(true);
-    try {
-      await AdminService.updateUser(deleteConfirm.id, { isActive: false });
-      await loadUsers();
-      setDeleteConfirm(null);
-    } catch (error) {
-      console.error('Error eliminando usuario:', error);
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -219,12 +200,6 @@ export const UsersPage: React.FC = () => {
                             label: 'Editar Usuario',
                             icon: Edit2,
                             onClick: () => handleEditUser(user)
-                          },
-                          {
-                            label: 'Eliminar',
-                            icon: Trash2,
-                            variant: 'danger',
-                            onClick: () => setDeleteConfirm(user)
                           }
                         ] as ActionMenuItem[]}
                         onClose={() => setOpenMenuId(null)}
@@ -243,13 +218,6 @@ export const UsersPage: React.FC = () => {
                       }`}
                     >
                       <ShieldCheck size={14} /> {user.role}
-                    </span>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        user.isActive ? 'bg-green-500/10 text-green-400' : 'bg-gray-500/10 text-gray-400'
-                      }`}
-                    >
-                      {user.isActive ? '• Activo' : '• Inactivo'}
                     </span>
                   </div>
 
@@ -361,44 +329,8 @@ export const UsersPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Modal de Confirmación de Eliminación */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)} />
-
-          <div className="glass-panel w-full max-w-md relative z-10 overflow-hidden reveal p-8">
-            <div className="flex items-center justify-center mb-6 w-12 h-12 rounded-full bg-red-500/10 mx-auto">
-              <AlertCircle size={24} className="text-red-400" />
-            </div>
-
-            <h3 className="text-2xl font-bold text-center mb-2" style={{ color: 'var(--color-text-primary)' }}>Eliminar Usuario</h3>
-            <p className="text-[var(--color-text-secondary)] text-center mb-2">¿Estás seguro de que deseas eliminar a</p>
-            <p className="text-center font-semibold mb-6" style={{ color: 'var(--color-text-primary)' }}>{deleteConfirm.fullName}?</p>
-
-            <p className="text-sm text-[var(--color-text-secondary)] text-center mb-6 bg-white/5 p-3 rounded-lg">
-              Esta acción desactivará la cuenta del usuario. Podrán volver a ser activados posteriormente.
-            </p>
-
-            <div className="flex gap-4">
-              <button
-                onClick={() => setDeleteConfirm(null)}
-                className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 rounded-xl font-semibold transition-colors"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleDeleteUser}
-                disabled={isDeleting}
-                className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white rounded-xl font-semibold transition-colors"
-              >
-                {isDeleting ? 'Eliminando...' : 'Eliminar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
+
+

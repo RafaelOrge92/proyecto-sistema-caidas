@@ -22,7 +22,8 @@
         "backgroundColor": "#0F1419"
       },
       "edgeToEdgeEnabled": false,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.fallguardmobile"
     },
     "androidNavigationBar": {
       "backgroundColor": "#0B1016",

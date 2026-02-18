@@ -12,8 +12,19 @@ const db_1 = require("../config/db");
 const env_1 = require("../config/env");
 const password_1 = require("../utils/password");
 const router = (0, express_1.Router)();
-const googleClient = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID || '');
+const googleClient = new google_auth_library_1.OAuth2Client();
 const JWT_SECRET = (0, env_1.getJwtSecret)();
+const getGoogleAudiences = () => {
+    const candidates = [
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_WEB_CLIENT_ID,
+        process.env.GOOGLE_ANDROID_CLIENT_ID,
+        process.env.GOOGLE_IOS_CLIENT_ID
+    ];
+    return Array.from(new Set(candidates
+        .map((value) => value?.trim())
+        .filter((value) => Boolean(value))));
+};
 // Login
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
@@ -75,12 +86,17 @@ router.post('/google-login', async (req, res) => {
         return res.status(400).json({ error: 'Token de Google requerido' });
     }
     try {
+        const audiences = getGoogleAudiences();
+        if (audiences.length === 0) {
+            console.error('Google login error: missing GOOGLE_*_CLIENT_ID env vars');
+            return res.status(500).json({ error: 'Google OAuth no esta configurado en el backend' });
+        }
         const ticket = await googleClient.verifyIdToken({
             idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID
+            audience: audiences
         });
         const payload = ticket.getPayload();
-        if (!payload) {
+        if (!payload?.email) {
             return res.status(401).json({ error: 'Token de Google invalido' });
         }
         const { email, name } = payload;
