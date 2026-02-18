@@ -425,6 +425,73 @@ const buildDomainContext = async (accountId: string, role: string): Promise<stri
   }
 }
 
+const normalizeTextForMatch = (value: string): string =>
+  value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+const shouldAnswerLatestEventDirectly = (message: string): boolean => {
+  const normalized = normalizeTextForMatch(message)
+  const mentionsEvent = normalized.includes('evento')
+  const asksLatest = normalized.includes('ultimo') || normalized.includes('mas reciente')
+  return mentionsEvent && asksLatest
+}
+
+const getLatestEventRow = async (accountId: string, role: string): Promise<any | null> => {
+  if (role === 'ADMIN') {
+    const rows = await db.query(
+      `SELECT
+         e.event_type,
+         e.status,
+         e.occurred_at,
+         d.alias AS device_alias,
+         CONCAT(p.first_name, ' ', p.last_name) AS patient_name
+       FROM public.events e
+       LEFT JOIN public.devices d ON d.device_id = e.device_id
+       LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+       ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST
+       LIMIT 1`
+    )
+    return rows[0] || null
+  }
+
+  const rows = await db.query(
+    `SELECT
+       e.event_type,
+       e.status,
+       e.occurred_at,
+       d.alias AS device_alias,
+       CONCAT(p.first_name, ' ', p.last_name) AS patient_name
+     FROM public.events e
+     INNER JOIN public.device_access da ON da.device_id = e.device_id
+     LEFT JOIN public.devices d ON d.device_id = e.device_id
+     LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+     WHERE da.account_id = $1
+     ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST
+     LIMIT 1`,
+    [accountId]
+  )
+  return rows[0] || null
+}
+
+const buildDeterministicReply = async (message: string, accountId: string, role: string): Promise<string | null> => {
+  if (!shouldAnswerLatestEventDirectly(message)) return null
+
+  const row = await getLatestEventRow(accountId, role)
+  if (!row) {
+    return role === 'ADMIN'
+      ? 'No hay eventos registrados en el sistema.'
+      : 'No hay eventos visibles para tu cuenta.'
+  }
+
+  const header = role === 'ADMIN'
+    ? 'El ultimo evento del sistema es:'
+    : 'El ultimo evento visible para tu cuenta es:'
+
+  return `${header}\n\n${formatEventSummary(row)}`
+}
+
 const buildSystemPrompt = (context: string, role: string, uiContext: string): string => `
 Eres el asistente virtual de una plataforma de deteccion de caidas para cuidadores y administradores.
 Responde SIEMPRE en espanol, de forma clara y accionable.
@@ -645,6 +712,29 @@ router.post('/message', authenticateToken, async (req, res) => {
       if (firstUserMessage) {
         sessionMeta.title = firstUserMessage.content.slice(0, 60)
       }
+    }
+
+    const deterministicReply = await buildDeterministicReply(content, req.user.sub, req.user.role)
+    if (deterministicReply) {
+      const assistantMessage: StoredChatMessage = {
+        id: randomUUID(),
+        role: 'assistant',
+        content: deterministicReply,
+        createdAt: new Date().toISOString(),
+        provider: 'rule',
+        model: 'latest-event-query'
+      }
+
+      await appendMessage(sessionMeta.sessionId, assistantMessage)
+      sessionMeta.updatedAt = assistantMessage.createdAt
+      await saveSessionMeta(sessionMeta)
+
+      const allMessages = await getSessionMessages(sessionMeta.sessionId)
+      return res.json({
+        session: sanitizeSession(sessionMeta),
+        message: assistantMessage,
+        messages: allMessages
+      })
     }
 
     const context = await buildDomainContext(req.user.sub, req.user.role)
