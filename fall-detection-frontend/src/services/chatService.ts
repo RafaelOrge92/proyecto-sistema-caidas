@@ -1,7 +1,8 @@
 import axios from 'axios'
 import { ChatMessage, ChatSession, ChatUiContext } from '../types'
+import { API_URL } from '../config/api'
 
-const CHAT_API_URL = 'http://localhost:3000/api/chat'
+const CHAT_API_URL = `${API_URL}/chat`
 
 const api = axios.create({
   baseURL: CHAT_API_URL

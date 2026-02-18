@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldAlert, Mail, Lock, UserPlus, User, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { buildApiUrl } from '../config/api';
 
 export const RegisterPage = () => {
     const [fullName, setFullName] = useState('');
@@ -20,7 +21,7 @@ export const RegisterPage = () => {
         setError('');
 
         try {
-            await axios.post('http://localhost:3000/api/users', {
+            await axios.post(buildApiUrl('/users'), {
                 fullName,
                 email,
                 password,

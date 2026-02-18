@@ -35,10 +35,11 @@ npm run preview
 ## Variables de entorno
 
 - `VITE_GOOGLE_CLIENT_ID` (opcional, para Google OAuth en login; si no se define se usa un placeholder)
+- `VITE_API_URL` (opcional, base de la API; por defecto `http://localhost:3000/api`)
 
 Nota:
 
-- La URL del backend esta actualmente hardcodeada a `http://localhost:3000/api` en varios puntos (servicios y pantallas de auth).
+- Si no se define `VITE_API_URL`, el frontend usa `http://localhost:3000/api`.
 
 ## Pantallas principales
 

@@ -5,6 +5,7 @@ import axios from 'axios';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { Link } from 'react-router-dom';
 import { ShieldAlert, Mail, Lock, LogIn, UserPlus, Sun, Moon } from 'lucide-react';
+import { buildApiUrl } from '../config/api';
 
 export const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ export const LoginPage = () => {
         setLoading(true);
         setError('');
         try {
-            const res = await axios.post('http://localhost:3000/api/auth/login', { email, password });
+            const res = await axios.post(buildApiUrl('/auth/login'), { email, password });
             const { token, user } = res.data;
             login(token, user.role, user.id, user.fullName, user.email);
             // Redirigir según el rol
@@ -37,7 +38,7 @@ export const LoginPage = () => {
         setError('');
         try {
             const token = credentialResponse.credential;
-            const res = await axios.post('http://localhost:3000/api/auth/google-login', { 
+            const res = await axios.post(buildApiUrl('/auth/google-login'), { 
                 token 
             });
             const { token: authToken, user } = res.data;

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { buildApiUrl } from '../config/api';
 
 interface AuthUser {
     token: string;
@@ -47,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const logout = async () => {
         try {
             // Llamar al endpoint de logout en el servidor
-            await fetch('http://localhost:3000/api/auth/logout', {
+            await fetch(buildApiUrl('/auth/logout'), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,

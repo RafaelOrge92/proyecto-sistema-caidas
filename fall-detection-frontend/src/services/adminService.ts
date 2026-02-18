@@ -1,8 +1,7 @@
 // src/services/adminService.ts
 import axios from 'axios';
 import { User, Device, Patient, FallEvent, AssignedPatient, PatientAssignedUser, EventSample, PaginationMeta } from '../types';
-
-const API_URL = 'http://localhost:3000/api';
+import { API_URL } from '../config/api';
 
 const api = axios.create({
   baseURL: API_URL,
