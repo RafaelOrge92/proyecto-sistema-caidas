@@ -155,11 +155,17 @@ const buildUiContextText = (ui: ChatUiContext): string => {
   return lines.join('\n')
 }
 
+const CHAT_CONTEXT_TIME_ZONE = 'Europe/Madrid'
+
 const formatDateTimeEs = (value: unknown): string => {
   if (!value) return 'sin fecha'
   const date = value instanceof Date ? value : new Date(String(value))
   if (Number.isNaN(date.getTime())) return String(value)
-  return date.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'medium' })
+  return date.toLocaleString('es-ES', {
+    dateStyle: 'medium',
+    timeStyle: 'medium',
+    timeZone: CHAT_CONTEXT_TIME_ZONE
+  })
 }
 
 const describeEventTypeEs = (value: unknown): string => {
