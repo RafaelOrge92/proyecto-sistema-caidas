@@ -438,6 +438,10 @@ interface DeterministicEventIntent {
   patientFilter: string | null
 }
 
+interface ActiveEventsIntent {
+  patientFilter: string | null
+}
+
 const extractPatientFilter = (message: string): string | null => {
   const clean = message
     .replace(/[?¿!¡]/g, ' ')
@@ -488,6 +492,25 @@ const parseDeterministicEventIntent = (message: string): DeterministicEventInten
 
   return {
     order: asksEarliest && !asksLatest ? 'ASC' : 'DESC',
+    patientFilter: extractPatientFilter(message)
+  }
+}
+
+const parseActiveEventsIntent = (message: string): ActiveEventsIntent | null => {
+  const normalized = normalizeTextForMatch(message)
+  const mentionsEvent = normalized.includes('evento')
+  if (!mentionsEvent) return null
+
+  const asksActive =
+    normalized.includes('activo') ||
+    normalized.includes('activos') ||
+    normalized.includes('abierto') ||
+    normalized.includes('abiertos') ||
+    normalized.includes('open')
+
+  if (!asksActive) return null
+
+  return {
     patientFilter: extractPatientFilter(message)
   }
 }
@@ -546,7 +569,117 @@ const getEventRowByOrder = async (
   return rows[0] || null
 }
 
+const getActiveEvents = async (
+  accountId: string,
+  role: string,
+  patientFilter: string | null
+): Promise<{ total: number; rows: any[] }> => {
+  const patientLike = patientFilter ? `%${patientFilter}%` : null
+
+  if (role === 'ADMIN') {
+    const [countRows, rows] = await Promise.all([
+      db.query(
+        `SELECT COUNT(*)::int AS total
+         FROM public.events e
+         LEFT JOIN public.devices d ON d.device_id = e.device_id
+         LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+         WHERE e.status = 'OPEN'
+           AND (
+             $1::text IS NULL
+             OR TRIM(CONCAT(COALESCE(p.first_name, ''), ' ', COALESCE(p.last_name, ''))) ILIKE $1
+           )`,
+        [patientLike]
+      ),
+      db.query(
+        `SELECT
+           e.event_type,
+           e.status,
+           e.occurred_at,
+           d.alias AS device_alias,
+           CONCAT(p.first_name, ' ', p.last_name) AS patient_name
+         FROM public.events e
+         LEFT JOIN public.devices d ON d.device_id = e.device_id
+         LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+         WHERE e.status = 'OPEN'
+           AND (
+             $1::text IS NULL
+             OR TRIM(CONCAT(COALESCE(p.first_name, ''), ' ', COALESCE(p.last_name, ''))) ILIKE $1
+           )
+         ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST
+         LIMIT 5`,
+        [patientLike]
+      )
+    ])
+
+    return {
+      total: Number(countRows[0]?.total || 0),
+      rows
+    }
+  }
+
+  const [countRows, rows] = await Promise.all([
+    db.query(
+      `SELECT COUNT(*)::int AS total
+       FROM public.events e
+       INNER JOIN public.device_access da ON da.device_id = e.device_id
+       LEFT JOIN public.devices d ON d.device_id = e.device_id
+       LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+       WHERE da.account_id = $1
+         AND e.status = 'OPEN'
+         AND (
+           $2::text IS NULL
+           OR TRIM(CONCAT(COALESCE(p.first_name, ''), ' ', COALESCE(p.last_name, ''))) ILIKE $2
+         )`,
+      [accountId, patientLike]
+    ),
+    db.query(
+      `SELECT
+         e.event_type,
+         e.status,
+         e.occurred_at,
+         d.alias AS device_alias,
+         CONCAT(p.first_name, ' ', p.last_name) AS patient_name
+       FROM public.events e
+       INNER JOIN public.device_access da ON da.device_id = e.device_id
+       LEFT JOIN public.devices d ON d.device_id = e.device_id
+       LEFT JOIN public.patients p ON p.patient_id = d.patient_id
+       WHERE da.account_id = $1
+         AND e.status = 'OPEN'
+         AND (
+           $2::text IS NULL
+           OR TRIM(CONCAT(COALESCE(p.first_name, ''), ' ', COALESCE(p.last_name, ''))) ILIKE $2
+         )
+       ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST
+       LIMIT 5`,
+      [accountId, patientLike]
+    )
+  ])
+
+  return {
+    total: Number(countRows[0]?.total || 0),
+    rows
+  }
+}
+
 const buildDeterministicReply = async (message: string, accountId: string, role: string): Promise<string | null> => {
+  const activeIntent = parseActiveEventsIntent(message)
+  if (activeIntent) {
+    const active = await getActiveEvents(accountId, role, activeIntent.patientFilter)
+    const scope = role === 'ADMIN' ? 'del sistema' : 'visibles para tu cuenta'
+    const patientScope = activeIntent.patientFilter ? ` de ${activeIntent.patientFilter}` : ''
+
+    if (active.total === 0) {
+      return `No hay eventos activos${patientScope} ${scope}.`.replace(/\s+/g, ' ').trim()
+    }
+
+    const lines = active.rows.map((row, index) => `${index + 1}. ${formatEventSummary(row)}`)
+    return [
+      `Si. Hay ${active.total} evento${active.total === 1 ? '' : 's'} activo${active.total === 1 ? '' : 's'}${patientScope} ${scope}.`.replace(/\s+/g, ' ').trim(),
+      `Eventos activos mas recientes (limite 5):`,
+      ...lines
+    ].join('\n')
+  }
+
   const intent = parseDeterministicEventIntent(message)
   if (!intent) return null
 
