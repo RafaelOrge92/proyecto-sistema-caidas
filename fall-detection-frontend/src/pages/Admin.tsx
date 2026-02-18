@@ -67,7 +67,7 @@ const Admin = () => {
       setGrafanaLoading(true);
       setGrafanaError(null);
       try {
-        const response = await AdminService.getGrafanaEmbedUrl({ panelId: 2 });
+        const response = await AdminService.getGrafanaEmbedUrl({ panelId: 3 });
         if (!cancelled) {
           setGrafanaEmbedUrl(response.data.embedUrl);
         }
@@ -203,7 +203,10 @@ const Admin = () => {
                         referrerPolicy="strict-origin-when-cross-origin"
                         title="Grafana Dashboard"
                       ></iframe>
-                      <div className="absolute top-0 left-0 right-0 h-14 z-10" aria-hidden="true"></div>
+                      <div
+                        className="absolute top-0 left-0 h-14 w-56 z-10"
+                        aria-hidden="true"
+                      ></div>
                     </div>
                   ) : (
                     <div className="w-full py-20 text-center text-[var(--color-text-secondary)]">
