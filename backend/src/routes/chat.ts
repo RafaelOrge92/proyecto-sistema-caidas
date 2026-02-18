@@ -431,14 +431,76 @@ const normalizeTextForMatch = (value: string): string =>
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
 
-const shouldAnswerLatestEventDirectly = (message: string): boolean => {
-  const normalized = normalizeTextForMatch(message)
-  const mentionsEvent = normalized.includes('evento')
-  const asksLatest = normalized.includes('ultimo') || normalized.includes('mas reciente')
-  return mentionsEvent && asksLatest
+type EventOrder = 'ASC' | 'DESC'
+
+interface DeterministicEventIntent {
+  order: EventOrder
+  patientFilter: string | null
 }
 
-const getLatestEventRow = async (accountId: string, role: string): Promise<any | null> => {
+const extractPatientFilter = (message: string): string | null => {
+  const clean = message
+    .replace(/[?¿!¡]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  if (!clean) return null
+
+  const matches = [...clean.matchAll(/\bde\s+([A-Za-zÀ-ÿ0-9' -]{2,80})/gi)]
+  if (matches.length === 0) return null
+
+  let candidate = (matches[matches.length - 1]?.[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!candidate) return null
+
+  candidate = candidate
+    .replace(/^paciente\s+/i, '')
+    .replace(/^usuario\s+/i, '')
+    .trim()
+  if (!candidate) return null
+
+  const normalized = normalizeTextForMatch(candidate)
+  const blocked = new Set(['sistema', 'mi cuenta', 'tu cuenta', 'la cuenta', 'hoy', 'ayer'])
+  if (blocked.has(normalized)) return null
+
+  return candidate
+}
+
+const parseDeterministicEventIntent = (message: string): DeterministicEventIntent | null => {
+  const normalized = normalizeTextForMatch(message)
+  const mentionsEvent = normalized.includes('evento')
+  if (!mentionsEvent) return null
+
+  const asksLatest =
+    normalized.includes('ultimo') ||
+    normalized.includes('ultima') ||
+    normalized.includes('mas reciente')
+
+  const asksEarliest =
+    normalized.includes('primer') ||
+    normalized.includes('primero') ||
+    normalized.includes('primera') ||
+    normalized.includes('mas antiguo') ||
+    normalized.includes('mas antigua')
+
+  if (!asksLatest && !asksEarliest) return null
+
+  return {
+    order: asksEarliest && !asksLatest ? 'ASC' : 'DESC',
+    patientFilter: extractPatientFilter(message)
+  }
+}
+
+const getEventRowByOrder = async (
+  accountId: string,
+  role: string,
+  order: EventOrder,
+  patientFilter: string | null
+): Promise<any | null> => {
+  const orderSql = order === 'ASC' ? 'ASC' : 'DESC'
+  const patientLike = patientFilter ? `%${patientFilter}%` : null
+
   if (role === 'ADMIN') {
     const rows = await db.query(
       `SELECT
@@ -450,8 +512,13 @@ const getLatestEventRow = async (accountId: string, role: string): Promise<any |
        FROM public.events e
        LEFT JOIN public.devices d ON d.device_id = e.device_id
        LEFT JOIN public.patients p ON p.patient_id = d.patient_id
-       ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST
-       LIMIT 1`
+       WHERE (
+         $1::text IS NULL
+         OR TRIM(CONCAT(COALESCE(p.first_name, ''), ' ', COALESCE(p.last_name, ''))) ILIKE $1
+       )
+       ORDER BY e.occurred_at ${orderSql} NULLS LAST, e.created_at ${orderSql} NULLS LAST
+       LIMIT 1`,
+      [patientLike]
     )
     return rows[0] || null
   }
@@ -468,26 +535,50 @@ const getLatestEventRow = async (accountId: string, role: string): Promise<any |
      LEFT JOIN public.devices d ON d.device_id = e.device_id
      LEFT JOIN public.patients p ON p.patient_id = d.patient_id
      WHERE da.account_id = $1
-     ORDER BY e.occurred_at DESC NULLS LAST, e.created_at DESC NULLS LAST
+       AND (
+         $2::text IS NULL
+         OR TRIM(CONCAT(COALESCE(p.first_name, ''), ' ', COALESCE(p.last_name, ''))) ILIKE $2
+       )
+     ORDER BY e.occurred_at ${orderSql} NULLS LAST, e.created_at ${orderSql} NULLS LAST
      LIMIT 1`,
-    [accountId]
+    [accountId, patientLike]
   )
   return rows[0] || null
 }
 
 const buildDeterministicReply = async (message: string, accountId: string, role: string): Promise<string | null> => {
-  if (!shouldAnswerLatestEventDirectly(message)) return null
+  const intent = parseDeterministicEventIntent(message)
+  if (!intent) return null
 
-  const row = await getLatestEventRow(accountId, role)
+  const row = await getEventRowByOrder(accountId, role, intent.order, intent.patientFilter)
   if (!row) {
+    if (intent.patientFilter) {
+      return role === 'ADMIN'
+        ? `No hay eventos del sistema para "${intent.patientFilter}".`
+        : `No hay eventos visibles para tu cuenta de "${intent.patientFilter}".`
+    }
+    if (intent.order === 'ASC') {
+      return role === 'ADMIN'
+        ? 'No hay eventos registrados en el sistema.'
+        : 'No hay eventos visibles para tu cuenta.'
+    }
     return role === 'ADMIN'
       ? 'No hay eventos registrados en el sistema.'
       : 'No hay eventos visibles para tu cuenta.'
   }
 
-  const header = role === 'ADMIN'
-    ? 'El ultimo evento del sistema es:'
-    : 'El ultimo evento visible para tu cuenta es:'
+  const isLatest = intent.order === 'DESC'
+  let header: string
+
+  if (intent.patientFilter) {
+    header = isLatest
+      ? `El ultimo evento de ${intent.patientFilter} es:`
+      : `El primer evento de ${intent.patientFilter} es:`
+  } else {
+    header = role === 'ADMIN'
+      ? (isLatest ? 'El ultimo evento del sistema es:' : 'El primer evento del sistema es:')
+      : (isLatest ? 'El ultimo evento visible para tu cuenta es:' : 'El primer evento visible para tu cuenta es:')
+  }
 
   return `${header}\n\n${formatEventSummary(row)}`
 }
@@ -722,7 +813,7 @@ router.post('/message', authenticateToken, async (req, res) => {
         content: deterministicReply,
         createdAt: new Date().toISOString(),
         provider: 'rule',
-        model: 'latest-event-query'
+        model: 'deterministic-event-query'
       }
 
       await appendMessage(sessionMeta.sessionId, assistantMessage)
