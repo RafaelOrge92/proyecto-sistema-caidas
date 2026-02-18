@@ -67,7 +67,7 @@ const Admin = () => {
       setGrafanaLoading(true);
       setGrafanaError(null);
       try {
-        const response = await AdminService.getGrafanaEmbedUrl({ view: 'panel', panelId: 2 });
+        const response = await AdminService.getGrafanaEmbedUrl({ panelId: 2 });
         if (!cancelled) {
           setGrafanaEmbedUrl(response.data.embedUrl);
         }
@@ -192,14 +192,19 @@ const Admin = () => {
                   ) : grafanaError ? (
                     <div className="w-full py-20 text-center text-red-400">{grafanaError}</div>
                   ) : grafanaEmbedUrl ? (
-                    <iframe
-                      src={grafanaEmbedUrl}
-                      width="100%"
-                      height="600"
-                      frameBorder="0"
-                      style={{ borderRadius: '8px', minWidth: '100%' }}
-                      title="Grafana Dashboard"
-                    ></iframe>
+                    <div className="relative w-full">
+                      <iframe
+                        src={grafanaEmbedUrl}
+                        width="100%"
+                        height="600"
+                        frameBorder="0"
+                        style={{ borderRadius: '8px', minWidth: '100%' }}
+                        sandbox="allow-scripts allow-same-origin allow-forms"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        title="Grafana Dashboard"
+                      ></iframe>
+                      <div className="absolute top-0 left-0 right-0 h-14 z-10" aria-hidden="true"></div>
+                    </div>
                   ) : (
                     <div className="w-full py-20 text-center text-[var(--color-text-secondary)]">
                       No hay URL de Grafana disponible.

@@ -13,8 +13,6 @@ const DEFAULT_MEMBER_UID = 'fallguard-member-overview';
 const DEFAULT_ADMIN_SLUG = 'fallguard-admin-overview';
 const DEFAULT_MEMBER_SLUG = 'fallguard-member-overview';
 
-type EmbedView = 'panel' | 'full';
-
 const sanitizeBaseUrl = (value: string): string => value.trim().replace(/\/+$/, '');
 
 const getGrafanaBaseUrl = (): string => {
@@ -46,12 +44,7 @@ const parsePositiveInt = (rawValue: unknown, fallback: number): number => {
   return Number.isInteger(value) && value > 0 ? value : fallback;
 };
 
-const buildEmbedPath = (view: EmbedView, uid: string, slug: string, orgId: string, panelId: string): string => {
-  if (view === 'full') {
-    return `/d/${uid}/${slug}?orgId=${orgId}&kiosk=tv`;
-  }
-  return `/d-solo/${uid}/${slug}?orgId=${orgId}&panelId=${panelId}&kiosk=tv`;
-};
+const buildEmbedPath = (uid: string, slug: string): string => `/d-solo/${uid}/${slug}`;
 
 router.get('/embed', authenticateToken, async (req, res) => {
   if (!req.user?.sub || !req.user?.email || !req.user?.role) {
@@ -63,8 +56,7 @@ router.get('/embed', authenticateToken, async (req, res) => {
     return res.status(503).json({ error: 'Grafana no configurado: falta GRAFANA_BASE_URL o RAILWAY_SERVICE_GRAFANA_URL' });
   }
 
-  const viewQuery = typeof req.query.view === 'string' ? req.query.view.trim().toLowerCase() : '';
-  const view: EmbedView = viewQuery === 'full' ? 'full' : 'panel';
+  const view = 'panel';
   const panelIdRaw = typeof req.query.panelId === 'string' ? req.query.panelId.trim() : '';
   const panelId = /^\d+$/.test(panelIdRaw) ? panelIdRaw : DEFAULT_PANEL_ID;
   const orgId = process.env.GRAFANA_ORG_ID?.trim() || DEFAULT_ORG_ID;
@@ -95,8 +87,12 @@ router.get('/embed', authenticateToken, async (req, res) => {
       }
     );
 
-    const embedPath = buildEmbedPath(view, dashboardUid, dashboardSlug, orgId, panelId);
+    const embedPath = buildEmbedPath(dashboardUid, dashboardSlug);
     const embedUrl = new URL(embedPath, `${baseUrl}/`);
+    embedUrl.searchParams.set('orgId', orgId);
+    embedUrl.searchParams.set('panelId', panelId);
+    embedUrl.searchParams.set('kiosk', '1');
+    embedUrl.searchParams.set('fullscreen', '1');
     embedUrl.searchParams.set('auth_token', token);
 
     return res.json({

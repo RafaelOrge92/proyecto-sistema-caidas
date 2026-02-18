@@ -262,7 +262,7 @@ export const AdminService = {
     return { data: response.data };
   },
 
-  getGrafanaEmbedUrl: async (params?: { panelId?: number; view?: 'panel' | 'full' }) => {
+  getGrafanaEmbedUrl: async (params?: { panelId?: number }) => {
     const response = await api.get<{ embedUrl: string; view: 'panel' | 'full'; dashboardUid: string }>('/grafana/embed', {
       params
     });

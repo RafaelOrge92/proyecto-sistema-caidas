@@ -200,13 +200,13 @@ Notas:
 
 ### Grafana (JWT Embed)
 
-- `GET /api/grafana/embed?view=panel|full&panelId=2`
+- `GET /api/grafana/embed?panelId=2`
 
 Notas:
 
 - Requiere JWT de usuario valido del sistema.
 - Firma un token RS256 para Grafana con rol `Admin` (usuarios `ADMIN`) o `Viewer` (resto).
-- `view=panel` usa `d-solo`; `view=full` usa dashboard completo.
+- El endpoint devuelve solo modo `panel` (`d-solo`) con `kiosk` y `fullscreen`.
 
 ## Integracion con ESP32
 
