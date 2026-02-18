@@ -665,16 +665,39 @@ const buildDeterministicReply = async (message: string, accountId: string, role:
   const activeIntent = parseActiveEventsIntent(message)
   if (activeIntent) {
     const active = await getActiveEvents(accountId, role, activeIntent.patientFilter)
-    const scope = role === 'ADMIN' ? 'del sistema' : 'visibles para tu cuenta'
-    const patientScope = activeIntent.patientFilter ? ` de ${activeIntent.patientFilter}` : ''
+    const lines = active.rows.map((row, index) => `${index + 1}. ${formatEventSummary(row)}`)
+    const plural = active.total === 1 ? '' : 's'
 
-    if (active.total === 0) {
-      return `No hay eventos activos${patientScope} ${scope}.`.replace(/\s+/g, ' ').trim()
+    if (activeIntent.patientFilter) {
+      if (active.total === 0) {
+        return role === 'ADMIN'
+          ? `No hay eventos activos de ${activeIntent.patientFilter}.`
+          : `No hay eventos activos visibles para tu cuenta de ${activeIntent.patientFilter}.`
+      }
+
+      const header = role === 'ADMIN'
+        ? `Si. Hay ${active.total} evento${plural} activo${plural} de ${activeIntent.patientFilter}.`
+        : `Si. Hay ${active.total} evento${plural} activo${plural} visibles para tu cuenta de ${activeIntent.patientFilter}.`
+
+      return [
+        header,
+        `Eventos activos mas recientes (limite 5):`,
+        ...lines
+      ].join('\n')
     }
 
-    const lines = active.rows.map((row, index) => `${index + 1}. ${formatEventSummary(row)}`)
+    if (active.total === 0) {
+      return role === 'ADMIN'
+        ? 'No hay eventos activos del sistema.'
+        : 'No hay eventos activos visibles para tu cuenta.'
+    }
+
+    const header = role === 'ADMIN'
+      ? `Si. Hay ${active.total} evento${plural} activo${plural} del sistema.`
+      : `Si. Hay ${active.total} evento${plural} activo${plural} visibles para tu cuenta.`
+
     return [
-      `Si. Hay ${active.total} evento${active.total === 1 ? '' : 's'} activo${active.total === 1 ? '' : 's'}${patientScope} ${scope}.`.replace(/\s+/g, ' ').trim(),
+      header,
       `Eventos activos mas recientes (limite 5):`,
       ...lines
     ].join('\n')
