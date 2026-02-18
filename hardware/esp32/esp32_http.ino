@@ -772,7 +772,9 @@ static void updateLed(uint32_t now) {
 // =====================
 static const int BUTTON_PIN = 25;
 static const uint32_t ISR_DEBOUNCE_MS = 60;
+static const uint32_t BUTTON_EVENT_MIN_INTERVAL_MS = 500;
 static volatile uint32_t lastIsrMs = 0;
+static volatile uint32_t lastButtonAcceptedMs = 0;
 static volatile uint8_t pendingButton = 0;
 
 // =====================
@@ -1083,6 +1085,8 @@ void IRAM_ATTR onButtonFall() {
   uint32_t now = (uint32_t)(xTaskGetTickCountFromISR() * portTICK_PERIOD_MS);
   if (now - lastIsrMs < ISR_DEBOUNCE_MS) return;
   lastIsrMs = now;
+  if (lastButtonAcceptedMs != 0 && (now - lastButtonAcceptedMs < BUTTON_EVENT_MIN_INTERVAL_MS)) return;
+  lastButtonAcceptedMs = now;
   if (pendingButton < 255) {
     pendingButton++;
   }
