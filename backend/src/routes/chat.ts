@@ -213,8 +213,15 @@ const formatEventSummary = (row: any): string => {
   return `${happenedAt} | ${eventType} | ${status} | ${patient} | ${device}`
 }
 
+const formatDeviceEventsAggregate = (row: any): string => {
+  const alias = row?.device_alias || 'Sin alias'
+  const deviceId = row?.device_id || 'N/A'
+  const eventsCount = Number(row?.events_count || 0)
+  return `${alias} (${deviceId}) - ${eventsCount} eventos`
+}
+
 const buildMemberContext = async (accountId: string) => {
-  const [statsRows, recentRows, newestRows, oldestRows] = await Promise.all([
+  const [statsRows, topDevicesRows, recentRows, newestRows, oldestRows] = await Promise.all([
     db.query(
       `SELECT
          COUNT(DISTINCT da.device_id)::int AS devices_count,
@@ -225,6 +232,20 @@ const buildMemberContext = async (accountId: string) => {
        LEFT JOIN public.devices d ON d.device_id = da.device_id
        LEFT JOIN public.events e ON e.device_id = da.device_id
        WHERE da.account_id = $1`,
+      [accountId]
+    ),
+    db.query(
+      `SELECT
+         e.device_id,
+         COALESCE(d.alias, e.device_id) AS device_alias,
+         COUNT(*)::int AS events_count
+       FROM public.events e
+       INNER JOIN public.device_access da ON da.device_id = e.device_id
+       LEFT JOIN public.devices d ON d.device_id = e.device_id
+       WHERE da.account_id = $1
+       GROUP BY e.device_id, d.alias
+       ORDER BY events_count DESC, e.device_id ASC
+       LIMIT 5`,
       [accountId]
     ),
     db.query(
@@ -278,9 +299,11 @@ const buildMemberContext = async (accountId: string) => {
   ])
 
   const stats = statsRows[0] || {}
+  const topDevice = topDevicesRows[0]
   const newest = newestRows[0]
   const oldest = oldestRows[0]
 
+  const topDevices = topDevicesRows.map((row: any, index: number) => `${index + 1}. ${formatDeviceEventsAggregate(row)}`)
   const recent = recentRows.map((row: any, index: number) => `${index + 1}. ${formatEventSummary(row)}`)
 
   return [
@@ -289,6 +312,9 @@ const buildMemberContext = async (accountId: string) => {
     `Pacientes asociados: ${Number(stats.patients_count || 0)}`,
     `Eventos totales visibles: ${Number(stats.total_events || 0)}`,
     `Eventos OPEN visibles: ${Number(stats.open_events || 0)}`,
+    `Dispositivo con mas eventos visibles (acumulado historico): ${topDevice ? formatDeviceEventsAggregate(topDevice) : '- Sin eventos'}`,
+    `Ranking visible de eventos por dispositivo (acumulado historico):`,
+    ...(topDevices.length > 0 ? topDevices : ['- Sin eventos']),
     `Evento visible mas reciente (occurred_at max): ${newest ? formatEventSummary(newest) : '- Sin eventos'}`,
     `Evento visible mas antiguo (occurred_at min): ${oldest ? formatEventSummary(oldest) : '- Sin eventos'}`,
     `Ultimos eventos visibles (mas recientes primero; item 1 = mas reciente; limite 8):`,
@@ -297,13 +323,24 @@ const buildMemberContext = async (accountId: string) => {
 }
 
 const buildAdminContext = async () => {
-  const [statsRows, recentRows, newestRows, oldestRows] = await Promise.all([
+  const [statsRows, topDevicesRows, recentRows, newestRows, oldestRows] = await Promise.all([
     db.query(
       `SELECT
          (SELECT COUNT(*)::int FROM public.devices) AS devices_count,
          (SELECT COUNT(*)::int FROM public.patients) AS patients_count,
          (SELECT COUNT(*)::int FROM public.events) AS total_events,
          (SELECT COUNT(*)::int FROM public.events WHERE status = 'OPEN') AS open_events`
+    ),
+    db.query(
+      `SELECT
+         e.device_id,
+         COALESCE(d.alias, e.device_id) AS device_alias,
+         COUNT(*)::int AS events_count
+       FROM public.events e
+       LEFT JOIN public.devices d ON d.device_id = e.device_id
+       GROUP BY e.device_id, d.alias
+       ORDER BY events_count DESC, e.device_id ASC
+       LIMIT 5`
     ),
     db.query(
       `SELECT
@@ -347,9 +384,11 @@ const buildAdminContext = async () => {
   ])
 
   const stats = statsRows[0] || {}
+  const topDevice = topDevicesRows[0]
   const newest = newestRows[0]
   const oldest = oldestRows[0]
 
+  const topDevices = topDevicesRows.map((row: any, index: number) => `${index + 1}. ${formatDeviceEventsAggregate(row)}`)
   const recent = recentRows.map((row: any, index: number) => `${index + 1}. ${formatEventSummary(row)}`)
 
   return [
@@ -358,6 +397,9 @@ const buildAdminContext = async () => {
     `Pacientes totales: ${Number(stats.patients_count || 0)}`,
     `Eventos totales: ${Number(stats.total_events || 0)}`,
     `Eventos OPEN: ${Number(stats.open_events || 0)}`,
+    `Dispositivo con mas eventos del sistema (acumulado historico): ${topDevice ? formatDeviceEventsAggregate(topDevice) : '- Sin eventos'}`,
+    `Ranking del sistema de eventos por dispositivo (acumulado historico):`,
+    ...(topDevices.length > 0 ? topDevices : ['- Sin eventos']),
     `Evento del sistema mas reciente (occurred_at max): ${newest ? formatEventSummary(newest) : '- Sin eventos'}`,
     `Evento del sistema mas antiguo (occurred_at min): ${oldest ? formatEventSummary(oldest) : '- Sin eventos'}`,
     `Ultimos eventos del sistema (mas recientes primero; item 1 = mas reciente; limite 8):`,
@@ -386,6 +428,8 @@ El usuario actual tiene rol ${role}. Respeta sus permisos y solo usa su contexto
 Cuando el usuario pregunte como hacer algo en la interfaz, explica pasos concretos de clics y menus.
 Si sugieres una navegacion, incluye esta linea exacta: "RUTA_SUGERIDA: /ruta".
 Usa solo rutas que existan en "Rutas disponibles". Si no existe, indicalo.
+Para preguntas de volumen por dispositivo (mas o menos eventos), usa solo los datos de "acumulado historico".
+No deduzcas conteos por dispositivo desde la lista de "Ultimos eventos".
 
 Contexto operativo en tiempo real:
 ${context}

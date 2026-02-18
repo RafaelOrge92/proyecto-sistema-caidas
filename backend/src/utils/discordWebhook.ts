@@ -75,11 +75,16 @@ const fetchDeviceContext = async (deviceId: string): Promise<DeviceContext> => {
   }
 }
 
-const toIsoOrNow = (value?: string | null): string => {
-  if (!value) return new Date().toISOString()
+const toDateOrNow = (value?: string | null): Date => {
+  if (!value) return new Date()
   const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return new Date().toISOString()
-  return parsed.toISOString()
+  if (Number.isNaN(parsed.getTime())) return new Date()
+  return parsed
+}
+
+const toDiscordTimestamp = (date: Date): string => {
+  const unixSeconds = Math.floor(date.getTime() / 1000)
+  return `<t:${unixSeconds}:F> (<t:${unixSeconds}:R>)`
 }
 
 const buildEventUrl = (eventRef: string): string | null => {
@@ -97,7 +102,7 @@ export const sendDiscordEventNotification = async (
   try {
     const context = await fetchDeviceContext(input.deviceId)
     const status = input.status || 'OPEN'
-    const occurredAtIso = toIsoOrNow(input.occurredAt)
+    const occurredAt = toDateOrNow(input.occurredAt)
     const deviceLabel = context.deviceAlias
       ? `${context.deviceAlias} (${input.deviceId})`
       : input.deviceId
@@ -115,7 +120,7 @@ export const sendDiscordEventNotification = async (
       { name: 'Dispositivo', value: deviceLabel, inline: true },
       { name: 'Tipo', value: input.eventType, inline: true },
       { name: 'Estado', value: status, inline: true },
-      { name: 'Ocurrido', value: occurredAtIso, inline: false },
+      { name: 'Ocurrido', value: toDiscordTimestamp(occurredAt), inline: false },
       { name: 'Origen', value: getSourceLabel(input.source), inline: true },
       { name: 'Event UID', value: input.eventUid || 'N/A', inline: false }
     ]
