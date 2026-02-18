@@ -24,8 +24,9 @@ const getDiscordWebhookUrl = (): string | null => {
   return value || null
 }
 
-const getFrontendBaseUrl = (): string => {
-  const value = process.env.FRONTEND_URL?.trim() || 'http://localhost:5173'
+const getFrontendBaseUrl = (): string | null => {
+  const value = process.env.FRONTEND_URL?.trim()
+  if (!value) return null
   return normalizeBaseUrl(value)
 }
 
@@ -35,14 +36,6 @@ const getDiscordTimeoutMs = (): number => {
     return 5000
   }
   return raw
-}
-
-const getDiscordMention = (): string => {
-  const roleId = process.env.DISCORD_ROLE_ID?.trim()
-  if (roleId) return `<@&${roleId}>`
-
-  const mention = process.env.DISCORD_MENTION?.trim()
-  return mention || '@Admin'
 }
 
 const getStatusColor = (status: string): number => {
@@ -89,8 +82,9 @@ const toIsoOrNow = (value?: string | null): string => {
   return parsed.toISOString()
 }
 
-const buildEventUrl = (eventRef: string): string => {
+const buildEventUrl = (eventRef: string): string | null => {
   const frontendBaseUrl = getFrontendBaseUrl()
+  if (!frontendBaseUrl) return null
   return `${frontendBaseUrl}/admin/events?eventId=${encodeURIComponent(eventRef)}`
 }
 
@@ -108,29 +102,35 @@ export const sendDiscordEventNotification = async (
       ? `${context.deviceAlias} (${input.deviceId})`
       : input.deviceId
     const eventRef = input.eventId || input.eventUid || 'N/A'
-    const eventUrl = eventRef === 'N/A' ? `${getFrontendBaseUrl()}/admin/events` : buildEventUrl(eventRef)
-    const mention = getDiscordMention()
+    const frontendBaseUrl = getFrontendBaseUrl()
+    const eventUrl =
+      !frontendBaseUrl
+        ? null
+        : (eventRef === 'N/A'
+          ? `${frontendBaseUrl}/admin/events`
+          : buildEventUrl(eventRef))
+
+    const fields: Array<{ name: string; value: string; inline: boolean }> = [
+      { name: 'Paciente', value: context.patientName || 'Sin paciente asignado', inline: true },
+      { name: 'Dispositivo', value: deviceLabel, inline: true },
+      { name: 'Tipo', value: input.eventType, inline: true },
+      { name: 'Estado', value: status, inline: true },
+      { name: 'Ocurrido', value: occurredAtIso, inline: false },
+      { name: 'Origen', value: getSourceLabel(input.source), inline: true },
+      { name: 'Event UID', value: input.eventUid || 'N/A', inline: false }
+    ]
+
+    if (eventUrl) {
+      fields.push({ name: 'Panel', value: `[Abrir evento](${eventUrl})`, inline: false })
+    }
 
     const payload = {
       username: 'Fall Detect',
-      content: `${mention} nuevo evento detectado`,
-      allowed_mentions: {
-        parse: ['roles', 'users']
-      },
       embeds: [
         {
           title: 'Nuevo evento detectado',
           color: getStatusColor(status),
-          fields: [
-            { name: 'Paciente', value: context.patientName || 'Sin paciente asignado', inline: true },
-            { name: 'Dispositivo', value: deviceLabel, inline: true },
-            { name: 'Tipo', value: input.eventType, inline: true },
-            { name: 'Estado', value: status, inline: true },
-            { name: 'Ocurrido', value: occurredAtIso, inline: false },
-            { name: 'Origen', value: getSourceLabel(input.source), inline: true },
-            { name: 'Event UID', value: input.eventUid || 'N/A', inline: false },
-            { name: 'Panel', value: `[Abrir evento](${eventUrl})`, inline: false }
-          ],
+          fields,
           timestamp: new Date().toISOString(),
           footer: {
             text: `event_ref: ${eventRef}`

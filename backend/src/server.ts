@@ -15,20 +15,25 @@ import { getJwtSecret } from './config/env';
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = getJwtSecret();
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+const allowedOrigins = (process.env.FRONTEND_URL || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+const isMobileDevOrigin = (origin: string) => {
+  if (origin.startsWith('exp://')) return true;
+  return /^https?:\/\/(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)(:\d+)?$/.test(origin);
+};
 
 // Middlewares
 app.use(express.json());
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || isMobileDevOrigin(origin)) {
       callback(null, true);
       return;
     }
-    callback(new Error('Origen no permitido por CORS'));
+    callback(null, false);
   },
   credentials: true
 }));
