@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { RootStackParamList } from '../navigation/types';
 import { ApiError } from '../api/client';
 import { getEvent, updateEventStatus } from '../api/endpoints';
+import { FallEvent } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import { GlassScreen } from '../components/GlassScreen';
 import { GlassHeader } from '../components/GlassHeader';
@@ -19,12 +20,40 @@ import { theme } from '../theme';
 import { formatDateTime } from '../utils/format';
 
 const LIVE_REFETCH_INTERVAL_MS = 3000;
-const REVIEW_STATUS = {
-  CONFIRMED_FALL: 'CONFIRMED_FALL',
-  FALSE_ALARM: 'FALSE_ALARM'
-} as const;
+type ReviewStatus = NonNullable<FallEvent['status']>;
 
-type ReviewStatus = (typeof REVIEW_STATUS)[keyof typeof REVIEW_STATUS];
+const REVIEW_STATUS_OPTIONS: { value: ReviewStatus; label: string }[] = [
+  { value: 'OPEN', label: 'Abierto' },
+  { value: 'CONFIRMED_FALL', label: 'Caida confirmada' },
+  { value: 'FALSE_ALARM', label: 'Falsa alarma' },
+  { value: 'RESOLVED', label: 'Resuelto' }
+];
+
+const normalizeReviewStatus = (status?: string | null): ReviewStatus => {
+  switch (status) {
+    case 'CONFIRMED_FALL':
+    case 'FALSE_ALARM':
+    case 'RESOLVED':
+      return status;
+    default:
+      return 'OPEN';
+  }
+};
+
+const normalizeReviewComment = (value?: string | null): string => (typeof value === 'string' ? value.trim() : '');
+
+const getReviewStatusLabel = (status: ReviewStatus) => {
+  switch (status) {
+    case 'CONFIRMED_FALL':
+      return 'caida confirmada';
+    case 'FALSE_ALARM':
+      return 'falsa alarma';
+    case 'RESOLVED':
+      return 'resuelto';
+    default:
+      return 'abierto';
+  }
+};
 
 const getEventTypeLabel = (eventType?: string) => {
   switch (eventType) {
@@ -41,13 +70,13 @@ const getEventTypeLabel = (eventType?: string) => {
 
 const getReviewErrorMessage = (error: unknown) => {
   if (error instanceof ApiError) {
-    if (error.status === 403) return 'Solo administradores pueden revisar eventos.';
+    if (error.status === 403) return 'No tienes permiso para revisar este evento.';
     if (error.status === 404) return 'No se encontro el evento para actualizar.';
     if (error.status >= 500) return 'El backend no pudo actualizar el evento.';
-    return error.message || 'No se pudo actualizar el estado del evento.';
+    return error.message || 'No se pudo guardar la revision del evento.';
   }
 
-  return 'No se pudo actualizar el estado del evento.';
+  return 'No se pudo guardar la revision del evento.';
 };
 
 export const EventDetailsScreen = ({ route, navigation }: NativeStackScreenProps<RootStackParamList, 'EventDetails'>) => {
@@ -63,18 +92,25 @@ export const EventDetailsScreen = ({ route, navigation }: NativeStackScreenProps
   });
 
   const event = query.data;
-  const canReview = user?.role === 'ADMIN' && Boolean(event);
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus>('OPEN');
+  const [reviewComment, setReviewComment] = useState('');
+  const [isEditingReview, setIsEditingReview] = useState(false);
+  const canReview = Boolean(user && event);
 
   const updateStatusMutation = useMutation({
-    mutationFn: (status: ReviewStatus) => updateEventStatus(eventId, status),
-    onSuccess: (_, status) => {
+    mutationFn: (payload: { status: ReviewStatus; reviewComment: string }) =>
+      updateEventStatus(eventId, {
+        status: payload.status,
+        reviewComment: payload.reviewComment
+      }),
+    onSuccess: (updatedEvent, payload) => {
       setFeedback({
         type: 'success',
-        message:
-          status === REVIEW_STATUS.CONFIRMED_FALL
-            ? 'Evento marcado como caida confirmada.'
-            : 'Evento marcado como falsa alarma.'
+        message: `Evento actualizado a ${getReviewStatusLabel(payload.status)}.`
       });
+      setIsEditingReview(false);
+      setReviewStatus(normalizeReviewStatus(updatedEvent?.status ?? payload.status));
+      setReviewComment((updatedEvent?.reviewComment ?? payload.reviewComment ?? '').slice(0, 255));
       queryClient.invalidateQueries({ queryKey: ['event', eventId] });
       queryClient.invalidateQueries({ queryKey: ['events'] });
     },
@@ -83,8 +119,16 @@ export const EventDetailsScreen = ({ route, navigation }: NativeStackScreenProps
     }
   });
 
-  const isConfirmed = event?.status === REVIEW_STATUS.CONFIRMED_FALL;
-  const isFalseAlarm = event?.status === REVIEW_STATUS.FALSE_ALARM;
+  useEffect(() => {
+    if (!event || isEditingReview || updateStatusMutation.isPending) return;
+    setReviewStatus(normalizeReviewStatus(event.status));
+    setReviewComment((event.reviewComment || '').slice(0, 255));
+  }, [event?.id, event?.status, event?.reviewComment, isEditingReview, updateStatusMutation.isPending]);
+
+  const hasPendingChanges = Boolean(event) &&
+    (reviewStatus !== normalizeReviewStatus(event?.status) ||
+      normalizeReviewComment(reviewComment) !== normalizeReviewComment(event?.reviewComment));
+
   const isPending = updateStatusMutation.isPending;
 
   return (
@@ -121,42 +165,68 @@ export const EventDetailsScreen = ({ route, navigation }: NativeStackScreenProps
 
       <AnimatedReveal delay={200}>
         <GlassCard>
-          <Text style={styles.sectionTitle}>Clasificacion del evento</Text>
-          <Text style={styles.sectionHint}>Define si fue una caida real o una falsa alarma.</Text>
+          <Text style={styles.sectionTitle}>Revision editable</Text>
+          <Text style={styles.sectionHint}>Actualiza estado y comentario como en el panel web.</Text>
+
+          <View style={styles.statusGrid}>
+            {REVIEW_STATUS_OPTIONS.map((option) => {
+              const isSelected = reviewStatus === option.value;
+              return (
+                <Pressable
+                  key={option.value}
+                  onPress={() => {
+                    setFeedback(null);
+                    setIsEditingReview(true);
+                    setReviewStatus(option.value);
+                  }}
+                  style={[
+                    styles.statusOption,
+                    isSelected && styles.statusOptionActive,
+                    (!canReview || isPending) && styles.statusOptionDisabled
+                  ]}
+                  disabled={!canReview || isPending}
+                >
+                  <StatusPill status={option.value} />
+                  <Text style={[styles.statusOptionLabel, isSelected && styles.statusOptionLabelActive]}>{option.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <View style={styles.commentWrap}>
+            <Text style={styles.commentLabel}>Comentario</Text>
+            <TextInput
+              value={reviewComment}
+              onChangeText={(value) => {
+                setFeedback(null);
+                setIsEditingReview(true);
+                setReviewComment(value);
+              }}
+              editable={canReview && !isPending}
+              maxLength={255}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              placeholder="Anade observaciones de la revision..."
+              placeholderTextColor={theme.colors.textSecondary}
+              style={styles.commentInput}
+            />
+            <Text style={styles.commentCounter}>{reviewComment.length}/255</Text>
+          </View>
 
           <View style={styles.actionsWrap}>
             <PrimaryButton
-              title={
-                isPending && updateStatusMutation.variables === REVIEW_STATUS.CONFIRMED_FALL
-                  ? 'Guardando...'
-                  : isConfirmed
-                    ? 'Caida confirmada'
-                    : 'Confirmar caida'
-              }
+              title={isPending ? 'Guardando...' : 'Guardar revision'}
               onPress={() => {
                 setFeedback(null);
-                updateStatusMutation.mutate(REVIEW_STATUS.CONFIRMED_FALL);
+                updateStatusMutation.mutate({ status: reviewStatus, reviewComment });
               }}
-              disabled={!canReview || isPending || isConfirmed}
-            />
-            <PrimaryButton
-              title={
-                isPending && updateStatusMutation.variables === REVIEW_STATUS.FALSE_ALARM
-                  ? 'Guardando...'
-                  : isFalseAlarm
-                    ? 'Falsa alarma'
-                    : 'Marcar falsa alarma'
-              }
-              variant="ghost"
-              onPress={() => {
-                setFeedback(null);
-                updateStatusMutation.mutate(REVIEW_STATUS.FALSE_ALARM);
-              }}
-              disabled={!canReview || isPending || isFalseAlarm}
+              disabled={!canReview || isPending || !hasPendingChanges}
             />
           </View>
 
-          {user?.role !== 'ADMIN' ? <Text style={styles.sectionHelp}>Solo usuarios ADMIN pueden cambiar el estado.</Text> : null}
+          {!canReview ? <Text style={styles.sectionHelp}>No tienes permisos para revisar este evento.</Text> : null}
+          {canReview && !hasPendingChanges ? <Text style={styles.sectionHelp}>No hay cambios pendientes por guardar.</Text> : null}
           {feedback ? (
             <Text style={[styles.feedbackText, feedback.type === 'success' ? styles.feedbackSuccess : styles.feedbackError]}>
               {feedback.message}
@@ -191,6 +261,68 @@ const styles = StyleSheet.create({
   actionsWrap: {
     marginTop: theme.spacing.md,
     gap: theme.spacing.sm
+  },
+  statusGrid: {
+    marginTop: theme.spacing.md,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm
+  },
+  statusOption: {
+    flexGrow: 1,
+    minWidth: '46%',
+    borderRadius: theme.radii.apple,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
+    gap: theme.spacing.xs
+  },
+  statusOptionActive: {
+    borderColor: theme.colors.primary,
+    backgroundColor: 'rgba(99,102,241,0.16)'
+  },
+  statusOptionDisabled: {
+    opacity: 0.6
+  },
+  statusOptionLabel: {
+    fontFamily: theme.typography.family.medium,
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.textSecondary
+  },
+  statusOptionLabelActive: {
+    color: theme.colors.textPrimary
+  },
+  commentWrap: {
+    marginTop: theme.spacing.md
+  },
+  commentLabel: {
+    fontFamily: theme.typography.family.semibold,
+    fontSize: theme.typography.size.xs,
+    letterSpacing: 0.8,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase'
+  },
+  commentInput: {
+    marginTop: theme.spacing.xs,
+    minHeight: 108,
+    borderRadius: theme.radii.card,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.bgSecondary,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
+    fontFamily: theme.typography.family.medium,
+    fontSize: theme.typography.size.sm,
+    color: theme.colors.textPrimary
+  },
+  commentCounter: {
+    marginTop: theme.spacing.xs,
+    alignSelf: 'flex-end',
+    fontFamily: theme.typography.family.medium,
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.textSecondary
   },
   sectionHelp: {
     marginTop: theme.spacing.sm,

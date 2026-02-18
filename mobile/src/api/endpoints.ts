@@ -19,9 +19,27 @@ const unwrap = <T>(data: T | T[]): T | null => {
 
 const sortByDateDesc = (value?: string) => (value ? new Date(value).getTime() : 0);
 
+const dedupeDevicesById = (devices: Device[]): Device[] => {
+  const seen = new Set<string>();
+  const unique: Device[] = [];
+
+  for (const device of devices) {
+    const id = device.id?.trim();
+    if (!id) {
+      unique.push(device);
+      continue;
+    }
+    if (seen.has(id)) continue;
+    seen.add(id);
+    unique.push(device);
+  }
+
+  return unique;
+};
+
 export const getDevices = async (signal?: AbortSignal): Promise<Device[]> => {
   const rows = await apiRequest<ApiDeviceRow[]>('/devices', { signal });
-  return rows.map(mapDeviceRow);
+  return dedupeDevicesById(rows.map(mapDeviceRow));
 };
 
 export const getDevice = async (id: string, signal?: AbortSignal): Promise<Device | null> => {
@@ -46,13 +64,20 @@ export const getEventsByDevice = async (deviceId: string, signal?: AbortSignal):
   return rows.map(mapEventRow).sort((a, b) => sortByDateDesc(b.occurredAt) - sortByDateDesc(a.occurredAt));
 };
 
+export type UpdateEventReviewInput = {
+  status: NonNullable<FallEvent['status']>;
+  reviewComment?: string | null;
+};
+
 export const updateEventStatus = async (
   id: string,
-  status: NonNullable<FallEvent['status']>
+  payload: UpdateEventReviewInput
 ): Promise<FallEvent | null> => {
+  const reviewComment =
+    typeof payload.reviewComment === 'string' ? payload.reviewComment.trim() || null : payload.reviewComment ?? null;
   const data = await apiRequest<ApiEventRow[] | ApiEventRow>('/events/update', {
     method: 'PUT',
-    body: { id, status }
+    body: { id, status: payload.status, review_comment: reviewComment }
   });
   const row = unwrap(data);
   return row ? mapEventRow(row) : null;
